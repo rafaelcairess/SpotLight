@@ -1,15 +1,32 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, Sparkles, Menu, X } from "lucide-react";
+import { Search, Sparkles, Menu, X, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
+import { UserAvatar } from "@/components/profile/UserAvatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { data: profile } = useProfile();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +88,60 @@ const Header = () => {
             </div>
           </form>
 
+          {/* Auth Section - Desktop */}
+          <div className="hidden md:flex items-center gap-4">
+            {!authLoading && (
+              user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                      <UserAvatar 
+                        src={profile?.avatar_url} 
+                        displayName={profile?.display_name}
+                        username={profile?.username}
+                        size="md"
+                      />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <div className="flex items-center gap-2 p-2">
+                      <UserAvatar 
+                        src={profile?.avatar_url} 
+                        displayName={profile?.display_name}
+                        username={profile?.username}
+                        size="sm"
+                      />
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {profile?.display_name || 'Gamer'}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          @{profile?.username}
+                        </p>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        Meu Perfil
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sair
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button variant="glow" size="sm" asChild>
+                  <Link to="/auth">Entrar</Link>
+                </Button>
+              )
+            )}
+          </div>
+
           {/* Mobile Menu Button */}
           <Button
             variant="ghost"
@@ -121,6 +192,49 @@ const Header = () => {
                 </Link>
               ))}
             </nav>
+
+            {/* Mobile Auth */}
+            <div className="mt-4 pt-4 border-t border-border/30">
+              {!authLoading && (
+                user ? (
+                  <div className="space-y-2">
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary"
+                    >
+                      <UserAvatar 
+                        src={profile?.avatar_url} 
+                        displayName={profile?.display_name}
+                        username={profile?.username}
+                        size="sm"
+                      />
+                      <span>{profile?.display_name || 'Meu Perfil'}</span>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleSignOut();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 w-full rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sair
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    to="/auth"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block"
+                  >
+                    <Button variant="glow" className="w-full">
+                      Entrar
+                    </Button>
+                  </Link>
+                )
+              )}
+            </div>
           </div>
         )}
       </div>
