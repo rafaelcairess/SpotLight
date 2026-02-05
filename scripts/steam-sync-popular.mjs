@@ -1,4 +1,4 @@
-import fs from "fs";
+﻿import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
@@ -33,6 +33,7 @@ loadEnvFile(".env");
 const STEAM_API_KEY = process.env.STEAM_API_KEY;
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const STEAM_STORE_LANGUAGE = process.env.STEAM_STORE_LANGUAGE || "brazilian";
 
 if (!STEAM_API_KEY) {
   throw new Error("STEAM_API_KEY not found. Add it to .env.local.");
@@ -62,7 +63,7 @@ const fetchJson = async (url) => {
 };
 
 const getAppDetails = async (appId) => {
-  const url = `https://store.steampowered.com/api/appdetails?appids=${appId}&cc=br&l=pt`;
+  const url = `https://store.steampowered.com/api/appdetails?appids=${appId}&cc=br&l=${STEAM_STORE_LANGUAGE}`;
   const data = await fetchJson(url);
   const entry = data?.[appId];
   if (!entry?.success) return null;
