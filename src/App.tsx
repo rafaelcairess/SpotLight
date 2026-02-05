@@ -11,6 +11,7 @@ import Search from "./pages/Search";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Promotions from "./pages/Promotions";
+import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/collections/:categoryId" element={<CollectionDetail />} />
             <Route path="/search" element={<Search />} />
             <Route path="/promocoes" element={<Promotions />} />
+            <Route path="/comunidade" element={<Community />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

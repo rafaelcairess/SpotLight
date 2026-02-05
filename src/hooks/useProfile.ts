@@ -53,6 +53,22 @@ export function useProfileByUsername(username: string | undefined) {
   });
 }
 
+export function useCommunityProfiles(limit = 24) {
+  return useQuery({
+    queryKey: ['profiles', 'community', limit],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return data as Profile[];
+    },
+  });
+}
+
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   const { user } = useAuth();

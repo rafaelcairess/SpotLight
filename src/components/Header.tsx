@@ -1,4 +1,4 @@
-import { Search, Sparkles, Menu, X, User, LogOut, DollarSign } from "lucide-react";
+import { Search, Sparkles, Menu, X, User, LogOut, DollarSign, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ const Header = () => {
 
   const navLinks = [
     { href: "/", label: "Explorar" },
+    { href: "/comunidade", label: "Comunidade", icon: Users },
     { href: "/promocoes", label: "Promoções", icon: DollarSign },
     { href: "/collections", label: "Coleções" },
   ];
