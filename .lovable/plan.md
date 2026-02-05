@@ -1,258 +1,172 @@
 
-# SpotLight 2.0 - Plataforma Social para Gamers
 
-## Visão Geral
+# Sistema de Reviews e Rankings - SpotLight
 
-Transformar o SpotLight em uma plataforma social completa inspirada no Steam, com perfis de usuário, sistema de reviews, recomendações por IA e recursos sociais.
+## Visao Geral
 
----
-
-## Novas Funcionalidades
-
-### 1. Rankings Expandidos
-- **Mais Jogados**: Lista dos jogos com mais jogadores ativos
-- **Mais Bem Avaliados**: Lista baseada nas avaliações da Steam
-- Navegação por abas na página inicial
-
-### 2. Sistema de Perfil de Usuário
-- Foto de perfil personalizável
-- Nome único (username) para busca por outros usuários
-- Estatísticas do perfil (jogos na biblioteca, reviews escritas)
-- Listas personalizadas:
-  - **Favoritos**: Jogos que mais gostou
-  - **Platinados**: Jogos 100% completados
-  - **Jogando**: Jogos em andamento
-  - **Lista de Desejos**: Jogos para comprar
-
-### 3. Sistema de Reviews
-- Usuários podem escrever análises dos jogos
-- Avaliação positiva/negativa (estilo Steam)
-- Horas jogadas (input manual)
-- Reviews aparecem na página do jogo e no perfil do usuário
-
-### 4. Descoberta Social
-- Buscar outros usuários pelo username
-- Ver perfis públicos de outros jogadores
-- Visualizar reviews e listas de outros usuários
-
-### 5. IA de Recomendações "O que jogar hoje?"
-Um assistente inteligente que pergunta:
-- **Sozinho ou acompanhado?**
-- **Local ou online?**
-  - Mesmo sofá (split-screen/couch co-op)
-  - Online com amigos
-- **Quantos jogadores?** (2, 3, 4+)
-- **Gênero preferido?**
-- **Quanto tempo disponível?**
-
-A IA analisa as reviews do usuário para refinar recomendações.
+Implementar um sistema completo de reviews onde usuarios podem escrever analises dos jogos, e expandir a secao de rankings na pagina inicial com abas para diferentes tipos de classificacao (Mais Vendidos, Mais Jogados, Mais Bem Avaliados).
 
 ---
 
-## Arquitetura de Dados (Supabase)
+## Funcionalidades a Implementar
 
-### Tabelas Necessárias
+### 1. Sistema de Reviews no Modal do Jogo
 
-```text
-+------------------+     +------------------+     +------------------+
-|     profiles     |     |   user_games     |     |     reviews      |
-+------------------+     +------------------+     +------------------+
-| id (FK auth)     |     | id               |     | id               |
-| username (único) |     | user_id (FK)     |     | user_id (FK)     |
-| display_name     |     | app_id           |     | app_id           |
-| avatar_url       |     | status           |     | content          |
-| bio              |     | hours_played     |     | is_positive      |
-| created_at       |     | is_favorite      |     | hours_at_review  |
-+------------------+     | is_platinumed    |     | created_at       |
-                         | added_at         |     +------------------+
-                         +------------------+
-```
+O modal de detalhes do jogo (`GameModal.tsx`) sera expandido para incluir:
+- Secao de reviews de outros usuarios
+- Formulario para escrever/editar sua propria review
+- Indicador de recomendacao (positivo/negativo) estilo Steam
+- Campo de horas jogadas
 
-### Status de Jogos
-- `wishlist` - Lista de desejos
-- `playing` - Jogando atualmente
-- `completed` - Finalizado
-- `dropped` - Abandonado
+### 2. Rankings com Abas
 
----
-
-## Novas Páginas
-
-| Rota | Descrição |
-|------|-----------|
-| `/auth` | Login/Cadastro |
-| `/profile` | Perfil do usuário logado |
-| `/profile/:username` | Perfil público de outro usuário |
-| `/profile/edit` | Editar perfil |
-| `/game/:appId` | Página do jogo com reviews |
-| `/game/:appId/review` | Escrever/editar review |
-| `/users/search` | Buscar usuários |
-| `/recommend` | Assistente "O que jogar hoje?" |
-| `/rankings` | Página dedicada com abas |
+A secao de rankings na pagina inicial tera 3 abas:
+- **Mais Vendidos** - Lista atual (dados mockados)
+- **Mais Jogados** - Ordenado por jogadores ativos
+- **Melhores Avaliados** - Ordenado por avaliacao da comunidade
 
 ---
 
 ## Novos Componentes
 
-### Perfil
-- `UserAvatar` - Foto de perfil com fallback
-- `ProfileHeader` - Cabeçalho do perfil
-- `ProfileStats` - Estatísticas do usuário
-- `GameLibrary` - Grid de jogos do usuário
-- `GameStatusBadge` - Badge de status (Platinado, Favorito, etc)
-
-### Reviews
-- `ReviewCard` - Card de review
-- `ReviewForm` - Formulário de nova review
-- `ReviewList` - Lista de reviews de um jogo
-
-### Recomendações
-- `RecommendationWizard` - Wizard interativo de perguntas
-- `RecommendationResults` - Resultados da IA
-
-### Rankings
-- `RankingTabs` - Abas (Mais Vendidos, Mais Jogados, Mais Bem Avaliados)
-- `RankingList` - Lista reutilizável
+| Componente | Descricao |
+|------------|-----------|
+| `ReviewForm.tsx` | Formulario para criar/editar reviews |
+| `ReviewCard.tsx` | Card individual de review com avatar e conteudo |
+| `ReviewList.tsx` | Lista de reviews de um jogo |
+| `GameReviewsSection.tsx` | Secao completa de reviews para o modal |
+| `RankingTabs.tsx` | Componente de abas para os rankings |
 
 ---
 
-## Fluxo do Usuário
+## Alteracoes em Arquivos Existentes
+
+### GameModal.tsx
+- Adicionar aba de "Reviews" com scroll area
+- Integrar `GameReviewsSection`
+- Usar Tabs do Radix UI para organizar conteudo
+
+### Index.tsx
+- Substituir a secao fixa de rankings por `RankingTabs`
+- Adicionar estado para controlar aba ativa
+- Logica de ordenacao dos jogos por tipo de ranking
+
+---
+
+## Fluxo do Usuario
 
 ```text
-1. Usuário acessa o app
-         │
-         ▼
-2. Cria conta / Faz login
-         │
-         ▼
-3. Configura perfil (username, foto)
-         │
-         ▼
-4. Explora jogos e adiciona à biblioteca
-         │
-         ▼
-5. Escreve reviews dos jogos
-         │
-         ▼
-6. IA aprende preferências e recomenda
-         │
-         ▼
-7. Usa "O que jogar hoje?" para descobrir
-         │
-         ▼
-8. Busca amigos e vê seus perfis
+Usuario abre modal do jogo
+         |
+         v
+Ve informacoes + reviews de outros
+         |
+         v
+[Logado?] -- Nao --> Botao "Faca login para avaliar"
+    |
+    Sim
+    |
+    v
+[Ja tem review?] -- Sim --> Pode editar/excluir
+    |
+    Nao
+    |
+    v
+Clica em "Escrever Review"
+         |
+         v
+Preenche: Recomenda? + Horas + Texto
+         |
+         v
+Salva no banco (Supabase)
+         |
+         v
+Review aparece na lista
 ```
 
 ---
 
-## Plano de Implementação
+## Estrutura dos Componentes de Review
 
-### Fase 1: Infraestrutura (Primeiro)
-1. Habilitar Supabase/Cloud no projeto
-2. Criar schema do banco de dados (tabelas + RLS)
-3. Configurar autenticação (email/senha)
-
-### Fase 2: Sistema de Autenticação
-1. Página de login/cadastro
-2. Contexto de autenticação (AuthContext)
-3. Proteção de rotas privadas
-4. Hook `useAuth` para acesso ao usuário
-
-### Fase 3: Perfil de Usuário
-1. Criação automática de perfil após cadastro
-2. Página de edição de perfil
-3. Upload de foto de perfil (Supabase Storage)
-4. Validação de username único
-
-### Fase 4: Biblioteca de Jogos
-1. Adicionar jogos à biblioteca pessoal
-2. Marcar como favorito/platinado
-3. Gerenciar status (jogando, completado, etc)
-4. Exibir biblioteca no perfil
-
-### Fase 5: Sistema de Reviews
-1. Formulário de review no modal do jogo
-2. Listagem de reviews na página do jogo
-3. Reviews do usuário em seu perfil
-4. Editar/excluir próprias reviews
-
-### Fase 6: Rankings Expandidos
-1. Nova página `/rankings` com abas
-2. Integração com API para "Mais Jogados"
-3. Integração com API para "Mais Bem Avaliados"
-
-### Fase 7: Descoberta Social
-1. Busca de usuários por username
-2. Visualização de perfis públicos
-3. Ver reviews e biblioteca de outros
-
-### Fase 8: IA de Recomendações
-1. Wizard interativo de perguntas
-2. Lógica de filtragem baseada em respostas
-3. Integração com OpenAI para análise de reviews
-4. Histórico de recomendações
-
----
-
-## Seção Técnica
-
-### Dependências Novas
-- `@supabase/supabase-js` - Cliente Supabase
-- `openai` (via Edge Function) - Recomendações por IA
-
-### Estrutura de Pastas Proposta
+### ReviewForm
 ```text
-src/
-├── components/
-│   ├── auth/
-│   │   ├── LoginForm.tsx
-│   │   └── SignupForm.tsx
-│   ├── profile/
-│   │   ├── UserAvatar.tsx
-│   │   ├── ProfileHeader.tsx
-│   │   ├── ProfileStats.tsx
-│   │   └── GameLibrary.tsx
-│   ├── reviews/
-│   │   ├── ReviewCard.tsx
-│   │   ├── ReviewForm.tsx
-│   │   └── ReviewList.tsx
-│   ├── recommendations/
-│   │   ├── RecommendationWizard.tsx
-│   │   └── WizardStep.tsx
-│   └── rankings/
-│       └── RankingTabs.tsx
-├── contexts/
-│   └── AuthContext.tsx
-├── hooks/
-│   ├── useAuth.ts
-│   ├── useProfile.ts
-│   ├── useUserGames.ts
-│   └── useReviews.ts
-├── pages/
-│   ├── Auth.tsx
-│   ├── Profile.tsx
-│   ├── ProfileEdit.tsx
-│   ├── PublicProfile.tsx
-│   ├── GamePage.tsx
-│   ├── Rankings.tsx
-│   ├── Recommend.tsx
-│   └── UserSearch.tsx
-└── lib/
-    └── supabase.ts
++------------------------------------------+
+|  Voce recomenda este jogo?               |
+|  [Sim (verde)]  [Nao (vermelho)]         |
+|                                          |
+|  Horas jogadas: [____] h                 |
+|                                          |
+|  Sua analise:                            |
+|  +--------------------------------------+|
+|  |                                      ||
+|  |  (textarea)                          ||
+|  |                                      ||
+|  +--------------------------------------+|
+|                                          |
+|  [Cancelar]  [Publicar Review]           |
++------------------------------------------+
 ```
 
-### Segurança (RLS)
-- Perfis: Leitura pública, escrita apenas pelo dono
-- Reviews: Leitura pública, escrita/edição pelo autor
-- Biblioteca: Leitura pública, escrita pelo dono
-- Usernames únicos com constraint no banco
-
-### Edge Functions
-- `recommend-games` - Processa perguntas e retorna sugestões via IA
-- Usa OpenAI para analisar reviews do usuário e refinar recomendações
+### ReviewCard
+```text
++------------------------------------------+
+|  [Avatar] Username           Recomendado |
+|           12h jogadas    ha 2 dias       |
+|  ----------------------------------------|
+|  Texto da review do usuario...           |
++------------------------------------------+
+```
 
 ---
 
-## Próximo Passo
+## Estrutura dos Rankings com Abas
 
-Aprovar este plano para iniciar pela **Fase 1**: habilitar o Cloud/Supabase e criar a arquitetura do banco de dados com todas as tabelas e políticas de segurança necessárias.
+```text
++------------------------------------------+
+|  [Mais Vendidos] [Mais Jogados] [Top]    |
+|  ----------------------------------------|
+|  Lista de jogos ordenada conforme aba    |
++------------------------------------------+
+```
+
+---
+
+## Secao Tecnica
+
+### Dependencias
+- Ja instaladas: `@radix-ui/react-tabs`, `react-hook-form`, `zod`
+
+### Arquivos a Criar
+```text
+src/components/reviews/
+  - ReviewForm.tsx
+  - ReviewCard.tsx
+  - ReviewList.tsx
+  - GameReviewsSection.tsx
+
+src/components/rankings/
+  - RankingTabs.tsx
+```
+
+### Hooks Utilizados
+- `useReviewsByGame(appId)` - Reviews de um jogo
+- `useUserReviewForGame(appId)` - Review do usuario logado
+- `useCreateReview()` - Criar review
+- `useUpdateReview()` - Atualizar review
+- `useDeleteReview()` - Excluir review
+
+### Integracao com Auth
+- Verificar `user` do `AuthContext` antes de mostrar formulario
+- Proteger operacoes de escrita com verificacao de autenticacao
+- Exibir mensagem amigavel para usuarios nao logados
+
+---
+
+## Resumo de Mudancas
+
+1. **Criar 4 componentes de review** para formulario, cards e listagem
+2. **Criar componente RankingTabs** com 3 tipos de ordenacao
+3. **Expandir GameModal** para incluir secao de reviews com abas
+4. **Atualizar Index.tsx** para usar o novo sistema de abas nos rankings
+5. **Integrar hooks existentes** para operacoes CRUD de reviews
+
