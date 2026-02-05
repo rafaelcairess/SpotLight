@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Users, Star, Calendar, Building, Tag, ExternalLink } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ interface GameModalProps {
 
 const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
   const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const isOpeningReviewRef = useRef(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   if (!game) return null;
@@ -27,6 +28,12 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
       setIsReviewOpen(false);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isReviewOpen) {
+      isOpeningReviewRef.current = false;
+    }
+  }, [isReviewOpen]);
 
   const getRatingColor = (rating?: number) => {
     if (!rating) return "text-muted-foreground";
@@ -55,11 +62,12 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
       navigate("/auth");
       return;
     }
+    isOpeningReviewRef.current = true;
     setIsReviewOpen(true);
   };
 
   const handleModalChange = (open: boolean) => {
-    if (!open && isReviewOpen) return;
+    if (!open && (isReviewOpen || isOpeningReviewRef.current)) return;
     if (!open) {
       onClose();
     }
