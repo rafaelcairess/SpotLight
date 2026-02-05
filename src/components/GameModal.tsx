@@ -74,7 +74,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleModalChange}>
+    <Dialog open={isOpen} onOpenChange={handleModalChange} modal={false}>
       <DialogContent className="max-w-3xl p-0 overflow-hidden bg-card border-border/50 gap-0">
         {/* Hero Image */}
         <div className="relative aspect-video">

@@ -112,7 +112,7 @@ const ReviewDialog = ({ open, onOpenChange, appId, gameTitle }: ReviewDialogProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg z-[60]">
         <DialogHeader>
           <DialogTitle>
             {gameTitle ? `Review: ${gameTitle}` : "Escrever Review"}
