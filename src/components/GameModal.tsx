@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GameData } from "@/types/game";
 import { cn } from "@/lib/utils";
+import { GameLibraryActions } from "@/components/game/GameLibraryActions";
 
 interface GameModalProps {
   game: GameData | null;
@@ -169,6 +170,11 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
             </div>
           )}
 
+          {/* Library Actions */}
+          <div className="pt-4 border-t border-border/50">
+            <GameLibraryActions appId={Number(game.app_id)} />
+          </div>
+
           {/* Price & CTA */}
           <div className="flex items-center justify-between pt-4 border-t border-border/50">
             {game.price && (
@@ -181,7 +187,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                 </p>
               </div>
             )}
-            <Button onClick={handleOpenSteam} className="gap-2">
+            <Button onClick={handleOpenSteam} variant="outline" className="gap-2">
               Ver na Steam
               <ExternalLink className="w-4 h-4" />
             </Button>
