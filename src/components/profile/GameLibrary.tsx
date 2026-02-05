@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+﻿import { useMemo } from "react";
 import { Heart, Trophy, Clock, Trash2, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ interface GameLibraryProps {
   games: UserGame[];
   isLoading: boolean;
   emptyMessage: string;
+  readOnly?: boolean;
 }
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -27,7 +28,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   dropped: { label: "Abandonado", color: "bg-rose-500/10 text-rose-500" },
 };
 
-export function GameLibrary({ games, isLoading, emptyMessage }: GameLibraryProps) {
+export function GameLibrary({ games, isLoading, emptyMessage, readOnly = false }: GameLibraryProps) {
   const { toast } = useToast();
   const updateGame = useUpdateGame();
   const removeGame = useRemoveGame();
@@ -59,7 +60,7 @@ export function GameLibrary({ games, isLoading, emptyMessage }: GameLibraryProps
         updates: { is_platinumed: !game.is_platinumed }
       });
       toast({
-        title: game.is_platinumed ? "Platina removida" : "Platina conquistada! 🏆",
+        title: game.is_platinumed ? "Platina removida" : "Platina conquistada! ðŸ†",
       });
     } catch (error) {
       toast({ title: "Erro ao atualizar", variant: "destructive" });
@@ -143,46 +144,48 @@ export function GameLibrary({ games, isLoading, emptyMessage }: GameLibraryProps
               </div>
 
               {/* Actions Menu */}
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="secondary" size="icon" className="h-8 w-8">
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleToggleFavorite(userGame)}>
-                      <Heart className={cn("w-4 h-4 mr-2", userGame.is_favorite && "fill-current text-rose-500")} />
-                      {userGame.is_favorite ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleTogglePlatinum(userGame)}>
-                      <Trophy className={cn("w-4 h-4 mr-2", userGame.is_platinumed && "text-amber-500")} />
-                      {userGame.is_platinumed ? "Remover Platina" : "Marcar como Platinado"}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleChangeStatus(userGame, 'wishlist')}>
-                      Lista de Desejos
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleChangeStatus(userGame, 'playing')}>
-                      Jogando
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleChangeStatus(userGame, 'completed')}>
-                      Completado
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleChangeStatus(userGame, 'dropped')}>
-                      Abandonado
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      onClick={() => handleRemove(userGame)}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Remover da Biblioteca
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+              {!readOnly && (
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="secondary" size="icon" className="h-8 w-8">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleToggleFavorite(userGame)}>
+                        <Heart className={cn("w-4 h-4 mr-2", userGame.is_favorite && "fill-current text-rose-500")} />
+                        {userGame.is_favorite ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleTogglePlatinum(userGame)}>
+                        <Trophy className={cn("w-4 h-4 mr-2", userGame.is_platinumed && "text-amber-500")} />
+                        {userGame.is_platinumed ? "Remover Platina" : "Marcar como Platinado"}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, 'wishlist')}>
+                        Lista de Desejos
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, 'playing')}>
+                        Jogando
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, 'completed')}>
+                        Completado
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, 'dropped')}>
+                        Abandonado
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => handleRemove(userGame)}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Remover da Biblioteca
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
             </div>
 
             {/* Info */}

@@ -1,18 +1,29 @@
-import { GamepadIcon, Heart, Trophy, BookOpen } from "lucide-react";
+import { GamepadIcon, Heart, Trophy, BookOpen, Users, UserPlus } from "lucide-react";
 
 interface ProfileStatsProps {
   totalGames: number;
   favorites: number;
   platinums: number;
   reviews: number;
+  followers: number;
+  following: number;
 }
 
-export function ProfileStats({ totalGames, favorites, platinums, reviews }: ProfileStatsProps) {
+export function ProfileStats({
+  totalGames,
+  favorites,
+  platinums,
+  reviews,
+  followers,
+  following,
+}: ProfileStatsProps) {
   const stats = [
     { label: "Jogos", value: totalGames, icon: GamepadIcon, color: "text-primary" },
     { label: "Favoritos", value: favorites, icon: Heart, color: "text-rose-500" },
     { label: "Platinas", value: platinums, icon: Trophy, color: "text-amber-500" },
     { label: "Reviews", value: reviews, icon: BookOpen, color: "text-blue-500" },
+    { label: "Seguidores", value: followers, icon: Users, color: "text-emerald-500" },
+    { label: "Seguindo", value: following, icon: UserPlus, color: "text-indigo-500" },
   ];
 
   return (

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { Search, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -50,6 +50,10 @@ const Community = () => {
     } else {
       followUser.mutate(targetUserId);
     }
+  };
+
+  const handleOpenProfile = (username: string) => {
+    navigate(`/u/${username}`);
   };
 
   return (
@@ -108,7 +112,15 @@ const Community = () => {
                 return (
                   <div
                     key={profile.id}
-                    className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border/40 bg-card/60 backdrop-blur"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleOpenProfile(profile.username)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleOpenProfile(profile.username);
+                      }
+                    }}
+                    className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border/40 bg-card/60 backdrop-blur hover:border-primary/40 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <UserAvatar
@@ -141,7 +153,10 @@ const Community = () => {
                         <Button
                           variant={isFollowing ? "secondary" : "glow"}
                           size="sm"
-                          onClick={() => handleToggleFollow(profile.user_id, isFollowing)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleToggleFollow(profile.user_id, isFollowing);
+                          }}
                           disabled={followUser.isPending || unfollowUser.isPending}
                         >
                           {isFollowing ? "Seguindo" : "Seguir"}

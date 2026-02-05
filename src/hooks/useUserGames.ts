@@ -17,9 +17,9 @@ export interface UserGame {
   updated_at: string;
 }
 
-export function useUserGames(userId?: string) {
+export function useUserGames(userId?: string, useAuthFallback = true) {
   const { user } = useAuth();
-  const targetUserId = userId || user?.id;
+  const targetUserId = userId ?? (useAuthFallback ? user?.id : undefined);
 
   return useQuery({
     queryKey: ['user_games', targetUserId],

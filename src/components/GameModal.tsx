@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { X, Users, Star, Calendar, Building, Tag, ExternalLink } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { GameData } from "@/types/game";
 import { cn } from "@/lib/utils";
 import { GameLibraryActions } from "@/components/game/GameLibraryActions";
+import ReviewDialog from "@/components/game/ReviewDialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface GameModalProps {
   game: GameData | null;
@@ -13,7 +17,16 @@ interface GameModalProps {
 }
 
 const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
   if (!game) return null;
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsReviewOpen(false);
+    }
+  }, [isOpen]);
 
   const getRatingColor = (rating?: number) => {
     if (!rating) return "text-muted-foreground";
@@ -35,6 +48,14 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
       "_blank",
       "noopener,noreferrer"
     );
+  };
+
+  const handleWriteReview = () => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    setIsReviewOpen(true);
   };
 
   return (
@@ -172,7 +193,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
 
           {/* Library Actions */}
           <div className="pt-4 border-t border-border/50">
-            <GameLibraryActions appId={Number(game.app_id)} />
+            <GameLibraryActions appId={Number(game.app_id)} onWriteReview={handleWriteReview} />
           </div>
 
           {/* Price & CTA */}
@@ -194,6 +215,12 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
           </div>
         </div>
       </DialogContent>
+      <ReviewDialog
+        open={isReviewOpen}
+        onOpenChange={setIsReviewOpen}
+        appId={Number(game.app_id)}
+        gameTitle={game.title}
+      />
     </Dialog>
   );
 };

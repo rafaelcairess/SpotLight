@@ -62,9 +62,9 @@ export function useReviewsByGame(appId: number) {
   });
 }
 
-export function useReviewsByUser(userId?: string) {
+export function useReviewsByUser(userId?: string, useAuthFallback = true) {
   const { user } = useAuth();
-  const targetUserId = userId || user?.id;
+  const targetUserId = userId ?? (useAuthFallback ? user?.id : undefined);
 
   return useQuery({
     queryKey: ['reviews', 'user', targetUserId],

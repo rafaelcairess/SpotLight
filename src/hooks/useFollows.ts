@@ -83,3 +83,32 @@ export function useUnfollowUser() {
     },
   });
 }
+
+export function useFollowCounts(userId?: string) {
+  return useQuery({
+    queryKey: ['follows', 'counts', userId],
+    queryFn: async () => {
+      if (!userId) return { followers: 0, following: 0 };
+
+      const { count: followersCount, error: followersError } = await supabase
+        .from('follows')
+        .select('*', { head: true, count: 'exact' })
+        .eq('following_id', userId);
+
+      if (followersError) throw followersError;
+
+      const { count: followingCount, error: followingError } = await supabase
+        .from('follows')
+        .select('*', { head: true, count: 'exact' })
+        .eq('follower_id', userId);
+
+      if (followingError) throw followingError;
+
+      return {
+        followers: followersCount ?? 0,
+        following: followingCount ?? 0,
+      };
+    },
+    enabled: !!userId,
+  });
+}

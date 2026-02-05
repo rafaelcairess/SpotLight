@@ -125,7 +125,7 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
   // Not in library
   if (!userGame) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
@@ -154,6 +154,17 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+        {onWriteReview && (
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={onWriteReview}
+            disabled={isLoaderShown}
+          >
+            <BookOpen className="w-4 h-4" />
+            Escrever Review
+          </Button>
+        )}
       </div>
     );
   }

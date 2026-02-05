@@ -1,44 +1,49 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { 
-  Settings, 
-  GamepadIcon, 
-  Heart, 
-  Trophy, 
-  Star, 
+import { useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  GamepadIcon,
+  Heart,
+  Trophy,
   BookOpen,
-  Edit3
+  UserPlus,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfileByUsername } from "@/hooks/useProfile";
 import { useUserGames } from "@/hooks/useUserGames";
 import { useReviewsByUser } from "@/hooks/useReviews";
-import { useFollowCounts } from "@/hooks/useFollows";
+import { useFollowCounts, useFollowUser, useFollowingIds, useUnfollowUser } from "@/hooks/useFollows";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { GameLibrary } from "@/components/profile/GameLibrary";
 import { ProfileReviews } from "@/components/profile/ProfileReviews";
-import { ProfileEditDialog } from "@/components/profile/ProfileEditDialog";
+import NotFound from "./NotFound";
 
-const Profile = () => {
+const PublicProfile = () => {
+  const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const { data: profile, isLoading: profileLoading } = useProfile();
-  const { data: userGames = [], isLoading: gamesLoading } = useUserGames();
-  const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByUser();
-  const { data: followCounts } = useFollowCounts(profile?.user_id);
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  const { user } = useAuth();
+  const { data: profile, isLoading: profileLoading, error } = useProfileByUsername(username);
 
-  // Redirect to auth if not logged in
-  if (!authLoading && !user) {
-    navigate('/auth');
-    return null;
-  }
+  const userId = profile?.user_id;
+  const { data: userGames = [], isLoading: gamesLoading } = useUserGames(userId, false);
+  const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByUser(userId, false);
+  const { data: followCounts } = useFollowCounts(userId);
 
-  if (authLoading || profileLoading) {
+  const profileIds = useMemo(() => (userId ? [userId] : []), [userId]);
+  const { data: followingIds = [] } = useFollowingIds(profileIds);
+  const isFollowing = userId ? followingIds.includes(userId) : false;
+  const isSelf = userId && user?.id === userId;
+
+  const followUser = useFollowUser();
+  const unfollowUser = useUnfollowUser();
+
+  const favoriteGames = userGames.filter(g => g.is_favorite);
+  const platinumGames = userGames.filter(g => g.is_platinumed);
+
+  if (profileLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -57,11 +62,22 @@ const Profile = () => {
     );
   }
 
-  const favoriteGames = userGames.filter(g => g.is_favorite);
-  const platinumGames = userGames.filter(g => g.is_platinumed);
-  const playingGames = userGames.filter(g => g.status === 'playing');
-  const completedGames = userGames.filter(g => g.status === 'completed');
-  const wishlistGames = userGames.filter(g => g.status === 'wishlist');
+  if (!profile || error) {
+    return <NotFound />;
+  }
+
+  const handleToggleFollow = () => {
+    if (!userId) return;
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    if (isFollowing) {
+      unfollowUser.mutate(userId);
+    } else {
+      followUser.mutate(userId);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -72,33 +88,36 @@ const Profile = () => {
         <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
           <div className="relative">
             <UserAvatar
-              src={profile?.avatar_url}
-              displayName={profile?.display_name}
-              username={profile?.username}
+              src={profile.avatar_url}
+              displayName={profile.display_name}
+              username={profile.username}
               size="xl"
             />
           </div>
 
           <div className="flex-1">
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-4">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">
-                  {profile?.display_name || 'Gamer'}
+                  {profile.display_name || "Gamer"}
                 </h1>
-                <p className="text-muted-foreground">@{profile?.username}</p>
-                {profile?.bio && (
+                <p className="text-muted-foreground">@{profile.username}</p>
+                {profile.bio && (
                   <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>
                 )}
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2"
-                onClick={() => setIsEditOpen(true)}
-              >
-                <Edit3 className="w-4 h-4" />
-                Editar Perfil
-              </Button>
+              {!isSelf && (
+                <Button
+                  variant={isFollowing ? "secondary" : "glow"}
+                  size="sm"
+                  className="gap-2"
+                  onClick={handleToggleFollow}
+                  disabled={followUser.isPending || unfollowUser.isPending}
+                >
+                  <UserPlus className="w-4 h-4" />
+                  {isFollowing ? "Seguindo" : "Seguir"}
+                </Button>
+              )}
             </div>
 
             {/* Stats */}
@@ -116,29 +135,29 @@ const Profile = () => {
         {/* Tabs */}
         <Tabs defaultValue="library" className="w-full">
           <TabsList className="w-full justify-start border-b border-border/50 rounded-none bg-transparent h-auto p-0 mb-6">
-            <TabsTrigger 
-              value="library" 
+            <TabsTrigger
+              value="library"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <GamepadIcon className="w-4 h-4" />
               Biblioteca ({userGames.length})
             </TabsTrigger>
-            <TabsTrigger 
-              value="favorites" 
+            <TabsTrigger
+              value="favorites"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <Heart className="w-4 h-4" />
               Favoritos ({favoriteGames.length})
             </TabsTrigger>
-            <TabsTrigger 
-              value="platinum" 
+            <TabsTrigger
+              value="platinum"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <Trophy className="w-4 h-4" />
               Platinados ({platinumGames.length})
             </TabsTrigger>
-            <TabsTrigger 
-              value="reviews" 
+            <TabsTrigger
+              value="reviews"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <BookOpen className="w-4 h-4" />
@@ -147,45 +166,39 @@ const Profile = () => {
           </TabsList>
 
           <TabsContent value="library">
-            <GameLibrary 
-              games={userGames} 
+            <GameLibrary
+              games={userGames}
               isLoading={gamesLoading}
-              emptyMessage="Sua biblioteca está vazia. Explore jogos e adicione à sua coleção!"
+              emptyMessage="Este usuário ainda não adicionou jogos."
+              readOnly
             />
           </TabsContent>
 
           <TabsContent value="favorites">
-            <GameLibrary 
-              games={favoriteGames} 
+            <GameLibrary
+              games={favoriteGames}
               isLoading={gamesLoading}
-              emptyMessage="Você ainda não tem jogos favoritos."
+              emptyMessage="Este usuário ainda não tem favoritos."
+              readOnly
             />
           </TabsContent>
 
           <TabsContent value="platinum">
-            <GameLibrary 
-              games={platinumGames} 
+            <GameLibrary
+              games={platinumGames}
               isLoading={gamesLoading}
-              emptyMessage="Você ainda não platinou nenhum jogo."
+              emptyMessage="Este usuário ainda não tem jogos platinados."
+              readOnly
             />
           </TabsContent>
 
           <TabsContent value="reviews">
-            <ProfileReviews 
-              reviews={reviews}
-              isLoading={reviewsLoading}
-            />
+            <ProfileReviews reviews={reviews} isLoading={reviewsLoading} />
           </TabsContent>
         </Tabs>
       </main>
-
-      <ProfileEditDialog 
-        open={isEditOpen} 
-        onOpenChange={setIsEditOpen}
-        profile={profile}
-      />
     </div>
   );
 };
 
-export default Profile;
+export default PublicProfile;
