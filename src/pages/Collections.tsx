@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+﻿import { Sparkles } from "lucide-react";
 import Header from "@/components/Header";
 import CategoryCard from "@/components/CategoryCard";
 import SectionHeader from "@/components/SectionHeader";
@@ -51,4 +51,4 @@ const Collections = () => {
   );
 };
 
-export default Collections;
+export default Collections;

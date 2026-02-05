@@ -7,6 +7,8 @@ import GameModal from "@/components/GameModal";
 import SectionHeader from "@/components/SectionHeader";
 import CategoryCard from "@/components/CategoryCard";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import LayoutToggle from "@/components/LayoutToggle";
+import { useLayoutPreference } from "@/hooks/useLayoutPreference";
 import { GameData, CATEGORIES } from "@/types/game";
 import { usePopularGames, useTopRatedGames } from "@/hooks/useGames";
 
@@ -15,6 +17,7 @@ const Index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: popularGames = [], isLoading: popularLoading } = usePopularGames(10);
   const { data: topRatedGames = [], isLoading: topRatedLoading } = useTopRatedGames(12);
+  const [layoutMode, setLayoutMode] = useLayoutPreference();
 
   const featuredGame = popularGames[0] || topRatedGames[0] || null;
 
@@ -27,6 +30,11 @@ const Index = () => {
     setIsModalOpen(false);
     setSelectedGame(null);
   };
+
+  const discoverGridClass =
+    layoutMode === "compact"
+      ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+      : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6";
 
   return (
     <div className="min-h-screen bg-background">
@@ -118,6 +126,7 @@ const Index = () => {
           <SectionHeader
             title="Descubra Novos Jogos"
             subtitle="Recomendações para você"
+            actions={<LayoutToggle value={layoutMode} onChange={setLayoutMode} />}
           />
 
           {topRatedLoading ? (
@@ -127,12 +136,13 @@ const Index = () => {
               Nenhum jogo encontrado. Rode o sync da Steam para popular o catálogo.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className={discoverGridClass}>
               {topRatedGames.map((game, idx) => (
                 <GameCard
                   key={game.app_id}
                   game={game}
                   index={idx}
+                  variant={layoutMode === "compact" ? "compact" : "default"}
                   onClick={() => handleGameClick(game)}
                 />
               ))}
@@ -164,4 +174,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Index;

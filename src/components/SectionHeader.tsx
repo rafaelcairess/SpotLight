@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ChevronRight, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ReactNode } from "react";
 
 interface SectionHeaderProps {
   title: string;
@@ -9,6 +10,7 @@ interface SectionHeaderProps {
   actionLabel?: string;
   actionHref?: string;
   className?: string;
+  actions?: ReactNode;
 }
 
 const SectionHeader = ({
@@ -18,6 +20,7 @@ const SectionHeader = ({
   actionLabel,
   actionHref,
   className,
+  actions,
 }: SectionHeaderProps) => {
   return (
     <div className={cn("flex items-end justify-between mb-6", className)}>
@@ -35,14 +38,20 @@ const SectionHeader = ({
         </div>
       </div>
 
-      {actionLabel && actionHref && (
-        <Link
-          to={actionHref}
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors group"
-        >
-          {actionLabel}
-          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+      {actions ? (
+        <div className="flex items-center gap-2">
+          {actions}
+        </div>
+      ) : (
+        actionLabel && actionHref && (
+          <Link
+            to={actionHref}
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors group"
+          >
+            {actionLabel}
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        )
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-export interface GameData {
+﻿export interface GameData {
   app_id: number;
   title: string;
   image: string;
@@ -81,4 +81,4 @@ export const CATEGORIES: CategoryData[] = [
     description: "Planeje, conquiste e domine",
     gradient: "from-blue-900/50 to-black",
   },
-];
+];

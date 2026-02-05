@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+﻿# Welcome to your Lovable project
 
 ## Project info
 
@@ -60,7 +60,54 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## Deploy (Vercel or Netlify)
+
+### 1) Prepare environment variables
+
+Create a `.env.local` for local dev, and configure **these same variables** in your hosting dashboard for production.
+
+**Frontend (public in the browser):**
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+**Server-only (never expose in the browser):**
+- `STEAM_API_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+> Tip: Use `.env.example` as a template (no secrets inside).
+
+### 2) Build settings
+
+This project uses Vite, so the build command is:
+
+```sh
+npm run build
+```
+
+The output folder is:
+
+```
+dist
+```
+
+### 3) Hosting steps
+
+**Vercel**
+1. Import the GitHub repo
+2. Set the env vars in the project settings
+3. Deploy
+
+**Netlify**
+1. Import the GitHub repo
+2. Set the env vars in the site settings
+3. Deploy
+
+## Security notes (important)
+
+- Only variables prefixed with `VITE_` are exposed to the browser. Keep secrets **without** the `VITE_` prefix.
+- The Supabase **publishable** key is designed for browser use when RLS is enabled. Never ship the **service role** key in the frontend.
+
+## How can I deploy this project (via Lovable)?
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
 
