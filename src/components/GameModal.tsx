@@ -61,7 +61,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl p-0 overflow-hidden bg-card border-border/50 gap-0">
+      <DialogContent className="max-w-3xl p-0 bg-card border-border/50 gap-0 max-h-[90vh] overflow-hidden grid-rows-[auto_1fr]">
         {/* Hero Image */}
         <div className="relative aspect-video">
           <img
@@ -91,7 +91,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto min-h-0">
           {/* Stats Row */}
           <div className="flex flex-wrap items-center gap-6">
             {game.activePlayers && (
