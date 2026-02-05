@@ -58,8 +58,15 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
     setIsReviewOpen(true);
   };
 
+  const handleModalChange = (open: boolean) => {
+    if (!open && isReviewOpen) return;
+    if (!open) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleModalChange}>
       <DialogContent className="max-w-3xl p-0 overflow-hidden bg-card border-border/50 gap-0">
         {/* Hero Image */}
         <div className="relative aspect-video">
