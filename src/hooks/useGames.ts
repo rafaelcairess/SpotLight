@@ -12,6 +12,8 @@ type GameRow = {
   active_players: number | null;
   community_rating: number | null;
   price: string | null;
+  price_original: string | null;
+  discount_percent: number | null;
   release_date: string | null;
   developer: string | null;
   publisher: string | null;
@@ -30,6 +32,8 @@ const mapGameRow = (row: GameRow): GameData => ({
   activePlayers: row.active_players || undefined,
   communityRating: row.community_rating || undefined,
   price: row.price || undefined,
+  priceOriginal: row.price_original || undefined,
+  discountPercent: row.discount_percent || undefined,
   releaseDate: row.release_date || undefined,
   developer: row.developer || undefined,
   publisher: row.publisher || undefined,
@@ -76,6 +80,23 @@ export function useAllGames(limit = 200) {
         .from("games")
         .select("*")
         .order("last_synced", { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return (data as GameRow[]).map(mapGameRow);
+    },
+  });
+}
+
+export function useDiscountedGames(limit = 30) {
+  return useQuery({
+    queryKey: ["games", "discounted", limit],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("games")
+        .select("*")
+        .gt("discount_percent", 0)
+        .order("active_players", { ascending: false })
         .limit(limit);
 
       if (error) throw error;

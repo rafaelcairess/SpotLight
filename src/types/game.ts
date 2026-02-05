@@ -8,6 +8,8 @@ export interface GameData {
   activePlayers?: number;
   communityRating?: number;
   price?: string;
+  priceOriginal?: string;
+  discountPercent?: number;
   releaseDate?: string;
   developer?: string;
   publisher?: string;

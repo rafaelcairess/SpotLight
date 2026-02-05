@@ -12,6 +12,8 @@ CREATE TABLE public.games (
     active_players INTEGER,
     community_rating INTEGER,
     price TEXT,
+    price_original TEXT,
+    discount_percent INTEGER,
     release_date TEXT,
     developer TEXT,
     publisher TEXT,

@@ -10,6 +10,7 @@ import CollectionDetail from "./pages/CollectionDetail";
 import Search from "./pages/Search";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import Promotions from "./pages/Promotions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/collections" element={<Collections />} />
             <Route path="/collections/:categoryId" element={<CollectionDetail />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/promocoes" element={<Promotions />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { Search, Sparkles, Menu, X, User, LogOut, DollarSign } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, Sparkles, Menu, X, User, LogOut } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -38,6 +38,7 @@ const Header = () => {
 
   const navLinks = [
     { href: "/", label: "Explorar" },
+    { href: "/promocoes", label: "Promoções", icon: DollarSign },
     { href: "/collections", label: "Coleções" },
   ];
 
@@ -69,7 +70,10 @@ const Header = () => {
                     : "text-muted-foreground"
                 )}
               >
-                {link.label}
+                <span className="inline-flex items-center gap-2">
+                  {link.icon && <link.icon className="w-4 h-4" />}
+                  {link.label}
+                </span>
               </Link>
             ))}
           </nav>
@@ -92,48 +96,49 @@ const Header = () => {
           <div className="hidden md:flex items-center gap-4">
             {!authLoading && (
               user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
-                      <UserAvatar 
-                        src={profile?.avatar_url} 
-                        displayName={profile?.display_name}
-                        username={profile?.username}
-                        size="md"
-                      />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <div className="flex items-center gap-2 p-2">
-                      <UserAvatar 
-                        src={profile?.avatar_url} 
-                        displayName={profile?.display_name}
-                        username={profile?.username}
-                        size="sm"
-                      />
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">
-                          {profile?.display_name || 'Gamer'}
-                        </p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          @{profile?.username}
-                        </p>
+                <div className="flex items-center gap-3">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                        <UserAvatar 
+                          src={profile?.avatar_url} 
+                          displayName={profile?.display_name}
+                          username={profile?.username}
+                          size="md"
+                        />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                      <div className="flex items-center gap-2 p-2">
+                        <UserAvatar 
+                          src={profile?.avatar_url} 
+                          displayName={profile?.display_name}
+                          username={profile?.username}
+                          size="sm"
+                        />
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">
+                            {profile?.display_name || 'Gamer'}
+                          </p>
+                          <p className="text-xs leading-none text-muted-foreground">
+                            @{profile?.username}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile" className="cursor-pointer">
-                        <User className="mr-2 h-4 w-4" />
-                        Meu Perfil
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sair
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sair
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Link
+                    to="/profile"
+                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Meu Perfil
+                  </Link>
+                </div>
               ) : (
                 <Button variant="glow" size="sm" asChild>
                   <Link to="/auth">Entrar</Link>
@@ -188,7 +193,10 @@ const Header = () => {
                       : "text-muted-foreground hover:bg-secondary"
                   )}
                 >
-                  {link.label}
+                  <span className="inline-flex items-center gap-2">
+                    {link.icon && <link.icon className="w-4 h-4" />}
+                    {link.label}
+                  </span>
                 </Link>
               ))}
             </nav>

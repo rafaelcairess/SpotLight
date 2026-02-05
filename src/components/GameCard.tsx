@@ -124,11 +124,18 @@ const GameCard = ({
               {game.genre}
             </span>
           )}
-          {game.price && (
-            <span className="px-2 py-1 text-xs font-semibold bg-primary/90 backdrop-blur-sm rounded-full text-primary-foreground">
-              {game.price === "Free" || game.price === "0" ? "Grátis" : game.price}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {game.discountPercent && (
+              <span className="px-2 py-1 text-xs font-semibold bg-emerald-500/90 backdrop-blur-sm rounded-full text-white">
+                -{game.discountPercent}%
+              </span>
+            )}
+            {game.price && (
+              <span className="px-2 py-1 text-xs font-semibold bg-primary/90 backdrop-blur-sm rounded-full text-primary-foreground">
+                {game.price === "Free" || game.price === "0" ? "Grátis" : game.price}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -158,6 +165,13 @@ const GameCard = ({
             </div>
           )}
         </div>
+
+        {game.discountPercent && game.priceOriginal && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            <span className="mr-2 line-through">{game.priceOriginal}</span>
+            <span className="text-emerald-400 font-semibold">{game.price}</span>
+          </div>
+        )}
 
         {/* Description Preview */}
         {game.short_description && variant === "default" && (

@@ -20,11 +20,13 @@ export type Database = {
           app_id: number
           community_rating: number | null
           developer: string | null
+          discount_percent: number | null
           genre: string | null
           image: string | null
           last_synced: string
           platforms: string[] | null
           price: string | null
+          price_original: string | null
           publisher: string | null
           release_date: string | null
           short_description: string | null
@@ -37,11 +39,13 @@ export type Database = {
           app_id: number
           community_rating?: number | null
           developer?: string | null
+          discount_percent?: number | null
           genre?: string | null
           image?: string | null
           last_synced?: string
           platforms?: string[] | null
           price?: string | null
+          price_original?: string | null
           publisher?: string | null
           release_date?: string | null
           short_description?: string | null
@@ -54,11 +58,13 @@ export type Database = {
           app_id?: number
           community_rating?: number | null
           developer?: string | null
+          discount_percent?: number | null
           genre?: string | null
           image?: string | null
           last_synced?: string
           platforms?: string[] | null
           price?: string | null
+          price_original?: string | null
           publisher?: string | null
           release_date?: string | null
           short_description?: string | null

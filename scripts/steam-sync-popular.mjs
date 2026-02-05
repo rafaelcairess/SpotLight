@@ -97,12 +97,28 @@ const normalizeGenres = (genres) => {
     .filter((value) => typeof value === "string" && value.length > 0);
 };
 
-const normalizePrice = (details) => {
-  if (details?.is_free) return "Grátis";
-  if (details?.price_overview?.final_formatted) {
-    return details.price_overview.final_formatted;
+const normalizePriceInfo = (details) => {
+  if (details?.is_free) {
+    return { price: "Grátis", priceOriginal: null, discountPercent: null };
   }
-  return null;
+
+  const priceOverview = details?.price_overview;
+  if (!priceOverview) {
+    return { price: null, priceOriginal: null, discountPercent: null };
+  }
+
+  const discountPercent = Number.isFinite(priceOverview.discount_percent)
+    ? priceOverview.discount_percent
+    : null;
+
+  return {
+    price: priceOverview.final_formatted || null,
+    priceOriginal:
+      discountPercent && discountPercent > 0
+        ? priceOverview.initial_formatted || null
+        : null,
+    discountPercent: discountPercent && discountPercent > 0 ? discountPercent : null,
+  };
 };
 
 let successCount = 0;
@@ -123,6 +139,7 @@ for (const appId of appIds) {
     ]);
 
     const genres = normalizeGenres(details.genres);
+    const priceInfo = normalizePriceInfo(details);
     const row = {
       app_id: appId,
       title: details.name,
@@ -132,7 +149,9 @@ for (const appId of appIds) {
       tags: genres.length ? genres : null,
       active_players: activePlayers,
       community_rating: reviewPercent,
-      price: normalizePrice(details),
+      price: priceInfo.price,
+      price_original: priceInfo.priceOriginal,
+      discount_percent: priceInfo.discountPercent,
       release_date: details.release_date?.date ?? null,
       developer: Array.isArray(details.developers) ? details.developers[0] ?? null : null,
       publisher: Array.isArray(details.publishers) ? details.publishers[0] ?? null : null,
