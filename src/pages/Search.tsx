@@ -6,24 +6,23 @@ import GameCard from "@/components/GameCard";
 import GameModal from "@/components/GameModal";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { GameData } from "@/types/game";
-import { mockCollectionGames, mockRankingGames } from "@/data/mockGames";
+import { useAllGames } from "@/hooks/useGames";
 
 const Search = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data: allGames = [], isLoading } = useAllGames(200);
 
-  // Simulando busca - será substituído por chamada à API real
-  const allGames = [...mockRankingGames, ...mockCollectionGames];
   const results = query
-    ? allGames.filter(
+      ? allGames.filter(
         (game) =>
           game.title.toLowerCase().includes(query.toLowerCase()) ||
-          game.genre?.toLowerCase().includes(query.toLowerCase())
+          game.genre?.toLowerCase().includes(query.toLowerCase()) ||
+          game.tags?.some((tag) => tag.toLowerCase().includes(query.toLowerCase()))
       )
-    : [];
-  const isLoading = false;
+      : [];
 
   const handleGameClick = (game: GameData) => {
     setSelectedGame(game);

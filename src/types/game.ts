@@ -1,9 +1,10 @@
 export interface GameData {
-  app_id: string;
+  app_id: number;
   title: string;
   image: string;
   short_description?: string;
   genre?: string;
+  tags?: string[];
   activePlayers?: number;
   communityRating?: number;
   price?: string;
@@ -11,7 +12,6 @@ export interface GameData {
   developer?: string;
   publisher?: string;
   platforms?: string[];
-  tags?: string[];
 }
 
 export interface CategoryData {

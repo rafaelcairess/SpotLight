@@ -7,18 +7,41 @@ import GameModal from "@/components/GameModal";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { Button } from "@/components/ui/button";
 import { GameData, CATEGORIES } from "@/types/game";
-import { mockCollectionGames } from "@/data/mockGames";
+import { useAllGames } from "@/hooks/useGames";
+
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  terror: ["horror", "terror"],
+  rpg: ["rpg", "role-playing"],
+  coop: ["co-op", "cooperative", "multiplayer"],
+  "story-rich": ["story rich", "narrative", "adventure"],
+  action: ["action", "ação"],
+  indie: ["indie"],
+  survival: ["survival", "sobrevivência"],
+  strategy: ["strategy", "estratégia", "rts", "turn-based"],
+};
+
+const matchesCategory = (game: GameData, categoryId: string) => {
+  const keywords = CATEGORY_KEYWORDS[categoryId];
+  if (!keywords || keywords.length === 0) return true;
+  const haystack = [game.genre || "", ...(game.tags || [])]
+    .map((value) => value.toLowerCase());
+
+  return keywords.some((keyword) =>
+    haystack.some((value) => value.includes(keyword.toLowerCase()))
+  );
+};
 
 const CollectionDetail = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data: allGames = [], isLoading } = useAllGames(200);
 
   const category = CATEGORIES.find((c) => c.id === categoryId);
 
-  // Simulando dados - será substituído por chamada à API real
-  const games = mockCollectionGames;
-  const isLoading = false;
+  const games = categoryId
+    ? allGames.filter((game) => matchesCategory(game, categoryId))
+    : allGames;
 
   const handleGameClick = (game: GameData) => {
     setSelectedGame(game);

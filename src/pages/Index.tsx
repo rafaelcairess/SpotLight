@@ -6,16 +6,17 @@ import GameCard from "@/components/GameCard";
 import GameModal from "@/components/GameModal";
 import SectionHeader from "@/components/SectionHeader";
 import CategoryCard from "@/components/CategoryCard";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { GameData, CATEGORIES } from "@/types/game";
-import {
-  mockFeaturedGame,
-  mockRankingGames,
-  mockCollectionGames,
-} from "@/data/mockGames";
+import { usePopularGames, useTopRatedGames } from "@/hooks/useGames";
 
 const Index = () => {
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data: popularGames = [], isLoading: popularLoading } = usePopularGames(10);
+  const { data: topRatedGames = [], isLoading: topRatedLoading } = useTopRatedGames(12);
+
+  const featuredGame = popularGames[0] || topRatedGames[0] || null;
 
   const handleGameClick = (game: GameData) => {
     setSelectedGame(game);
@@ -34,10 +35,18 @@ const Index = () => {
       <main className="pt-20 md:pt-24">
         {/* Featured Banner */}
         <section className="container mx-auto px-4 mb-12 md:mb-16">
-          <FeaturedBanner
-            game={mockFeaturedGame}
-            onExplore={() => handleGameClick(mockFeaturedGame)}
-          />
+          {featuredGame ? (
+            <FeaturedBanner
+              game={featuredGame}
+              onExplore={() => handleGameClick(featuredGame)}
+            />
+          ) : popularLoading || topRatedLoading ? (
+            <LoadingSkeleton variant="banner" />
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              Nenhum jogo encontrado. Rode o sync da Steam para popular o catálogo.
+            </div>
+          )}
         </section>
 
         {/* Rankings Section */}
@@ -48,35 +57,43 @@ const Index = () => {
             icon={TrendingUp}
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Top 5 - Left Column */}
-            <div className="space-y-2">
-              {mockRankingGames.slice(0, 5).map((game, idx) => (
-                <GameCard
-                  key={game.app_id}
-                  game={game}
-                  variant="ranking"
-                  rank={idx + 1}
-                  index={idx}
-                  onClick={() => handleGameClick(game)}
-                />
-              ))}
+          {popularLoading ? (
+            <LoadingSkeleton variant="ranking" count={10} />
+          ) : popularGames.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Nenhum jogo encontrado. Rode o sync da Steam para popular o catálogo.
             </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Top 5 - Left Column */}
+              <div className="space-y-2">
+                {popularGames.slice(0, 5).map((game, idx) => (
+                  <GameCard
+                    key={game.app_id}
+                    game={game}
+                    variant="ranking"
+                    rank={idx + 1}
+                    index={idx}
+                    onClick={() => handleGameClick(game)}
+                  />
+                ))}
+              </div>
 
-            {/* 6-10 - Right Column */}
-            <div className="space-y-2">
-              {mockRankingGames.slice(5, 10).map((game, idx) => (
-                <GameCard
-                  key={game.app_id}
-                  game={game}
-                  variant="ranking"
-                  rank={idx + 6}
-                  index={idx + 5}
-                  onClick={() => handleGameClick(game)}
-                />
-              ))}
+              {/* 6-10 - Right Column */}
+              <div className="space-y-2">
+                {popularGames.slice(5, 10).map((game, idx) => (
+                  <GameCard
+                    key={game.app_id}
+                    game={game}
+                    variant="ranking"
+                    rank={idx + 6}
+                    index={idx + 5}
+                    onClick={() => handleGameClick(game)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* Categories Preview */}
@@ -103,16 +120,24 @@ const Index = () => {
             subtitle="Recomendações para você"
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {mockCollectionGames.map((game, idx) => (
-              <GameCard
-                key={game.app_id}
-                game={game}
-                index={idx}
-                onClick={() => handleGameClick(game)}
-              />
-            ))}
-          </div>
+          {topRatedLoading ? (
+            <LoadingSkeleton variant="card" count={6} />
+          ) : topRatedGames.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Nenhum jogo encontrado. Rode o sync da Steam para popular o catálogo.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {topRatedGames.map((game, idx) => (
+                <GameCard
+                  key={game.app_id}
+                  game={game}
+                  index={idx}
+                  onClick={() => handleGameClick(game)}
+                />
+              ))}
+            </div>
+          )}
         </section>
       </main>
 

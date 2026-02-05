@@ -2,7 +2,7 @@ import { GameData } from "@/types/game";
 
 // Mock data para demonstração - será substituído por dados reais da API
 export const mockFeaturedGame: GameData = {
-  app_id: "1091500",
+  app_id: 1091500,
   title: "Cyberpunk 2077",
   image: "https://cdn.akamai.steamstatic.com/steam/apps/1091500/header.jpg",
   short_description:
@@ -18,7 +18,7 @@ export const mockFeaturedGame: GameData = {
 
 export const mockRankingGames: GameData[] = [
   {
-    app_id: "730",
+    app_id: 730,
     title: "Counter-Strike 2",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/730/header.jpg",
     genre: "FPS",
@@ -27,7 +27,7 @@ export const mockRankingGames: GameData[] = [
     price: "Grátis",
   },
   {
-    app_id: "570",
+    app_id: 570,
     title: "Dota 2",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/570/header.jpg",
     genre: "MOBA",
@@ -36,7 +36,7 @@ export const mockRankingGames: GameData[] = [
     price: "Grátis",
   },
   {
-    app_id: "578080",
+    app_id: 578080,
     title: "PUBG: BATTLEGROUNDS",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/578080/header.jpg",
     genre: "Battle Royale",
@@ -45,7 +45,7 @@ export const mockRankingGames: GameData[] = [
     price: "Grátis",
   },
   {
-    app_id: "1172470",
+    app_id: 1172470,
     title: "Apex Legends",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/1172470/header.jpg",
     genre: "Battle Royale",
@@ -54,7 +54,7 @@ export const mockRankingGames: GameData[] = [
     price: "Grátis",
   },
   {
-    app_id: "252490",
+    app_id: 252490,
     title: "Rust",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/252490/header.jpg",
     genre: "Sobrevivência",
@@ -63,7 +63,7 @@ export const mockRankingGames: GameData[] = [
     price: "R$ 75,49",
   },
   {
-    app_id: "1245620",
+    app_id: 1245620,
     title: "Elden Ring",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/1245620/header.jpg",
     genre: "RPG",
@@ -72,7 +72,7 @@ export const mockRankingGames: GameData[] = [
     price: "R$ 249,90",
   },
   {
-    app_id: "413150",
+    app_id: 413150,
     title: "Stardew Valley",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/413150/header.jpg",
     genre: "Simulação",
@@ -81,7 +81,7 @@ export const mockRankingGames: GameData[] = [
     price: "R$ 24,99",
   },
   {
-    app_id: "892970",
+    app_id: 892970,
     title: "Valheim",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/892970/header.jpg",
     genre: "Sobrevivência",
@@ -90,7 +90,7 @@ export const mockRankingGames: GameData[] = [
     price: "R$ 37,99",
   },
   {
-    app_id: "1174180",
+    app_id: 1174180,
     title: "Red Dead Redemption 2",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/1174180/header.jpg",
     genre: "Ação",
@@ -99,7 +99,7 @@ export const mockRankingGames: GameData[] = [
     price: "R$ 299,90",
   },
   {
-    app_id: "1151340",
+    app_id: 1151340,
     title: "Fallout 76",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/1151340/header.jpg",
     genre: "RPG",
@@ -111,7 +111,7 @@ export const mockRankingGames: GameData[] = [
 
 export const mockCollectionGames: GameData[] = [
   {
-    app_id: "814380",
+    app_id: 814380,
     title: "Sekiro: Shadows Die Twice",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/814380/header.jpg",
     short_description:
@@ -122,7 +122,7 @@ export const mockCollectionGames: GameData[] = [
     price: "R$ 199,90",
   },
   {
-    app_id: "367520",
+    app_id: 367520,
     title: "Hollow Knight",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/367520/header.jpg",
     short_description:
@@ -133,7 +133,7 @@ export const mockCollectionGames: GameData[] = [
     price: "R$ 27,99",
   },
   {
-    app_id: "1145360",
+    app_id: 1145360,
     title: "Hades",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/1145360/header.jpg",
     short_description:
@@ -144,7 +144,7 @@ export const mockCollectionGames: GameData[] = [
     price: "R$ 46,99",
   },
   {
-    app_id: "782330",
+    app_id: 782330,
     title: "DOOM Eternal",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/782330/header.jpg",
     short_description:
@@ -155,7 +155,7 @@ export const mockCollectionGames: GameData[] = [
     price: "R$ 199,90",
   },
   {
-    app_id: "105600",
+    app_id: 105600,
     title: "Terraria",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/105600/header.jpg",
     short_description:
@@ -166,7 +166,7 @@ export const mockCollectionGames: GameData[] = [
     price: "R$ 17,99",
   },
   {
-    app_id: "1599340",
+    app_id: 1599340,
     title: "Lost Ark",
     image: "https://cdn.akamai.steamstatic.com/steam/apps/1599340/header.jpg",
     short_description:

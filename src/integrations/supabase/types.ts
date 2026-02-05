@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      games: {
+        Row: {
+          active_players: number | null
+          app_id: number
+          community_rating: number | null
+          developer: string | null
+          genre: string | null
+          image: string | null
+          last_synced: string
+          platforms: string[] | null
+          price: string | null
+          publisher: string | null
+          release_date: string | null
+          short_description: string | null
+          steam_url: string | null
+          tags: string[] | null
+          title: string
+        }
+        Insert: {
+          active_players?: number | null
+          app_id: number
+          community_rating?: number | null
+          developer?: string | null
+          genre?: string | null
+          image?: string | null
+          last_synced?: string
+          platforms?: string[] | null
+          price?: string | null
+          publisher?: string | null
+          release_date?: string | null
+          short_description?: string | null
+          steam_url?: string | null
+          tags?: string[] | null
+          title: string
+        }
+        Update: {
+          active_players?: number | null
+          app_id?: number
+          community_rating?: number | null
+          developer?: string | null
+          genre?: string | null
+          image?: string | null
+          last_synced?: string
+          platforms?: string[] | null
+          price?: string | null
+          publisher?: string | null
+          release_date?: string | null
+          short_description?: string | null
+          steam_url?: string | null
+          tags?: string[] | null
+          title?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
