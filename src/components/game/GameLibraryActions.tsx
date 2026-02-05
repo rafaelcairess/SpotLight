@@ -5,8 +5,7 @@ import {
   Heart, 
   Trophy, 
   ChevronDown,
-  Loader2,
-  BookOpen
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +29,6 @@ import { useNavigate } from "react-router-dom";
 
 interface GameLibraryActionsProps {
   appId: number;
-  onWriteReview?: () => void;
 }
 
 const statusOptions = [
@@ -40,7 +38,7 @@ const statusOptions = [
   { value: 'dropped', label: 'Abandonado', icon: '❌' },
 ] as const;
 
-export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsProps) {
+export function GameLibraryActions({ appId }: GameLibraryActionsProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -125,7 +123,7 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
   // Not in library
   if (!userGame) {
     return (
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
@@ -154,17 +152,6 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-        {onWriteReview && (
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={onWriteReview}
-            disabled={isLoaderShown}
-          >
-            <BookOpen className="w-4 h-4" />
-            Escrever Review
-          </Button>
-        )}
       </div>
     );
   }
@@ -233,13 +220,6 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
         <Trophy className="w-4 h-4" />
       </Button>
 
-      {/* Write Review Button */}
-      {onWriteReview && (
-        <Button variant="outline" className="gap-2" onClick={onWriteReview}>
-          <BookOpen className="w-4 h-4" />
-          Escrever Review
-        </Button>
-      )}
     </div>
   );
 }
