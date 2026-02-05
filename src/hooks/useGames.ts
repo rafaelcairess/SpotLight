@@ -83,3 +83,23 @@ export function useAllGames(limit = 200) {
     },
   });
 }
+
+export function useGamesByIds(appIds: number[]) {
+  const uniqueIds = Array.from(new Set(appIds.filter((id) => Number.isFinite(id))));
+
+  return useQuery({
+    queryKey: ["games", "by-ids", uniqueIds],
+    queryFn: async () => {
+      if (uniqueIds.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from("games")
+        .select("*")
+        .in("app_id", uniqueIds);
+
+      if (error) throw error;
+      return (data as GameRow[]).map(mapGameRow);
+    },
+    enabled: uniqueIds.length > 0,
+  });
+}

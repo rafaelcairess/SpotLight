@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo } from "react";
 import { Heart, Trophy, Clock, Trash2, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserGame, useUpdateGame, useRemoveGame } from "@/hooks/useUserGames";
-import { mockRankingGames, mockCollectionGames } from "@/data/mockGames";
+import { useGamesByIds } from "@/hooks/useGames";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,12 +19,6 @@ interface GameLibraryProps {
   isLoading: boolean;
   emptyMessage: string;
 }
-
-// Helper to get game info from mock data by app_id
-const getGameInfo = (appId: number) => {
-  const allGames = [...mockRankingGames, ...mockCollectionGames];
-  return allGames.find(g => String(g.app_id) === String(appId));
-};
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   wishlist: { label: "Lista de Desejos", color: "bg-blue-500/10 text-blue-500" },
@@ -37,6 +31,12 @@ export function GameLibrary({ games, isLoading, emptyMessage }: GameLibraryProps
   const { toast } = useToast();
   const updateGame = useUpdateGame();
   const removeGame = useRemoveGame();
+  const appIds = games.map((game) => game.app_id);
+  const { data: catalogGames = [], isLoading: catalogLoading } = useGamesByIds(appIds);
+  const gameMap = useMemo(
+    () => new Map(catalogGames.map((game) => [game.app_id, game])),
+    [catalogGames]
+  );
 
   const handleToggleFavorite = async (game: UserGame) => {
     try {
@@ -87,7 +87,7 @@ export function GameLibrary({ games, isLoading, emptyMessage }: GameLibraryProps
     }
   };
 
-  if (isLoading) {
+  if (isLoading || catalogLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[...Array(6)].map((_, i) => (
@@ -111,7 +111,7 @@ export function GameLibrary({ games, isLoading, emptyMessage }: GameLibraryProps
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {games.map((userGame) => {
-        const gameInfo = getGameInfo(userGame.app_id);
+        const gameInfo = gameMap.get(userGame.app_id);
         if (!gameInfo) return null;
 
         return (

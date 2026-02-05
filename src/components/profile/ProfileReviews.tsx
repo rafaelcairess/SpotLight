@@ -1,6 +1,7 @@
+import { useMemo } from "react";
 import { ThumbsUp, ThumbsDown, Clock } from "lucide-react";
 import { Review } from "@/hooks/useReviews";
-import { mockRankingGames, mockCollectionGames } from "@/data/mockGames";
+import { useGamesByIds } from "@/hooks/useGames";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -10,13 +11,15 @@ interface ProfileReviewsProps {
   isLoading: boolean;
 }
 
-const getGameInfo = (appId: number) => {
-  const allGames = [...mockRankingGames, ...mockCollectionGames];
-  return allGames.find(g => String(g.app_id) === String(appId));
-};
-
 export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
-  if (isLoading) {
+  const appIds = reviews.map((review) => review.app_id);
+  const { data: catalogGames = [], isLoading: catalogLoading } = useGamesByIds(appIds);
+  const gameMap = useMemo(
+    () => new Map(catalogGames.map((game) => [game.app_id, game])),
+    [catalogGames]
+  );
+
+  if (isLoading || catalogLoading) {
     return (
       <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
@@ -43,7 +46,7 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
   return (
     <div className="space-y-4">
       {reviews.map((review) => {
-        const gameInfo = getGameInfo(review.app_id);
+        const gameInfo = gameMap.get(review.app_id);
 
         return (
           <div 
