@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, Sparkles } from "lucide-react";
+import { TrendingUp, Sparkles, Orbit, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import FeaturedBanner from "@/components/FeaturedBanner";
 import GameCard from "@/components/GameCard";
@@ -8,15 +8,22 @@ import SectionHeader from "@/components/SectionHeader";
 import CategoryCard from "@/components/CategoryCard";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import LayoutToggle from "@/components/LayoutToggle";
+import { Button } from "@/components/ui/button";
 import { useLayoutPreference } from "@/hooks/useLayoutPreference";
 import { GameData, CATEGORIES } from "@/types/game";
 import { usePopularGames, useTopRatedGames } from "@/hooks/useGames";
 
 const Index = () => {
+  const PAGE_SIZE = 24;
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: popularGames = [], isLoading: popularLoading } = usePopularGames(10);
-  const { data: topRatedGames = [], isLoading: topRatedLoading } = useTopRatedGames(12);
+  const [discoverLimit, setDiscoverLimit] = useState(PAGE_SIZE);
+  const {
+    data: topRatedGames = [],
+    isLoading: topRatedLoading,
+    isFetching: topRatedFetching,
+  } = useTopRatedGames(discoverLimit);
   const [layoutMode, setLayoutMode] = useLayoutPreference();
 
   const featuredGame = popularGames[0] || topRatedGames[0] || null;
@@ -136,17 +143,38 @@ const Index = () => {
               Nenhum jogo encontrado. Rode o sync da Steam para popular o catálogo.
             </div>
           ) : (
-            <div className={discoverGridClass}>
-              {topRatedGames.map((game, idx) => (
-                <GameCard
-                  key={game.app_id}
-                  game={game}
-                  index={idx}
-                  variant={layoutMode === "compact" ? "compact" : "default"}
-                  onClick={() => handleGameClick(game)}
-                />
-              ))}
-            </div>
+            <>
+              <div className={discoverGridClass}>
+                {topRatedGames.map((game, idx) => (
+                  <GameCard
+                    key={game.app_id}
+                    game={game}
+                    index={idx}
+                    variant={layoutMode === "compact" ? "compact" : "default"}
+                    onClick={() => handleGameClick(game)}
+                  />
+                ))}
+              </div>
+              {topRatedGames.length >= discoverLimit && (
+                <div className="flex justify-center mt-8">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDiscoverLimit((prev) => prev + PAGE_SIZE)}
+                    disabled={topRatedFetching}
+                    className="min-w-[200px]"
+                  >
+                    {topRatedFetching ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Carregando...
+                      </span>
+                    ) : (
+                      "Carregar mais"
+                    )}
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </section>
       </main>
@@ -155,7 +183,7 @@ const Index = () => {
       <footer className="border-t border-border/30 py-8">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Sparkles className="w-5 h-5 text-primary" />
+            <Orbit className="w-5 h-5 text-primary" />
             <span className="font-bold text-gradient-primary">SpotLight</span>
           </div>
           <p className="text-sm text-muted-foreground">
@@ -174,4 +202,5 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Index;
+

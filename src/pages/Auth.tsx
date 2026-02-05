@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
+import { Orbit } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { SignupForm } from '@/components/auth/SignupForm';
@@ -21,7 +21,7 @@ const Auth = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse">
-          <Sparkles className="w-12 h-12 text-primary" />
+          <Orbit className="w-12 h-12 text-primary" />
         </div>
       </div>
     );
@@ -33,7 +33,7 @@ const Auth = () => {
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
           <div className="relative">
-            <Sparkles className="w-10 h-10 text-primary" />
+            <Orbit className="w-10 h-10 text-primary" />
             <div className="absolute inset-0 blur-lg bg-primary/30" />
           </div>
           <span className="text-3xl font-bold text-gradient-primary">

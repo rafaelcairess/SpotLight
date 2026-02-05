@@ -1,4 +1,4 @@
-﻿import { Sparkles } from "lucide-react";
+﻿import { Sparkles, Orbit } from "lucide-react";
 import Header from "@/components/Header";
 import CategoryCard from "@/components/CategoryCard";
 import SectionHeader from "@/components/SectionHeader";
@@ -39,7 +39,7 @@ const Collections = () => {
       <footer className="border-t border-border/30 py-8">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Sparkles className="w-5 h-5 text-primary" />
+            <Orbit className="w-5 h-5 text-primary" />
             <span className="font-bold text-gradient-primary">SpotLight</span>
           </div>
           <p className="text-sm text-muted-foreground">
@@ -51,4 +51,5 @@ const Collections = () => {
   );
 };
 
-export default Collections;
+export default Collections;
+

@@ -1,4 +1,4 @@
-import { Search, Sparkles, Menu, X, User, LogOut, DollarSign, Users } from "lucide-react";
+import { Search, Orbit, Menu, X, LogOut, DollarSign, Users } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,13 +7,6 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { UserAvatar } from "@/components/profile/UserAvatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,7 +43,7 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <div className="relative">
-              <Sparkles className="w-7 h-7 md:w-8 md:h-8 text-primary transition-transform group-hover:scale-110" />
+              <Orbit className="w-7 h-7 md:w-8 md:h-8 text-primary transition-transform group-hover:scale-110" />
               <div className="absolute inset-0 blur-lg bg-primary/30 group-hover:bg-primary/50 transition-colors" />
             </div>
             <span className="text-xl md:text-2xl font-bold text-gradient-primary">
@@ -98,47 +91,24 @@ const Header = () => {
             {!authLoading && (
               user ? (
                 <div className="flex items-center gap-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
-                        <UserAvatar 
-                          src={profile?.avatar_url} 
-                          displayName={profile?.display_name}
-                          username={profile?.username}
-                          size="md"
-                        />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end" forceMount>
-                      <div className="flex items-center gap-2 p-2">
-                        <UserAvatar 
-                          src={profile?.avatar_url} 
-                          displayName={profile?.display_name}
-                          username={profile?.username}
-                          size="sm"
-                        />
-                        <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none">
-                            {profile?.display_name || 'Gamer'}
-                          </p>
-                          <p className="text-xs leading-none text-muted-foreground">
-                            @{profile?.username}
-                          </p>
-                        </div>
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sair
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                   <Link
                     to="/profile"
-                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                    className="relative h-10 w-10 rounded-full"
                   >
-                    Meu Perfil
+                    <UserAvatar 
+                      src={profile?.avatar_url} 
+                      displayName={profile?.display_name}
+                      username={profile?.username}
+                      size="md"
+                    />
                   </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-destructive hover:text-destructive/90 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sair
+                  </button>
                 </div>
               ) : (
                 <Button variant="glow" size="sm" asChild>
@@ -251,4 +221,5 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default Header;
+
