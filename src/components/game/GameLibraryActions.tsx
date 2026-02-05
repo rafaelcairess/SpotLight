@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { 
-  Plus, 
-  Check, 
-  Heart, 
-  Trophy, 
+﻿import { useState } from "react";
+import {
+  Plus,
+  Check,
+  Heart,
+  Trophy,
   ChevronDown,
-  Loader2
+  Loader2,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,12 +17,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  useUserGameByAppId, 
-  useAddGame, 
-  useUpdateGame, 
+import {
+  useUserGameByAppId,
+  useAddGame,
+  useUpdateGame,
   useRemoveGame,
-  UserGame 
+  UserGame,
 } from "@/hooks/useUserGames";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -29,16 +30,17 @@ import { useNavigate } from "react-router-dom";
 
 interface GameLibraryActionsProps {
   appId: number;
+  onWriteReview?: () => void;
 }
 
 const statusOptions = [
-  { value: 'wishlist', label: 'Lista de Desejos', icon: '📋' },
-  { value: 'playing', label: 'Jogando', icon: '🎮' },
-  { value: 'completed', label: 'Completado', icon: '✅' },
-  { value: 'dropped', label: 'Abandonado', icon: '❌' },
+  { value: "wishlist", label: "Lista de Desejos", icon: "📋" },
+  { value: "playing", label: "Jogando", icon: "🎮" },
+  { value: "completed", label: "Completado", icon: "✅" },
+  { value: "dropped", label: "Abandonado", icon: "❌" },
 ] as const;
 
-export function GameLibraryActions({ appId }: GameLibraryActionsProps) {
+export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -47,9 +49,9 @@ export function GameLibraryActions({ appId }: GameLibraryActionsProps) {
   const updateGame = useUpdateGame();
   const removeGame = useRemoveGame();
 
-  const handleAddToLibrary = async (status: UserGame['status'] = 'wishlist') => {
+  const handleAddToLibrary = async (status: UserGame["status"] = "wishlist") => {
     if (!user) {
-      navigate('/auth');
+      navigate("/auth");
       return;
     }
 
@@ -61,15 +63,15 @@ export function GameLibraryActions({ appId }: GameLibraryActionsProps) {
     }
   };
 
-  const handleChangeStatus = async (status: UserGame['status']) => {
+  const handleChangeStatus = async (status: UserGame["status"]) => {
     if (!userGame) return;
 
     try {
       await updateGame.mutateAsync({
         id: userGame.id,
-        updates: { status }
+        updates: { status },
       });
-      toast({ title: `Status alterado!` });
+      toast({ title: "Status alterado!" });
     } catch (error) {
       toast({ title: "Erro ao atualizar", variant: "destructive" });
     }
@@ -81,10 +83,12 @@ export function GameLibraryActions({ appId }: GameLibraryActionsProps) {
     try {
       await updateGame.mutateAsync({
         id: userGame.id,
-        updates: { is_favorite: !userGame.is_favorite }
+        updates: { is_favorite: !userGame.is_favorite },
       });
-      toast({ 
-        title: userGame.is_favorite ? "Removido dos favoritos" : "Adicionado aos favoritos! ❤️" 
+      toast({
+        title: userGame.is_favorite
+          ? "Removido dos favoritos"
+          : "Adicionado aos favoritos! ❤️",
       });
     } catch (error) {
       toast({ title: "Erro ao atualizar", variant: "destructive" });
@@ -97,10 +101,10 @@ export function GameLibraryActions({ appId }: GameLibraryActionsProps) {
     try {
       await updateGame.mutateAsync({
         id: userGame.id,
-        updates: { is_platinumed: !userGame.is_platinumed }
+        updates: { is_platinumed: !userGame.is_platinumed },
       });
-      toast({ 
-        title: userGame.is_platinumed ? "Platina removida" : "Platina conquistada! 🏆" 
+      toast({
+        title: userGame.is_platinumed ? "Platina removida" : "Platina conquistada! 🏆",
       });
     } catch (error) {
       toast({ title: "Erro ao atualizar", variant: "destructive" });
@@ -123,14 +127,10 @@ export function GameLibraryActions({ appId }: GameLibraryActionsProps) {
   // Not in library
   if (!userGame) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="glow" 
-              className="gap-2"
-              disabled={isLoaderShown}
-            >
+            <Button variant="glow" className="gap-2" disabled={isLoaderShown}>
               {isLoaderShown ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
@@ -142,7 +142,7 @@ export function GameLibraryActions({ appId }: GameLibraryActionsProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {statusOptions.map((option) => (
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 key={option.value}
                 onClick={() => handleAddToLibrary(option.value)}
               >
@@ -152,12 +152,23 @@ export function GameLibraryActions({ appId }: GameLibraryActionsProps) {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+        {onWriteReview && (
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={onWriteReview}
+            disabled={isLoaderShown}
+          >
+            <BookOpen className="w-4 h-4" />
+            Escrever Review
+          </Button>
+        )}
       </div>
     );
   }
 
   // In library - show management options
-  const currentStatus = statusOptions.find(s => s.value === userGame.status);
+  const currentStatus = statusOptions.find((s) => s.value === userGame.status);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -172,7 +183,7 @@ export function GameLibraryActions({ appId }: GameLibraryActionsProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           {statusOptions.map((option) => (
-            <DropdownMenuItem 
+            <DropdownMenuItem
               key={option.value}
               onClick={() => handleChangeStatus(option.value)}
               className={cn(userGame.status === option.value && "bg-secondary")}
@@ -185,10 +196,7 @@ export function GameLibraryActions({ appId }: GameLibraryActionsProps) {
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
-          <DropdownMenuItem 
-            onClick={handleRemove}
-            className="text-destructive"
-          >
+          <DropdownMenuItem onClick={handleRemove} className="text-destructive">
             Remover da Biblioteca
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -220,6 +228,13 @@ export function GameLibraryActions({ appId }: GameLibraryActionsProps) {
         <Trophy className="w-4 h-4" />
       </Button>
 
+      {/* Write Review Button */}
+      {onWriteReview && (
+        <Button variant="outline" className="gap-2" onClick={onWriteReview}>
+          <BookOpen className="w-4 h-4" />
+          Escrever Review
+        </Button>
+      )}
     </div>
   );
-}
+}
