@@ -98,6 +98,19 @@ const normalizeGenres = (genres) => {
     .filter((value) => typeof value === "string" && value.length > 0);
 };
 
+const normalizeCategories = (categories) => {
+  if (!Array.isArray(categories)) return [];
+  return categories
+    .map((c) => c?.description)
+    .filter((value) => typeof value === "string" && value.length > 0);
+};
+
+const normalizeTags = (genres, categories) => {
+  const values = [...normalizeGenres(genres), ...normalizeCategories(categories)];
+  if (!values.length) return [];
+  return Array.from(new Set(values));
+};
+
 const normalizePriceInfo = (details) => {
   if (details?.is_free) {
     return { price: "Grátis", priceOriginal: null, discountPercent: null };
@@ -140,6 +153,7 @@ for (const appId of appIds) {
     ]);
 
     const genres = normalizeGenres(details.genres);
+    const tags = normalizeTags(details.genres, details.categories);
     const priceInfo = normalizePriceInfo(details);
     const row = {
       app_id: appId,
@@ -147,7 +161,7 @@ for (const appId of appIds) {
       image: details.header_image ?? null,
       short_description: details.short_description ?? null,
       genre: genres[0] ?? null,
-      tags: genres.length ? genres : null,
+      tags: tags.length ? tags : null,
       active_players: activePlayers,
       community_rating: reviewPercent,
       price: priceInfo.price,

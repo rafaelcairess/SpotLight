@@ -10,6 +10,9 @@ import { GameData, CATEGORIES } from "@/types/game";
 import { useAllGames, useGamesByIds } from "@/hooks/useGames";
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  "coop-2-couch": ["local co-op", "shared/split screen", "split screen"],
+  "coop-2-online": ["online co-op", "co-op", "multiplayer"],
+  "coop-4-online": ["online co-op", "co-op", "multiplayer"],
   terror: ["horror", "terror"],
   rpg: ["rpg", "role-playing"],
   "story-rich": ["story rich", "narrative", "adventure"],
@@ -150,6 +153,7 @@ const matchesCategory = (game: GameData, categoryId: string) => {
 };
 
 const CollectionDetail = () => {
+  const AUTO_LIMIT = 30;
   const { categoryId } = useParams<{ categoryId: string }>();
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -168,8 +172,23 @@ const CollectionDetail = () => {
     ? allGames.filter((game) => matchesCategory(game, categoryId))
     : allGames;
 
-  const games = manualIds && manualIds.length > 0 ? manualSorted : keywordGames;
-  const isPageLoading = manualIds && manualIds.length > 0 ? manualLoading : isLoading;
+  const manualSet = new Set(manualIds || []);
+  const autoSorted = [...keywordGames]
+    .filter((game) => !manualSet.has(game.app_id))
+    .sort((a, b) => {
+      const ratingDiff = (b.communityRating ?? 0) - (a.communityRating ?? 0);
+      if (ratingDiff !== 0) return ratingDiff;
+      return (b.activePlayers ?? 0) - (a.activePlayers ?? 0);
+    })
+    .slice(0, AUTO_LIMIT);
+
+  const games =
+    manualIds && manualIds.length > 0
+      ? [...manualSorted, ...autoSorted]
+      : autoSorted;
+
+  const isPageLoading =
+    isLoading || (manualIds && manualIds.length > 0 ? manualLoading : false);
 
   const handleGameClick = (game: GameData) => {
     setSelectedGame(game);
