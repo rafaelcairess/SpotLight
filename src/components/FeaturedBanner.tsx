@@ -32,7 +32,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
   };
 
   return (
-    <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] xl:aspect-[21/8] rounded-2xl overflow-hidden group">
+    <div className="relative w-full min-h-[360px] aspect-[4/3] sm:min-h-0 sm:aspect-[16/9] lg:aspect-[21/9] xl:aspect-[21/8] rounded-2xl overflow-hidden group">
       {/* Background Image */}
       <img
         src={game.image}
@@ -46,7 +46,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
       <div className="absolute inset-0 hero-gradient opacity-50" />
 
       {/* Content */}
-      <div className="relative h-full flex flex-col justify-end p-6 pb-10 sm:pb-12 md:p-10 md:pb-12 max-w-2xl">
+      <div className="relative h-full flex flex-col justify-end p-5 pb-6 sm:p-8 sm:pb-10 md:p-10 md:pb-12 max-w-2xl">
         {/* Badge */}
         <div className="flex items-center gap-2 mb-4 animate-fade-in">
           <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-primary/20 text-primary rounded-full border border-primary/30">
@@ -60,12 +60,12 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4 leading-tight break-words line-clamp-2 sm:line-clamp-3 animate-fade-in-up">
+        <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4 leading-tight break-words line-clamp-3 animate-fade-in-up">
           {game.title}
         </h1>
 
         {/* Stats */}
-        <div className="flex items-center gap-6 mb-4 text-sm animate-fade-in">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 mb-4 text-sm animate-fade-in">
           {game.activePlayers && (
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" />
@@ -100,7 +100,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-3 animate-fade-in-up">
+        <div className="flex flex-wrap items-center gap-3 animate-fade-in-up">
           <Button
             size="lg"
             className="gap-2 glow-primary"

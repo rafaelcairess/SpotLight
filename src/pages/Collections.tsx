@@ -33,7 +33,7 @@ const Collections = () => {
               subtitle="Jogos para jogar junto com amigos"
               icon={Sparkles}
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {CATEGORIES.filter((category) => category.featured).map(
                 (category, idx) => (
                   <CategoryCard key={category.id} category={category} index={idx} />

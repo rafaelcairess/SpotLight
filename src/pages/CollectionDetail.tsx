@@ -12,14 +12,29 @@ import { useAllGames, useGamesByIds } from "@/hooks/useGames";
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   "coop-2-couch": ["local co-op", "shared/split screen", "split screen"],
   "coop-2-online": ["online co-op", "co-op", "multiplayer"],
+  "coop-4-couch": ["local co-op", "shared/split screen", "split screen"],
   "coop-4-online": ["online co-op", "co-op", "multiplayer"],
+  cooperative: ["co-op", "coop", "multiplayer", "online co-op", "local co-op"],
+  casual: ["casual", "relaxing", "family friendly"],
   terror: ["horror", "terror"],
   rpg: ["rpg", "role-playing"],
   "story-rich": ["story rich", "narrative", "adventure"],
   action: ["action", "ação"],
+  sports: ["sports", "sport", "futebol", "football", "soccer", "basketball"],
+  "sci-fi-cyberpunk": ["sci-fi", "science fiction", "cyberpunk", "futuristic", "space"],
+  puzzle: ["puzzle", "quebra-cabeça", "logic"],
+  roguelike: ["roguelike", "rogue-lite", "roguelite"],
+  racing: ["racing", "corrida", "driving"],
+  "free-to-play": ["free to play", "gratuito", "free"],
+  anime: ["anime", "jrpg", "visual novel"],
+  vr: ["vr", "virtual reality"],
+  "open-world": ["open world", "mundo aberto", "sandbox"],
+  "city-building": ["city builder", "city-building", "colony", "colony sim", "management", "base building"],
+  simulation: ["simulation", "simulação", "simulator"],
+  adventure: ["adventure", "aventura"],
+  fighting: ["fighting", "luta", "beat 'em up"],
   indie: ["indie"],
   survival: ["survival", "sobrevivência"],
-  strategy: ["strategy", "estratégia", "rts", "turn-based"],
 };
 
 const CATEGORY_GAME_IDS: Record<string, number[]> = {
@@ -51,6 +66,14 @@ const CATEGORY_GAME_IDS: Record<string, number[]> = {
     815370, // Green Hell
     291550, // Brawlhalla
   ],
+  "coop-4-couch": [
+    291550, // Brawlhalla
+    477160, // Human Fall Flat
+    105600, // Terraria
+    413150, // Stardew Valley
+    268910, // Cuphead
+    1794680, // Vampire Survivors
+  ],
   "coop-4-online": [
     550, // Left 4 Dead 2
     218620, // PAYDAY 2
@@ -69,6 +92,18 @@ const CATEGORY_GAME_IDS: Record<string, number[]> = {
     1623730, // Palworld
     4000, // Garry's Mod
     248820, // Risk of Rain (2013)
+  ],
+  cooperative: [
+    1426210, // It Takes Two
+    268910, // Cuphead
+    322330, // Don't Starve Together
+    548430, // Deep Rock Galactic
+    218620, // PAYDAY 2
+    648800, // Raft
+    892970, // Valheim
+    632360, // Risk of Rain 2
+    291550, // Brawlhalla
+    108600, // Project Zomboid
   ],
   terror: [
     381210, // Dead by Daylight

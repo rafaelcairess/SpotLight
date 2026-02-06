@@ -1,5 +1,17 @@
 import { Link } from "react-router-dom";
 import {
+  Building2,
+  Compass,
+  Cpu,
+  DollarSign,
+  GamepadIcon,
+  Gauge,
+  Headset,
+  Map,
+  Puzzle,
+  Repeat,
+  SlidersHorizontal,
+  Trophy,
   Skull,
   Sword,
   Users,
@@ -21,6 +33,18 @@ interface CategoryCardProps {
 }
 
 const iconMap: Record<string, LucideIcon> = {
+  Building2,
+  Compass,
+  Cpu,
+  DollarSign,
+  GamepadIcon,
+  Gauge,
+  Headset,
+  Map,
+  Puzzle,
+  Repeat,
+  SlidersHorizontal,
+  Trophy,
   Skull,
   Sword,
   Users,
