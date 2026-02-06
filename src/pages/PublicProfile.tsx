@@ -29,6 +29,8 @@ import { GameLibrary } from "@/components/profile/GameLibrary";
 import { ProfileReviews } from "@/components/profile/ProfileReviews";
 import { FollowListDialog } from "@/components/profile/FollowListDialog";
 import { TrophyShowcase } from "@/components/profile/TrophyShowcase";
+import GameModal from "@/components/GameModal";
+import { GameData } from "@/types/game";
 import NotFound from "./NotFound";
 
 const PublicProfile = () => {
@@ -53,6 +55,8 @@ const PublicProfile = () => {
   const unfollowUser = useUnfollowUser();
   const [isFollowersOpen, setIsFollowersOpen] = useState(false);
   const [isFollowingOpen, setIsFollowingOpen] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const favoriteGames = userGames.filter((g) => g.is_favorite);
   const platinumGames = userGames.filter((g) => g.is_platinumed);
@@ -91,6 +95,16 @@ const PublicProfile = () => {
     } else {
       followUser.mutate(userId);
     }
+  };
+
+  const handleOpenGame = (game: GameData) => {
+    setSelectedGame(game);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedGame(null);
   };
 
   return (
@@ -186,7 +200,12 @@ const PublicProfile = () => {
           </TabsList>
 
           <TabsContent value="library">
-            <ProfileLibrarySections games={userGames} isLoading={gamesLoading} readOnly />
+            <ProfileLibrarySections
+              games={userGames}
+              isLoading={gamesLoading}
+              readOnly
+              onGameSelect={handleOpenGame}
+            />
           </TabsContent>
 
           <TabsContent value="favorites">
@@ -196,6 +215,7 @@ const PublicProfile = () => {
               emptyMessage="Este usuário ainda não tem favoritos."
               readOnly
               highlightPlatinum
+              onGameSelect={handleOpenGame}
             />
           </TabsContent>
 
@@ -207,6 +227,7 @@ const PublicProfile = () => {
               readOnly
               highlightPlatinum
               cardTone="completed"
+              onGameSelect={handleOpenGame}
             />
           </TabsContent>
 
@@ -231,6 +252,11 @@ const PublicProfile = () => {
         profiles={followingList}
         isLoading={followingLoading}
         emptyMessage="Ainda não está seguindo ninguém."
+      />
+      <GameModal
+        game={selectedGame}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
       />
     </div>
   );

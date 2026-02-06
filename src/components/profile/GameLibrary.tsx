@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UserGame, useUpdateGame, useRemoveGame } from "@/hooks/useUserGames";
 import { useGamesByIds } from "@/hooks/useGames";
+import { GameData } from "@/types/game";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,6 +22,7 @@ interface GameLibraryProps {
   readOnly?: boolean;
   highlightPlatinum?: boolean;
   cardTone?: "default" | "completed" | "dropped";
+  onGameSelect?: (game: GameData) => void;
 }
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -43,6 +45,7 @@ export function GameLibrary({
   readOnly = false,
   highlightPlatinum = false,
   cardTone = "default",
+  onGameSelect,
 }: GameLibraryProps) {
   const { toast } = useToast();
   const updateGame = useUpdateGame();
@@ -129,6 +132,7 @@ export function GameLibrary({
       {games.map((userGame) => {
         const gameInfo = gameMap.get(userGame.app_id);
         if (!gameInfo) return null;
+        const handleSelect = () => onGameSelect?.(gameInfo);
 
         return (
           <div
@@ -140,6 +144,19 @@ export function GameLibrary({
                 userGame.is_platinumed &&
                 "ring-2 ring-amber-400/40 shadow-[0_0_20px_rgba(251,191,36,0.35)]"
             )}
+            onClick={onGameSelect ? handleSelect : undefined}
+            role={onGameSelect ? "button" : undefined}
+            tabIndex={onGameSelect ? 0 : undefined}
+            onKeyDown={
+              onGameSelect
+                ? (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handleSelect();
+                    }
+                  }
+                : undefined
+            }
           >
             {/* Image */}
             <div className="aspect-video relative">
@@ -174,12 +191,22 @@ export function GameLibrary({
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="secondary" size="icon" className="h-8 w-8">
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(event) => event.stopPropagation()}
+                      >
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleToggleFavorite(userGame)}>
+                      <DropdownMenuItem
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleToggleFavorite(userGame);
+                        }}
+                      >
                         <Heart
                           className={cn(
                             "w-4 h-4 mr-2",
@@ -188,7 +215,12 @@ export function GameLibrary({
                         />
                         {userGame.is_favorite ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleTogglePlatinum(userGame)}>
+                      <DropdownMenuItem
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleTogglePlatinum(userGame);
+                        }}
+                      >
                         <Trophy
                           className={cn(
                             "w-4 h-4 mr-2",
@@ -198,21 +230,44 @@ export function GameLibrary({
                         {userGame.is_platinumed ? "Remover Platina" : "Marcar como Platinado"}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, "wishlist")}>
+                      <DropdownMenuItem
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleChangeStatus(userGame, "wishlist");
+                        }}
+                      >
                         Lista de Desejos
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, "playing")}>
+                      <DropdownMenuItem
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleChangeStatus(userGame, "playing");
+                        }}
+                      >
                         Jogando
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, "completed")}>
+                      <DropdownMenuItem
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleChangeStatus(userGame, "completed");
+                        }}
+                      >
                         Completado
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, "dropped")}>
+                      <DropdownMenuItem
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleChangeStatus(userGame, "dropped");
+                        }}
+                      >
                         Abandonado
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => handleRemove(userGame)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleRemove(userGame);
+                        }}
                         className="text-destructive"
                       >
                         <Trash2 className="w-4 h-4 mr-2" />

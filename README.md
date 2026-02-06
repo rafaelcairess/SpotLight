@@ -1,120 +1,89 @@
-﻿# Welcome to your Lovable project
+# SpotLight
 
-## Project info
+Uma plataforma de descoberta de jogos com curadoria, comunidade e reviews reais. O foco é facilitar a busca por bons jogos, acompanhar descontos e criar uma biblioteca pessoal com progresso e conquistas.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?logo=vite&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-06B6D4?logo=tailwindcss&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Postgres-3FCF8E?logo=supabase&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-Deploy-000000?logo=vercel&logoColor=white)
 
-## How can I edit this code?
+## O que o SpotLight entrega
 
-There are several ways of editing your application.
+- Catálogo dinâmico com dados da Steam
+- Destaques, rankings e promoções
+- Biblioteca pessoal (jogando, completados, abandonados)
+- Reviews e avaliações da comunidade
+- Perfis públicos, seguidores e vitrine de platinas
+- Coleções temáticas (incluindo co-op)
 
-**Use Lovable**
+## Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- **Frontend**: Vite + React + TypeScript
+- **UI**: TailwindCSS + shadcn/ui
+- **Dados**: Supabase (PostgreSQL, Auth, RLS, Storage)
+- **Sync externo**: Steam Web API + Steam Store API
+- **Deploy**: Vercel
+- **CI**: GitHub Actions (sync automático)
 
-Changes made via Lovable will be committed automatically to this repo.
+## Como funciona (visão rápida)
 
-**Use your preferred IDE**
+1. Um script sincroniza jogos da Steam e salva no Supabase.
+2. O frontend consome o catálogo via React Query.
+3. Usuários criam reviews, biblioteca e conexões na comunidade.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Começando localmente
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+**Pré-requisitos**: Node.js 18+
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Variáveis de ambiente
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Crie um `.env.local` baseado no `.env.example`.
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## Deploy (Vercel or Netlify)
-
-### 1) Prepare environment variables
-
-Create a `.env.local` for local dev, and configure **these same variables** in your hosting dashboard for production.
-
-**Frontend (public in the browser):**
+**Frontend (público no browser)**
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
 
-**Server-only (never expose in the browser):**
+**Server-only (nunca expor no frontend)**
 - `STEAM_API_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `STEAM_STORE_LANGUAGE` (ex: `brazilian`)
 
-> Tip: Use `.env.example` as a template (no secrets inside).
+## Scripts úteis
 
-### 2) Build settings
-
-This project uses Vite, so the build command is:
-
-```sh
+```bash
+npm run dev
 npm run build
+npm run preview
+npm run sync:steam
 ```
 
-The output folder is:
+## Deploy (Vercel)
 
-```
-dist
-```
+1. Faça push no GitHub
+2. Importe o repo no Vercel
+3. Configure as variáveis de ambiente
+4. Deploy
 
-### 3) Hosting steps
+## Segurança
 
-**Vercel**
-1. Import the GitHub repo
-2. Set the env vars in the project settings
-3. Deploy
+- **Nunca** comite `.env` ou `.env.local`
+- `SUPABASE_SERVICE_ROLE_KEY` deve ficar apenas no servidor
+- Chaves expostas podem ser revogadas no Supabase/Steam
 
-**Netlify**
-1. Import the GitHub repo
-2. Set the env vars in the site settings
-3. Deploy
+## Roadmap
 
-## Security notes (important)
+- IA para recomendações personalizadas
+- Melhorias contínuas de catálogo e curadoria
+- Mais recursos sociais (feeds, conquistas e rankings)
+- Integração com novas fontes no futuro
 
-- Only variables prefixed with `VITE_` are exposed to the browser. Keep secrets **without** the `VITE_` prefix.
-- The Supabase **publishable** key is designed for browser use when RLS is enabled. Never ship the **service role** key in the frontend.
+---
 
-## How can I deploy this project (via Lovable)?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Feito com foco em qualidade e evolução constante.

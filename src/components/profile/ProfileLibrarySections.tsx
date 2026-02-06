@@ -1,17 +1,20 @@
 import { GamepadIcon, CheckCircle2, XCircle } from "lucide-react";
 import { GameLibrary } from "@/components/profile/GameLibrary";
 import { UserGame } from "@/hooks/useUserGames";
+import { GameData } from "@/types/game";
 
 interface ProfileLibrarySectionsProps {
   games: UserGame[];
   isLoading: boolean;
   readOnly?: boolean;
+  onGameSelect?: (game: GameData) => void;
 }
 
 export function ProfileLibrarySections({
   games,
   isLoading,
   readOnly = false,
+  onGameSelect,
 }: ProfileLibrarySectionsProps) {
   const completedGames = games.filter((g) => g.status === "completed");
   const droppedGames = games.filter((g) => g.status === "dropped");
@@ -38,6 +41,7 @@ export function ProfileLibrarySections({
           readOnly={readOnly}
           highlightPlatinum
           cardTone="completed"
+          onGameSelect={onGameSelect}
         />
       </section>
 
@@ -57,6 +61,7 @@ export function ProfileLibrarySections({
           emptyMessage="Nenhum jogo abandonado."
           readOnly={readOnly}
           cardTone="dropped"
+          onGameSelect={onGameSelect}
         />
       </section>
 
@@ -76,6 +81,7 @@ export function ProfileLibrarySections({
           emptyMessage="Nada por aqui no momento."
           readOnly={readOnly}
           highlightPlatinum
+          onGameSelect={onGameSelect}
         />
       </section>
     </div>

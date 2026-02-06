@@ -23,6 +23,8 @@ import { GameLibrary } from "@/components/profile/GameLibrary";
 import { ProfileReviews } from "@/components/profile/ProfileReviews";
 import { ProfileEditDialog } from "@/components/profile/ProfileEditDialog";
 import { TrophyShowcase } from "@/components/profile/TrophyShowcase";
+import GameModal from "@/components/GameModal";
+import { GameData } from "@/types/game";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -36,6 +38,8 @@ const Profile = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isFollowersOpen, setIsFollowersOpen] = useState(false);
   const [isFollowingOpen, setIsFollowingOpen] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Redirect to auth if not logged in
   if (!authLoading && !user) {
@@ -64,6 +68,16 @@ const Profile = () => {
 
   const favoriteGames = userGames.filter((g) => g.is_favorite);
   const platinumGames = userGames.filter((g) => g.is_platinumed);
+
+  const handleOpenGame = (game: GameData) => {
+    setSelectedGame(game);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedGame(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -155,7 +169,11 @@ const Profile = () => {
           </TabsList>
 
           <TabsContent value="library">
-            <ProfileLibrarySections games={userGames} isLoading={gamesLoading} />
+            <ProfileLibrarySections
+              games={userGames}
+              isLoading={gamesLoading}
+              onGameSelect={handleOpenGame}
+            />
           </TabsContent>
 
           <TabsContent value="favorites">
@@ -164,6 +182,7 @@ const Profile = () => {
               isLoading={gamesLoading}
               emptyMessage="Você ainda não tem jogos favoritos."
               highlightPlatinum
+              onGameSelect={handleOpenGame}
             />
           </TabsContent>
 
@@ -174,6 +193,7 @@ const Profile = () => {
               emptyMessage="Você ainda não platinou nenhum jogo."
               highlightPlatinum
               cardTone="completed"
+              onGameSelect={handleOpenGame}
             />
           </TabsContent>
 
@@ -204,6 +224,11 @@ const Profile = () => {
         profiles={followingList}
         isLoading={followingLoading}
         emptyMessage="Ainda não está seguindo ninguém."
+      />
+      <GameModal
+        game={selectedGame}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
       />
     </div>
   );
