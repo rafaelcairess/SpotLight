@@ -105,6 +105,29 @@ export function useDiscountedGames(limit = 30) {
   });
 }
 
+export function useDiscountedGamesPaged(limit = 30, page = 1) {
+  return useQuery({
+    queryKey: ["games", "discounted", "paged", limit, page],
+    queryFn: async () => {
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+
+      const { data, error, count } = await supabase
+        .from("games")
+        .select("*", { count: "exact" })
+        .gt("discount_percent", 0)
+        .order("active_players", { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+      return {
+        games: (data as GameRow[]).map(mapGameRow),
+        count: count ?? 0,
+      };
+    },
+  });
+}
+
 export function useGamesByIds(appIds: number[]) {
   const uniqueIds = Array.from(new Set(appIds.filter((id) => Number.isFinite(id))));
 

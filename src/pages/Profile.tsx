@@ -5,7 +5,7 @@ import {
   Heart,
   Trophy,
   BookOpen,
-  Edit3,
+  Settings,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -112,8 +112,8 @@ const Profile = () => {
                 className="gap-2"
                 onClick={() => setIsEditOpen(true)}
               >
-                <Edit3 className="w-4 h-4" />
-                Editar Perfil
+                <Settings className="w-4 h-4" />
+                Configurações
               </Button>
             </div>
 

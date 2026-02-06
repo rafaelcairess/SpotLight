@@ -6,11 +6,18 @@ import GameModal from "@/components/GameModal";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import LayoutToggle from "@/components/LayoutToggle";
 import { useLayoutPreference } from "@/hooks/useLayoutPreference";
-import { useDiscountedGames } from "@/hooks/useGames";
+import { useDiscountedGamesPaged } from "@/hooks/useGames";
 import { GameData } from "@/types/game";
+import { Button } from "@/components/ui/button";
 
 const PromotionsBar = () => {
-  const { data: games = [], isLoading } = useDiscountedGames(30);
+  const PAGE_SIZE = 30;
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useDiscountedGamesPaged(PAGE_SIZE, page);
+  const games = data?.games ?? [];
+  const total = data?.count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [layoutMode, setLayoutMode] = useLayoutPreference();
@@ -46,17 +53,39 @@ const PromotionsBar = () => {
           Sem promoções no momento.
         </div>
       ) : (
-        <div className={gridClass}>
-          {games.map((game, idx) => (
-            <GameCard
-              key={game.app_id}
-              game={game}
-              index={idx}
-              variant={layoutMode === "compact" ? "compact" : "default"}
-              onClick={() => handleGameClick(game)}
-            />
-          ))}
-        </div>
+        <>
+          <div className={gridClass}>
+            {games.map((game, idx) => (
+              <GameCard
+                key={game.app_id}
+                game={game}
+                index={idx}
+                variant={layoutMode === "compact" ? "compact" : "default"}
+                onClick={() => handleGameClick(game)}
+              />
+            ))}
+          </div>
+
+          <div className="flex items-center justify-center gap-3 mt-8">
+            <Button
+              variant="outline"
+              disabled={page <= 1}
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            >
+              Anterior
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Página {page} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              disabled={page >= totalPages}
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            >
+              Próxima
+            </Button>
+          </div>
+        </>
       )}
 
       <GameModal
@@ -68,4 +97,4 @@ const PromotionsBar = () => {
   );
 };
 
-export default PromotionsBar;
+export default PromotionsBar;

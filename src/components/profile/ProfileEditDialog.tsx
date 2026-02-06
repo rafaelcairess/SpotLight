@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { Loader2, Upload, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Loader2, Upload } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,55 @@ interface ProfileEditDialogProps {
   profile: Profile | null | undefined;
 }
 
+const VISIBILITY_OPTIONS = [
+  {
+    value: "public",
+    label: "Público",
+    description: "Qualquer pessoa pode ver.",
+  },
+  {
+    value: "friends",
+    label: "Só amigos",
+    description: "Somente amigos podem ver.",
+  },
+  {
+    value: "private",
+    label: "Privado",
+    description: "Apenas você pode ver.",
+  },
+];
+
+const BANNED_WORDS = [
+  "caralho",
+  "porra",
+  "puta",
+  "foda",
+  "merda",
+  "bosta",
+  "cu",
+  "pinto",
+  "buceta",
+  "viad",
+  "puta",
+  "idiota",
+  "burro",
+  "fuck",
+  "shit",
+  "bitch",
+  "asshole",
+];
+
+const normalize = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const containsBannedWords = (value: string) => {
+  const normalized = normalize(value);
+  return BANNED_WORDS.some((word) => normalized.includes(word));
+};
+
 export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -32,24 +81,28 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
   const [username, setUsername] = useState(profile?.username || "");
   const [bio, setBio] = useState(profile?.bio || "");
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "");
+  const [profileVisibility, setProfileVisibility] = useState(profile?.profile_visibility || "public");
+  const [reviewsVisibility, setReviewsVisibility] = useState(profile?.reviews_visibility || "public");
+  const [libraryVisibility, setLibraryVisibility] = useState(profile?.library_visibility || "public");
   const [isUploading, setIsUploading] = useState(false);
 
-  // Update form when profile changes
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || "");
       setUsername(profile.username || "");
       setBio(profile.bio || "");
       setAvatarUrl(profile.avatar_url || "");
+      setProfileVisibility(profile.profile_visibility || "public");
+      setReviewsVisibility(profile.reviews_visibility || "public");
+      setLibraryVisibility(profile.library_visibility || "public");
     }
-  });
+  }, [profile]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
 
-    // Validate file
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       toast({ title: "Por favor, selecione uma imagem", variant: "destructive" });
       return;
     }
@@ -60,25 +113,23 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
 
     setIsUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/avatar.${fileExt}`;
 
-      // Upload to storage
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from("avatars")
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
+        .from("avatars")
         .getPublicUrl(fileName);
 
       setAvatarUrl(publicUrl);
       toast({ title: "Foto atualizada!" });
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error("Upload error:", error);
       toast({ title: "Erro ao fazer upload", variant: "destructive" });
     } finally {
       setIsUploading(false);
@@ -88,7 +139,6 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate username
     if (username.length < 3) {
       toast({ title: "O username deve ter pelo menos 3 caracteres", variant: "destructive" });
       return;
@@ -98,17 +148,26 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
       return;
     }
 
+    const valuesToCheck = [displayName, username, bio].filter(Boolean);
+    if (valuesToCheck.some((value) => containsBannedWords(value))) {
+      toast({ title: "Remova palavras inapropriadas do perfil", variant: "destructive" });
+      return;
+    }
+
     try {
       await updateProfile.mutateAsync({
         username,
         display_name: displayName || null,
         bio: bio || null,
         avatar_url: avatarUrl || null,
+        profile_visibility: profileVisibility,
+        reviews_visibility: reviewsVisibility,
+        library_visibility: libraryVisibility,
       });
       toast({ title: "Perfil atualizado com sucesso!" });
       onOpenChange(false);
     } catch (error: any) {
-      if (error.message?.includes('duplicate')) {
+      if (error.message?.includes("duplicate")) {
         toast({ title: "Este username já está em uso", variant: "destructive" });
       } else {
         toast({ title: "Erro ao salvar perfil", variant: "destructive" });
@@ -118,9 +177,9 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Editar Perfil</DialogTitle>
+          <DialogTitle>Configurações do Perfil</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -146,9 +205,9 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
               onChange={handleAvatarUpload}
               className="hidden"
             />
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
@@ -178,7 +237,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
               <Input
                 id="username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
                 placeholder="seu_username"
                 className="pl-8"
                 maxLength={20}
@@ -203,6 +262,70 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
             <p className="text-xs text-muted-foreground text-right">
               {bio.length}/200
             </p>
+          </div>
+
+          {/* Privacy */}
+          <div className="space-y-4 rounded-lg border border-border/50 p-4">
+            <div>
+              <h3 className="text-sm font-semibold">Privacidade</h3>
+              <p className="text-xs text-muted-foreground">
+                Controle quem pode ver seu perfil, biblioteca e reviews.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Perfil</Label>
+              <select
+                value={profileVisibility}
+                onChange={(e) => setProfileVisibility(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              >
+                {VISIBILITY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                {VISIBILITY_OPTIONS.find((o) => o.value === profileVisibility)?.description}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Biblioteca</Label>
+              <select
+                value={libraryVisibility}
+                onChange={(e) => setLibraryVisibility(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              >
+                {VISIBILITY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                {VISIBILITY_OPTIONS.find((o) => o.value === libraryVisibility)?.description}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Reviews</Label>
+              <select
+                value={reviewsVisibility}
+                onChange={(e) => setReviewsVisibility(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              >
+                {VISIBILITY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                {VISIBILITY_OPTIONS.find((o) => o.value === reviewsVisibility)?.description}
+              </p>
+            </div>
           </div>
 
           {/* Actions */}

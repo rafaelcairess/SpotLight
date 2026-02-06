@@ -1,4 +1,4 @@
-import { Search, Orbit, Menu, X, LogOut, DollarSign, Users } from "lucide-react";
+import { Search, Orbit, Menu, X, LogOut, DollarSign, Users, Bell } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,16 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { UserAvatar } from "@/components/profile/UserAvatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/useNotifications";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -15,10 +25,13 @@ const Header = () => {
   const location = useLocation();
   const { user, signOut, loading: authLoading } = useAuth();
   const { data: profile } = useProfile();
+  const { data: notifications = [], isLoading: notificationsLoading } = useNotifications();
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/');
+    navigate("/");
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -31,10 +44,19 @@ const Header = () => {
 
   const navLinks = [
     { href: "/", label: "Explorar" },
-    { href: "/comunidade", label: "Comunidade", icon: Users },
-    { href: "/promocoes", label: "Promoções", icon: DollarSign },
     { href: "/collections", label: "Coleções" },
+    { href: "/promocoes", label: "Promoções", icon: DollarSign },
+    { href: "/comunidade", label: "Comunidade", icon: Users },
   ];
+
+  const unreadCount = notifications.filter((notification) => !notification.read_at).length;
+
+  const handleNotificationClick = (id: string, link?: string | null) => {
+    markRead.mutate(id);
+    if (link) {
+      navigate(link);
+    }
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
@@ -91,12 +113,70 @@ const Header = () => {
             {!authLoading && (
               user ? (
                 <div className="flex items-center gap-3">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="relative">
+                        <Bell className="w-5 h-5" />
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground px-1">
+                            {unreadCount > 9 ? "9+" : unreadCount}
+                          </span>
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-80">
+                      <div className="flex items-center justify-between px-2 py-1">
+                        <span className="text-sm font-semibold">Notificações</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs"
+                          onClick={() => markAllRead.mutate()}
+                          disabled={markAllRead.isPending || unreadCount === 0}
+                        >
+                          Marcar tudo
+                        </Button>
+                      </div>
+                      <DropdownMenuSeparator />
+                      {notificationsLoading ? (
+                        <div className="px-3 py-6 text-sm text-muted-foreground">
+                          Carregando...
+                        </div>
+                      ) : notifications.length === 0 ? (
+                        <div className="px-3 py-6 text-sm text-muted-foreground">
+                          Sem notificações por enquanto.
+                        </div>
+                      ) : (
+                        notifications.map((notification) => (
+                          <DropdownMenuItem
+                            key={notification.id}
+                            onClick={() => handleNotificationClick(notification.id, notification.link)}
+                            className={cn(
+                              "flex flex-col items-start gap-1 whitespace-normal",
+                              !notification.read_at && "bg-primary/5"
+                            )}
+                          >
+                            <span className="text-sm font-medium">
+                              {notification.message}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(notification.created_at), {
+                                addSuffix: true,
+                                locale: ptBR,
+                              })}
+                            </span>
+                          </DropdownMenuItem>
+                        ))
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
                   <Link
                     to="/profile"
                     className="relative h-10 w-10 rounded-full"
                   >
-                    <UserAvatar 
-                      src={profile?.avatar_url} 
+                    <UserAvatar
+                      src={profile?.avatar_url}
                       displayName={profile?.display_name}
                       username={profile?.username}
                       size="md"
@@ -182,13 +262,13 @@ const Header = () => {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary"
                     >
-                      <UserAvatar 
-                        src={profile?.avatar_url} 
+                      <UserAvatar
+                        src={profile?.avatar_url}
                         displayName={profile?.display_name}
                         username={profile?.username}
                         size="sm"
                       />
-                      <span>{profile?.display_name || 'Meu Perfil'}</span>
+                      <span>{profile?.display_name || "Meu Perfil"}</span>
                     </Link>
                     <button
                       onClick={() => {
@@ -222,4 +302,3 @@ const Header = () => {
 };
 
 export default Header;
-

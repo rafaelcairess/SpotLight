@@ -6,12 +6,15 @@ import {
   Trophy,
   BookOpen,
   UserPlus,
+  Users,
+  Check,
+  X,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfileByUsername } from "@/hooks/useProfile";
+import { useProfile, useProfileByUsername } from "@/hooks/useProfile";
 import { useUserGames } from "@/hooks/useUserGames";
 import { useReviewsByUser } from "@/hooks/useReviews";
 import {
@@ -22,6 +25,12 @@ import {
   useFollowingIds,
   useUnfollowUser,
 } from "@/hooks/useFollows";
+import {
+  useFriendStatus,
+  useSendFriendRequest,
+  useAcceptFriendRequest,
+  useDeclineFriendRequest,
+} from "@/hooks/useFriends";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ProfileLibrarySections } from "@/components/profile/ProfileLibrarySections";
@@ -37,11 +46,10 @@ const PublicProfile = () => {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: currentProfile } = useProfile();
   const { data: profile, isLoading: profileLoading, error } = useProfileByUsername(username);
 
   const userId = profile?.user_id;
-  const { data: userGames = [], isLoading: gamesLoading } = useUserGames(userId, false);
-  const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByUser(userId, false);
   const { data: followCounts } = useFollowCounts(userId);
   const { data: followersList = [], isLoading: followersLoading } = useFollowers(userId);
   const { data: followingList = [], isLoading: followingLoading } = useFollowing(userId);
@@ -51,8 +59,42 @@ const PublicProfile = () => {
   const isFollowing = userId ? followingIds.includes(userId) : false;
   const isSelf = userId && user?.id === userId;
 
+  const { data: friendStatus } = useFriendStatus(userId);
+  const isFriend = friendStatus?.status === "accepted";
+
+  const canViewProfile =
+    !!profile &&
+    (isSelf ||
+      profile.profile_visibility === "public" ||
+      (profile.profile_visibility === "friends" && isFriend));
+
+  const canViewLibrary =
+    !!profile &&
+    (isSelf ||
+      profile.library_visibility === "public" ||
+      (profile.library_visibility === "friends" && isFriend));
+
+  const canViewReviews =
+    !!profile &&
+    (isSelf ||
+      profile.reviews_visibility === "public" ||
+      (profile.reviews_visibility === "friends" && isFriend));
+
+  const { data: userGames = [], isLoading: gamesLoading } = useUserGames(
+    canViewLibrary ? userId : undefined,
+    false
+  );
+  const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByUser(
+    canViewReviews ? userId : undefined,
+    false
+  );
+
   const followUser = useFollowUser();
   const unfollowUser = useUnfollowUser();
+  const sendFriendRequest = useSendFriendRequest();
+  const acceptFriendRequest = useAcceptFriendRequest();
+  const declineFriendRequest = useDeclineFriendRequest();
+
   const [isFollowersOpen, setIsFollowersOpen] = useState(false);
   const [isFollowingOpen, setIsFollowingOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
@@ -81,7 +123,38 @@ const PublicProfile = () => {
   }
 
   if (!profile || error) {
-    return <NotFound />;
+    const isPrivate = !!error && `${error?.message ?? ""}`.toLowerCase().includes("permission");
+    return isPrivate ? (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-24 container mx-auto px-4">
+          <div className="max-w-lg mx-auto text-center py-20">
+            <h1 className="text-2xl font-bold mb-2">Perfil privado</h1>
+            <p className="text-muted-foreground">
+              Este usuário restringiu o acesso ao perfil.
+            </p>
+          </div>
+        </main>
+      </div>
+    ) : (
+      <NotFound />
+    );
+  }
+
+  if (!canViewProfile) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-24 container mx-auto px-4">
+          <div className="max-w-lg mx-auto text-center py-20">
+            <h1 className="text-2xl font-bold mb-2">Perfil privado</h1>
+            <p className="text-muted-foreground">
+              Este usuário restringiu o acesso ao perfil.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   const handleToggleFollow = () => {
@@ -95,6 +168,35 @@ const PublicProfile = () => {
     } else {
       followUser.mutate(userId);
     }
+  };
+
+  const handleSendFriendRequest = () => {
+    if (!userId) return;
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    const actorLabel = currentProfile?.display_name || currentProfile?.username || "Alguém";
+    sendFriendRequest.mutate({
+      addresseeId: userId,
+      message: `${actorLabel} quer ser seu amigo.`,
+      link: `/u/${currentProfile?.username ?? user.id}`,
+    });
+  };
+
+  const handleAcceptFriendRequest = () => {
+    if (!friendStatus?.request || !currentProfile) return;
+    acceptFriendRequest.mutate({
+      requestId: friendStatus.request.id,
+      requesterId: friendStatus.request.requester_id,
+      message: `${currentProfile.display_name || currentProfile.username} aceitou seu pedido de amizade.`,
+      link: `/u/${currentProfile.username}`,
+    });
+  };
+
+  const handleDeclineFriendRequest = () => {
+    if (!friendStatus?.request) return;
+    declineFriendRequest.mutate(friendStatus.request.id);
   };
 
   const handleOpenGame = (game: GameData) => {
@@ -124,7 +226,7 @@ const PublicProfile = () => {
           </div>
 
           <div className="flex-1">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">
                   {profile.display_name || "Gamer"}
@@ -135,16 +237,57 @@ const PublicProfile = () => {
                 )}
               </div>
               {!isSelf && (
-                <Button
-                  variant={isFollowing ? "secondary" : "glow"}
-                  size="sm"
-                  className="gap-2"
-                  onClick={handleToggleFollow}
-                  disabled={followUser.isPending || unfollowUser.isPending}
-                >
-                  <UserPlus className="w-4 h-4" />
-                  {isFollowing ? "Seguindo" : "Seguir"}
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant={isFollowing ? "secondary" : "glow"}
+                    size="sm"
+                    className="gap-2"
+                    onClick={handleToggleFollow}
+                    disabled={followUser.isPending || unfollowUser.isPending}
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    {isFollowing ? "Seguindo" : "Seguir"}
+                  </Button>
+
+                  {friendStatus?.status === "accepted" && (
+                    <Button variant="outline" size="sm" className="gap-2" disabled>
+                      <Users className="w-4 h-4" />
+                      Amigos
+                    </Button>
+                  )}
+
+                  {friendStatus?.status === "pending_outgoing" && (
+                    <Button variant="outline" size="sm" disabled>
+                      Solicitação enviada
+                    </Button>
+                  )}
+
+                  {friendStatus?.status === "pending_incoming" && (
+                    <div className="flex gap-2">
+                      <Button size="sm" className="gap-2" onClick={handleAcceptFriendRequest}>
+                        <Check className="w-4 h-4" />
+                        Aceitar
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={handleDeclineFriendRequest}>
+                        <X className="w-4 h-4" />
+                        Recusar
+                      </Button>
+                    </div>
+                  )}
+
+                  {(!friendStatus || friendStatus.status === "none" || friendStatus.status === "declined") && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={handleSendFriendRequest}
+                      disabled={sendFriendRequest.isPending}
+                    >
+                      <Users className="w-4 h-4" />
+                      Adicionar amigo
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
 
@@ -200,39 +343,63 @@ const PublicProfile = () => {
           </TabsList>
 
           <TabsContent value="library">
-            <ProfileLibrarySections
-              games={userGames}
-              isLoading={gamesLoading}
-              readOnly
-              onGameSelect={handleOpenGame}
-            />
+            {canViewLibrary ? (
+              <ProfileLibrarySections
+                games={userGames}
+                isLoading={gamesLoading}
+                readOnly
+                onGameSelect={handleOpenGame}
+              />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                Biblioteca privada.
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="favorites">
-            <GameLibrary
-              games={favoriteGames}
-              isLoading={gamesLoading}
-              emptyMessage="Este usuário ainda não tem favoritos."
-              readOnly
-              highlightPlatinum
-              onGameSelect={handleOpenGame}
-            />
+            {canViewLibrary ? (
+              <GameLibrary
+                games={favoriteGames}
+                isLoading={gamesLoading}
+                emptyMessage="Este usuário ainda não tem favoritos."
+                readOnly
+                highlightPlatinum
+                onGameSelect={handleOpenGame}
+              />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                Favoritos privados.
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="platinum">
-            <GameLibrary
-              games={platinumGames}
-              isLoading={gamesLoading}
-              emptyMessage="Este usuário ainda não tem jogos platinados."
-              readOnly
-              highlightPlatinum
-              cardTone="completed"
-              onGameSelect={handleOpenGame}
-            />
+            {canViewLibrary ? (
+              <GameLibrary
+                games={platinumGames}
+                isLoading={gamesLoading}
+                emptyMessage="Este usuário ainda não tem jogos platinados."
+                readOnly
+                highlightPlatinum
+                cardTone="completed"
+                onGameSelect={handleOpenGame}
+              />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                Platinas privadas.
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="reviews">
-            <ProfileReviews reviews={reviews} isLoading={reviewsLoading} />
+            {canViewReviews ? (
+              <ProfileReviews reviews={reviews} isLoading={reviewsLoading} />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                Reviews privadas.
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </main>
@@ -253,11 +420,8 @@ const PublicProfile = () => {
         isLoading={followingLoading}
         emptyMessage="Ainda não está seguindo ninguém."
       />
-      <GameModal
-        game={selectedGame}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
+
+      <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />
     </div>
   );
 };

@@ -95,6 +95,66 @@ export type Database = {
         }
         Relationships: []
       }
+      friend_requests: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: Database["public"]["Enums"]["friend_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: Database["public"]["Enums"]["friend_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: Database["public"]["Enums"]["friend_request_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          read_at: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          read_at?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          read_at?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -102,6 +162,9 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          library_visibility: string
+          profile_visibility: string
+          reviews_visibility: string
           updated_at: string
           user_id: string
           username: string
@@ -112,6 +175,9 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          library_visibility?: string
+          profile_visibility?: string
+          reviews_visibility?: string
           updated_at?: string
           user_id: string
           username: string
@@ -122,6 +188,9 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          library_visibility?: string
+          profile_visibility?: string
+          reviews_visibility?: string
           updated_at?: string
           user_id?: string
           username?: string
@@ -205,7 +274,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      friend_request_status: "pending" | "accepted" | "declined"
       game_status: "wishlist" | "playing" | "completed" | "dropped"
+      notification_type: "friend_request" | "friend_accept" | "message"
     }
     CompositeTypes: {
       [_ in never]: never

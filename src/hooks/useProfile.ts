@@ -9,6 +9,9 @@ export interface Profile {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  profile_visibility: string;
+  reviews_visibility: string;
+  library_visibility: string;
   created_at: string;
   updated_at: string;
 }
@@ -74,7 +77,20 @@ export function useUpdateProfile() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (updates: Partial<Pick<Profile, 'username' | 'display_name' | 'bio' | 'avatar_url'>>) => {
+    mutationFn: async (
+      updates: Partial<
+        Pick<
+          Profile,
+          | 'username'
+          | 'display_name'
+          | 'bio'
+          | 'avatar_url'
+          | 'profile_visibility'
+          | 'reviews_visibility'
+          | 'library_visibility'
+        >
+      >
+    ) => {
       if (!user?.id) throw new Error('Not authenticated');
       
       const { data, error } = await supabase
