@@ -21,18 +21,16 @@ const loadEnvFile = (filename) => {
     if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
       value = value.slice(1, -1);
     }
-    if (!process.env[key]) {
-      process.env[key] = value;
-    }
+    process.env[key] = value;
   }
 };
 
-loadEnvFile(".env.local");
 loadEnvFile(".env");
+loadEnvFile(".env.local");
 
-const STEAM_API_KEY = process.env.STEAM_API_KEY;
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const STEAM_API_KEY = (process.env.STEAM_API_KEY || "").trim();
+const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "").trim();
+const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 const STEAM_STORE_LANGUAGE = process.env.STEAM_STORE_LANGUAGE || "brazilian";
 
 if (!STEAM_API_KEY) {
