@@ -13,10 +13,11 @@ import { Button } from "@/components/ui/button";
 const PromotionsBar = () => {
   const PAGE_SIZE = 30;
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useDiscountedGamesPaged(PAGE_SIZE, page);
+  const { data, isLoading, isFetching } = useDiscountedGamesPaged(PAGE_SIZE, page);
   const games = data?.games ?? [];
   const total = data?.count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const [cooldown, setCooldown] = useState(false);
 
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,6 +26,13 @@ const PromotionsBar = () => {
   const handleGameClick = (game: GameData) => {
     setSelectedGame(game);
     setIsModalOpen(true);
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    if (cooldown || isFetching || nextPage === page) return;
+    setPage(nextPage);
+    setCooldown(true);
+    setTimeout(() => setCooldown(false), 400);
   };
 
   const handleCloseModal = () => {
@@ -69,8 +77,8 @@ const PromotionsBar = () => {
           <div className="flex items-center justify-center gap-3 mt-8">
             <Button
               variant="outline"
-              disabled={page <= 1}
-              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={page <= 1 || isFetching || cooldown}
+              onClick={() => handlePageChange(Math.max(1, page - 1))}
             >
               Anterior
             </Button>
@@ -79,8 +87,8 @@ const PromotionsBar = () => {
             </span>
             <Button
               variant="outline"
-              disabled={page >= totalPages}
-              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={page >= totalPages || isFetching || cooldown}
+              onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
             >
               Próxima
             </Button>

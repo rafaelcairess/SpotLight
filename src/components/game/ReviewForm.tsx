@@ -28,6 +28,10 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
   const [isPositive, setIsPositive] = useState(true);
   const [content, setContent] = useState("");
   const [hoursAtReview, setHoursAtReview] = useState<number | "">("");
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+
+  const COOLDOWN_MS = 30_000;
+  const cooldownKey = user?.id ? `spotlight.review.cooldown.${user.id}.${appId}` : "";
 
   useEffect(() => {
     if (existingReview) {
@@ -45,6 +49,23 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
     }
   }, [existingReview, appId]);
 
+  useEffect(() => {
+    if (!cooldownKey) {
+      setCooldownRemaining(0);
+      return;
+    }
+
+    const updateCooldown = () => {
+      const last = Number(localStorage.getItem(cooldownKey) || 0);
+      const remaining = Math.max(0, COOLDOWN_MS - (Date.now() - last));
+      setCooldownRemaining(remaining);
+    };
+
+    updateCooldown();
+    const timer = setInterval(updateCooldown, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownKey]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -61,6 +82,12 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
     const hoursValue = hoursAtReview === "" ? undefined : Number(hoursAtReview);
     if (hoursValue !== undefined && (!Number.isFinite(hoursValue) || !Number.isInteger(hoursValue))) {
       toast({ title: "Horas jogadas inválidas", variant: "destructive" });
+      return;
+    }
+
+    if (cooldownRemaining > 0) {
+      const seconds = Math.ceil(cooldownRemaining / 1000);
+      toast({ title: `Aguarde ${seconds}s para enviar outra review`, variant: "destructive" });
       return;
     }
 
@@ -94,12 +121,17 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
       }
 
       onClose?.();
+      if (cooldownKey) {
+        localStorage.setItem(cooldownKey, Date.now().toString());
+        setCooldownRemaining(COOLDOWN_MS);
+      }
     } catch (error) {
       toast({ title: "Erro ao salvar review", variant: "destructive" });
     }
   };
 
   const isSaving = createReview.isPending || updateReview.isPending || addGame.isPending;
+  const isCooldownActive = cooldownRemaining > 0;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -160,8 +192,12 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
             Cancelar
           </Button>
         )}
-        <Button type="submit" disabled={isSaving}>
-          {isSaving ? "Salvando..." : "Salvar Review"}
+        <Button type="submit" disabled={isSaving || isCooldownActive}>
+          {isSaving
+            ? "Salvando..."
+            : isCooldownActive
+            ? `Aguarde ${Math.ceil(cooldownRemaining / 1000)}s`
+            : "Salvar Review"}
         </Button>
       </div>
     </form>

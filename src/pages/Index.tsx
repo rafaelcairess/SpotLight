@@ -33,6 +33,7 @@ const Index = () => {
   } = useTopRatedGames(discoverLimit);
   const [layoutMode, setLayoutMode] = useLayoutPreference();
   const categoriesScrollRef = useRef<HTMLDivElement | null>(null);
+  const [scrollLocked, setScrollLocked] = useState(false);
 
   const featuredGame = popularGames[0] || topRatedGames[0] || null;
 
@@ -73,12 +74,14 @@ const Index = () => {
 
   const handleCategoryScroll = (direction: "left" | "right") => {
     const container = categoriesScrollRef.current;
-    if (!container) return;
+    if (!container || scrollLocked) return;
     const scrollAmount = container.clientWidth * 0.8;
     container.scrollBy({
       left: direction === "left" ? -scrollAmount : scrollAmount,
       behavior: "smooth",
     });
+    setScrollLocked(true);
+    setTimeout(() => setScrollLocked(false), 600);
   };
 
   const discoverGridClass =
@@ -170,6 +173,7 @@ const Index = () => {
               size="icon"
               variant="secondary"
               onClick={() => handleCategoryScroll("left")}
+              disabled={scrollLocked}
               className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-sm border border-border/40 bg-background/80 backdrop-blur hover:bg-background"
               aria-label="Voltar categorias"
             >
@@ -180,6 +184,7 @@ const Index = () => {
               size="icon"
               variant="secondary"
               onClick={() => handleCategoryScroll("right")}
+              disabled={scrollLocked}
               className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-sm border border-border/40 bg-background/80 backdrop-blur hover:bg-background"
               aria-label="Avançar categorias"
             >

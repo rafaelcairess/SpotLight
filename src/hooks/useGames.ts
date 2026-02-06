@@ -53,6 +53,8 @@ export function usePopularGames(limit = 10) {
       if (error) throw error;
       return (data as GameRow[]).map(mapGameRow);
     },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
@@ -69,6 +71,8 @@ export function useTopRatedGames(limit = 12) {
       if (error) throw error;
       return (data as GameRow[]).map(mapGameRow);
     },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
@@ -85,6 +89,8 @@ export function useAllGames(limit = 200) {
       if (error) throw error;
       return (data as GameRow[]).map(mapGameRow);
     },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
@@ -102,6 +108,8 @@ export function useDiscountedGames(limit = 30) {
       if (error) throw error;
       return (data as GameRow[]).map(mapGameRow);
     },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
@@ -125,6 +133,8 @@ export function useDiscountedGamesPaged(limit = 30, page = 1) {
         count: count ?? 0,
       };
     },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
@@ -145,5 +155,7 @@ export function useGamesByIds(appIds: number[]) {
       return (data as GameRow[]).map(mapGameRow);
     },
     enabled: uniqueIds.length > 0,
+    staleTime: 24 * 60 * 60 * 1000,
+    gcTime: 24 * 60 * 60 * 1000,
   });
 }
