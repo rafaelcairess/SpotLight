@@ -161,7 +161,7 @@ const Index = () => {
                     variant="outline"
                     onClick={() => setDiscoverLimit((prev) => prev + PAGE_SIZE)}
                     disabled={topRatedFetching}
-                    className="min-w-[200px]"
+                    className="w-full sm:min-w-[200px]"
                   >
                     {topRatedFetching ? (
                       <span className="inline-flex items-center gap-2">

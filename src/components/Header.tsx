@@ -158,7 +158,7 @@ const Header = () => {
                   to={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    "px-3 py-3 rounded-lg text-base font-medium transition-colors",
                     location.pathname === link.href
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-secondary"
@@ -180,7 +180,7 @@ const Header = () => {
                     <Link
                       to="/profile"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary"
+                      className="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary"
                     >
                       <UserAvatar 
                         src={profile?.avatar_url} 
@@ -195,7 +195,7 @@ const Header = () => {
                         handleSignOut();
                         setIsMobileMenuOpen(false);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 w-full rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10"
+                      className="flex items-center gap-2 px-3 py-3 w-full rounded-lg text-base font-medium text-destructive hover:bg-destructive/10"
                     >
                       <LogOut className="w-4 h-4" />
                       Sair

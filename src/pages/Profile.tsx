@@ -80,7 +80,7 @@ const Profile = () => {
           </div>
 
           <div className="flex-1">
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">
                   {profile?.display_name || 'Gamer'}
@@ -115,7 +115,7 @@ const Profile = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="library" className="w-full">
-          <TabsList className="w-full justify-start border-b border-border/50 rounded-none bg-transparent h-auto p-0 mb-6">
+          <TabsList className="w-full justify-start border-b border-border/50 rounded-none bg-transparent h-auto p-0 mb-6 overflow-x-auto flex-nowrap">
             <TabsTrigger 
               value="library" 
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
