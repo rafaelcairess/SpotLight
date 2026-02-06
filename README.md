@@ -9,7 +9,15 @@ Uma plataforma de descoberta de jogos com curadoria, comunidade e reviews reais.
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres-3FCF8E?logo=supabase&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-Deploy-000000?logo=vercel&logoColor=white)
 
-## O que o SpotLight entrega
+## O que é o SpotLight
+
+SpotLight é uma plataforma de descoberta de jogos com curadoria, comunidade e reviews reais. O foco é facilitar a busca por bons jogos, acompanhar descontos e criar uma biblioteca pessoal com progresso e conquistas.
+
+## Onde está no ar
+
+https://spot-light-xi.vercel.app/
+
+## O que o site oferece
 
 - Catálogo dinâmico com dados da Steam
 - Destaques, rankings e promoções
@@ -18,7 +26,7 @@ Uma plataforma de descoberta de jogos com curadoria, comunidade e reviews reais.
 - Perfis públicos, seguidores e vitrine de platinas
 - Coleções temáticas (incluindo co-op)
 
-## Stack
+## Tecnologias usadas
 
 - **Frontend**: Vite + React + TypeScript
 - **UI**: TailwindCSS + shadcn/ui
@@ -26,56 +34,6 @@ Uma plataforma de descoberta de jogos com curadoria, comunidade e reviews reais.
 - **Sync externo**: Steam Web API + Steam Store API
 - **Deploy**: Vercel
 - **CI**: GitHub Actions (sync automático)
-
-## Como funciona (visão rápida)
-
-1. Um script sincroniza jogos da Steam e salva no Supabase.
-2. O frontend consome o catálogo via React Query.
-3. Usuários criam reviews, biblioteca e conexões na comunidade.
-
-## Começando localmente
-
-**Pré-requisitos**: Node.js 18+
-
-```bash
-npm install
-npm run dev
-```
-
-## Variáveis de ambiente
-
-Crie um `.env.local` baseado no `.env.example`.
-
-**Frontend (público no browser)**
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
-
-**Server-only (nunca expor no frontend)**
-- `STEAM_API_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `STEAM_STORE_LANGUAGE` (ex: `brazilian`)
-
-## Scripts úteis
-
-```bash
-npm run dev
-npm run build
-npm run preview
-npm run sync:steam
-```
-
-## Deploy (Vercel)
-
-1. Faça push no GitHub
-2. Importe o repo no Vercel
-3. Configure as variáveis de ambiente
-4. Deploy
-
-## Segurança
-
-- **Nunca** comite `.env` ou `.env.local`
-- `SUPABASE_SERVICE_ROLE_KEY` deve ficar apenas no servidor
-- Chaves expostas podem ser revogadas no Supabase/Steam
 
 ## Roadmap
 
