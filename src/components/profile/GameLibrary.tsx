@@ -1,4 +1,4 @@
-﻿import { useMemo } from "react";
+import { useMemo } from "react";
 import { Heart, Trophy, Clock, Trash2, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,8 @@ interface GameLibraryProps {
   isLoading: boolean;
   emptyMessage: string;
   readOnly?: boolean;
+  highlightPlatinum?: boolean;
+  cardTone?: "default" | "completed" | "dropped";
 }
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -28,7 +30,20 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   dropped: { label: "Abandonado", color: "bg-rose-500/10 text-rose-500" },
 };
 
-export function GameLibrary({ games, isLoading, emptyMessage, readOnly = false }: GameLibraryProps) {
+const cardToneStyles: Record<NonNullable<GameLibraryProps["cardTone"]>, string> = {
+  default: "border-border/50",
+  completed: "border-emerald-500/30 bg-emerald-500/5",
+  dropped: "border-rose-500/30 bg-rose-500/5",
+};
+
+export function GameLibrary({
+  games,
+  isLoading,
+  emptyMessage,
+  readOnly = false,
+  highlightPlatinum = false,
+  cardTone = "default",
+}: GameLibraryProps) {
   const { toast } = useToast();
   const updateGame = useUpdateGame();
   const removeGame = useRemoveGame();
@@ -43,7 +58,7 @@ export function GameLibrary({ games, isLoading, emptyMessage, readOnly = false }
     try {
       await updateGame.mutateAsync({
         id: game.id,
-        updates: { is_favorite: !game.is_favorite }
+        updates: { is_favorite: !game.is_favorite },
       });
       toast({
         title: game.is_favorite ? "Removido dos favoritos" : "Adicionado aos favoritos",
@@ -57,21 +72,21 @@ export function GameLibrary({ games, isLoading, emptyMessage, readOnly = false }
     try {
       await updateGame.mutateAsync({
         id: game.id,
-        updates: { is_platinumed: !game.is_platinumed }
+        updates: { is_platinumed: !game.is_platinumed },
       });
       toast({
-        title: game.is_platinumed ? "Platina removida" : "Platina conquistada! ðŸ†",
+        title: game.is_platinumed ? "Platina removida" : "Platina conquistada! 🏆",
       });
     } catch (error) {
       toast({ title: "Erro ao atualizar", variant: "destructive" });
     }
   };
 
-  const handleChangeStatus = async (game: UserGame, status: UserGame['status']) => {
+  const handleChangeStatus = async (game: UserGame, status: UserGame["status"]) => {
     try {
       await updateGame.mutateAsync({
         id: game.id,
-        updates: { status }
+        updates: { status },
       });
       toast({ title: `Status alterado para "${statusLabels[status].label}"` });
     } catch (error) {
@@ -116,9 +131,15 @@ export function GameLibrary({ games, isLoading, emptyMessage, readOnly = false }
         if (!gameInfo) return null;
 
         return (
-          <div 
+          <div
             key={userGame.id}
-            className="group relative bg-card rounded-lg overflow-hidden border border-border/50 hover:border-primary/50 transition-all"
+            className={cn(
+              "group relative bg-card rounded-lg overflow-hidden border hover:border-primary/50 transition-all",
+              cardToneStyles[cardTone],
+              highlightPlatinum &&
+                userGame.is_platinumed &&
+                "ring-2 ring-amber-400/40 shadow-[0_0_20px_rgba(251,191,36,0.35)]"
+            )}
           >
             {/* Image */}
             <div className="aspect-video relative">
@@ -128,7 +149,7 @@ export function GameLibrary({ games, isLoading, emptyMessage, readOnly = false }
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-              
+
               {/* Badges */}
               <div className="absolute top-2 left-2 flex gap-1">
                 {userGame.is_favorite && (
@@ -142,6 +163,11 @@ export function GameLibrary({ games, isLoading, emptyMessage, readOnly = false }
                   </div>
                 )}
               </div>
+              {highlightPlatinum && userGame.is_platinumed && (
+                <div className="absolute bottom-2 left-2 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-400 text-black rounded-full shadow">
+                  Platina
+                </div>
+              )}
 
               {/* Actions Menu */}
               {!readOnly && (
@@ -154,28 +180,38 @@ export function GameLibrary({ games, isLoading, emptyMessage, readOnly = false }
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => handleToggleFavorite(userGame)}>
-                        <Heart className={cn("w-4 h-4 mr-2", userGame.is_favorite && "fill-current text-rose-500")} />
+                        <Heart
+                          className={cn(
+                            "w-4 h-4 mr-2",
+                            userGame.is_favorite && "fill-current text-rose-500"
+                          )}
+                        />
                         {userGame.is_favorite ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleTogglePlatinum(userGame)}>
-                        <Trophy className={cn("w-4 h-4 mr-2", userGame.is_platinumed && "text-amber-500")} />
+                        <Trophy
+                          className={cn(
+                            "w-4 h-4 mr-2",
+                            userGame.is_platinumed && "text-amber-500"
+                          )}
+                        />
                         {userGame.is_platinumed ? "Remover Platina" : "Marcar como Platinado"}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, 'wishlist')}>
+                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, "wishlist")}>
                         Lista de Desejos
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, 'playing')}>
+                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, "playing")}>
                         Jogando
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, 'completed')}>
+                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, "completed")}>
                         Completado
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, 'dropped')}>
+                      <DropdownMenuItem onClick={() => handleChangeStatus(userGame, "dropped")}>
                         Abandonado
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleRemove(userGame)}
                         className="text-destructive"
                       >
@@ -192,10 +228,7 @@ export function GameLibrary({ games, isLoading, emptyMessage, readOnly = false }
             <div className="p-3">
               <h3 className="font-semibold truncate">{gameInfo.title}</h3>
               <div className="flex items-center justify-between mt-2">
-                <Badge 
-                  variant="secondary" 
-                  className={cn("text-xs", statusLabels[userGame.status].color)}
-                >
+                <Badge variant="secondary" className={cn("text-xs", statusLabels[userGame.status].color)}>
                   {statusLabels[userGame.status].label}
                 </Badge>
                 {userGame.hours_played !== null && userGame.hours_played > 0 && (

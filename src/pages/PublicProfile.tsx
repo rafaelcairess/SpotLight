@@ -14,12 +14,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfileByUsername } from "@/hooks/useProfile";
 import { useUserGames } from "@/hooks/useUserGames";
 import { useReviewsByUser } from "@/hooks/useReviews";
-import { useFollowCounts, useFollowUser, useFollowing, useFollowers, useFollowingIds, useUnfollowUser } from "@/hooks/useFollows";
+import {
+  useFollowCounts,
+  useFollowUser,
+  useFollowing,
+  useFollowers,
+  useFollowingIds,
+  useUnfollowUser,
+} from "@/hooks/useFollows";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { ProfileStats } from "@/components/profile/ProfileStats";
+import { ProfileLibrarySections } from "@/components/profile/ProfileLibrarySections";
 import { GameLibrary } from "@/components/profile/GameLibrary";
 import { ProfileReviews } from "@/components/profile/ProfileReviews";
 import { FollowListDialog } from "@/components/profile/FollowListDialog";
+import { TrophyShowcase } from "@/components/profile/TrophyShowcase";
 import NotFound from "./NotFound";
 
 const PublicProfile = () => {
@@ -45,8 +54,8 @@ const PublicProfile = () => {
   const [isFollowersOpen, setIsFollowersOpen] = useState(false);
   const [isFollowingOpen, setIsFollowingOpen] = useState(false);
 
-  const favoriteGames = userGames.filter(g => g.is_favorite);
-  const platinumGames = userGames.filter(g => g.is_platinumed);
+  const favoriteGames = userGames.filter((g) => g.is_favorite);
+  const platinumGames = userGames.filter((g) => g.is_platinumed);
 
   if (profileLoading) {
     return (
@@ -139,9 +148,13 @@ const PublicProfile = () => {
           </div>
         </div>
 
+        <div className="mb-8">
+          <TrophyShowcase games={platinumGames} isLoading={gamesLoading} />
+        </div>
+
         {/* Tabs */}
         <Tabs defaultValue="library" className="w-full">
-          <TabsList className="w-full justify-start border-b border-border/50 rounded-none bg-transparent h-auto p-0 mb-6">
+          <TabsList className="w-full justify-start border-b border-border/50 rounded-none bg-transparent h-auto p-0 mb-6 overflow-x-auto flex-nowrap">
             <TabsTrigger
               value="library"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
@@ -173,12 +186,7 @@ const PublicProfile = () => {
           </TabsList>
 
           <TabsContent value="library">
-            <GameLibrary
-              games={userGames}
-              isLoading={gamesLoading}
-              emptyMessage="Este usuário ainda não adicionou jogos."
-              readOnly
-            />
+            <ProfileLibrarySections games={userGames} isLoading={gamesLoading} readOnly />
           </TabsContent>
 
           <TabsContent value="favorites">
@@ -187,6 +195,7 @@ const PublicProfile = () => {
               isLoading={gamesLoading}
               emptyMessage="Este usuário ainda não tem favoritos."
               readOnly
+              highlightPlatinum
             />
           </TabsContent>
 
@@ -196,6 +205,8 @@ const PublicProfile = () => {
               isLoading={gamesLoading}
               emptyMessage="Este usuário ainda não tem jogos platinados."
               readOnly
+              highlightPlatinum
+              cardTone="completed"
             />
           </TabsContent>
 
@@ -219,7 +230,7 @@ const PublicProfile = () => {
         title="Seguindo"
         profiles={followingList}
         isLoading={followingLoading}
-        emptyMessage="Ainda n?o est? seguindo ningu?m."
+        emptyMessage="Ainda não está seguindo ninguém."
       />
     </div>
   );

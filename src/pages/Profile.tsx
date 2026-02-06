@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Settings, 
-  GamepadIcon, 
-  Heart, 
-  Trophy, 
-  Star, 
+import {
+  GamepadIcon,
+  Heart,
+  Trophy,
   BookOpen,
-  Edit3
+  Edit3,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -20,9 +18,11 @@ import { useFollowCounts, useFollowers, useFollowing } from "@/hooks/useFollows"
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { FollowListDialog } from "@/components/profile/FollowListDialog";
+import { ProfileLibrarySections } from "@/components/profile/ProfileLibrarySections";
 import { GameLibrary } from "@/components/profile/GameLibrary";
 import { ProfileReviews } from "@/components/profile/ProfileReviews";
 import { ProfileEditDialog } from "@/components/profile/ProfileEditDialog";
+import { TrophyShowcase } from "@/components/profile/TrophyShowcase";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ const Profile = () => {
 
   // Redirect to auth if not logged in
   if (!authLoading && !user) {
-    navigate('/auth');
+    navigate("/auth");
     return null;
   }
 
@@ -62,11 +62,8 @@ const Profile = () => {
     );
   }
 
-  const favoriteGames = userGames.filter(g => g.is_favorite);
-  const platinumGames = userGames.filter(g => g.is_platinumed);
-  const playingGames = userGames.filter(g => g.status === 'playing');
-  const completedGames = userGames.filter(g => g.status === 'completed');
-  const wishlistGames = userGames.filter(g => g.status === 'wishlist');
+  const favoriteGames = userGames.filter((g) => g.is_favorite);
+  const platinumGames = userGames.filter((g) => g.is_platinumed);
 
   return (
     <div className="min-h-screen bg-background">
@@ -88,16 +85,16 @@ const Profile = () => {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">
-                  {profile?.display_name || 'Gamer'}
+                  {profile?.display_name || "Gamer"}
                 </h1>
                 <p className="text-muted-foreground">@{profile?.username}</p>
                 {profile?.bio && (
                   <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>
                 )}
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="gap-2"
                 onClick={() => setIsEditOpen(true)}
               >
@@ -120,32 +117,36 @@ const Profile = () => {
           </div>
         </div>
 
+        <div className="mb-8">
+          <TrophyShowcase games={platinumGames} isLoading={gamesLoading} />
+        </div>
+
         {/* Tabs */}
         <Tabs defaultValue="library" className="w-full">
           <TabsList className="w-full justify-start border-b border-border/50 rounded-none bg-transparent h-auto p-0 mb-6 overflow-x-auto flex-nowrap">
-            <TabsTrigger 
-              value="library" 
+            <TabsTrigger
+              value="library"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <GamepadIcon className="w-4 h-4" />
               Biblioteca ({userGames.length})
             </TabsTrigger>
-            <TabsTrigger 
-              value="favorites" 
+            <TabsTrigger
+              value="favorites"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <Heart className="w-4 h-4" />
               Favoritos ({favoriteGames.length})
             </TabsTrigger>
-            <TabsTrigger 
-              value="platinum" 
+            <TabsTrigger
+              value="platinum"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <Trophy className="w-4 h-4" />
               Platinados ({platinumGames.length})
             </TabsTrigger>
-            <TabsTrigger 
-              value="reviews" 
+            <TabsTrigger
+              value="reviews"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <BookOpen className="w-4 h-4" />
@@ -154,40 +155,36 @@ const Profile = () => {
           </TabsList>
 
           <TabsContent value="library">
-            <GameLibrary 
-              games={userGames} 
-              isLoading={gamesLoading}
-              emptyMessage="Sua biblioteca está vazia. Explore jogos e adicione à sua coleção!"
-            />
+            <ProfileLibrarySections games={userGames} isLoading={gamesLoading} />
           </TabsContent>
 
           <TabsContent value="favorites">
-            <GameLibrary 
-              games={favoriteGames} 
+            <GameLibrary
+              games={favoriteGames}
               isLoading={gamesLoading}
               emptyMessage="Você ainda não tem jogos favoritos."
+              highlightPlatinum
             />
           </TabsContent>
 
           <TabsContent value="platinum">
-            <GameLibrary 
-              games={platinumGames} 
+            <GameLibrary
+              games={platinumGames}
               isLoading={gamesLoading}
               emptyMessage="Você ainda não platinou nenhum jogo."
+              highlightPlatinum
+              cardTone="completed"
             />
           </TabsContent>
 
           <TabsContent value="reviews">
-            <ProfileReviews 
-              reviews={reviews}
-              isLoading={reviewsLoading}
-            />
+            <ProfileReviews reviews={reviews} isLoading={reviewsLoading} />
           </TabsContent>
         </Tabs>
       </main>
 
-      <ProfileEditDialog 
-        open={isEditOpen} 
+      <ProfileEditDialog
+        open={isEditOpen}
         onOpenChange={setIsEditOpen}
         profile={profile}
       />
