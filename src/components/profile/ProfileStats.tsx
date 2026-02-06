@@ -7,6 +7,8 @@ interface ProfileStatsProps {
   reviews: number;
   followers: number;
   following: number;
+  onFollowersClick?: () => void;
+  onFollowingClick?: () => void;
 }
 
 export function ProfileStats({
@@ -16,6 +18,8 @@ export function ProfileStats({
   reviews,
   followers,
   following,
+  onFollowersClick,
+  onFollowingClick,
 }: ProfileStatsProps) {
   const stats = [
     { label: "Jogos", value: totalGames, icon: GamepadIcon, color: "text-primary" },
@@ -29,15 +33,31 @@ export function ProfileStats({
   return (
     <div className="flex flex-wrap gap-6 mt-4">
       {stats.map((stat) => (
-        <div key={stat.label} className="flex items-center gap-2">
-          <div className={`p-2 rounded-lg bg-secondary/50`}>
+        <button
+          key={stat.label}
+          type="button"
+          onClick={
+            stat.label === "Seguidores"
+              ? onFollowersClick
+              : stat.label === "Seguindo"
+              ? onFollowingClick
+              : undefined
+          }
+          className="flex items-center gap-2 text-left disabled:cursor-default disabled:opacity-100"
+          disabled={
+            (stat.label === "Seguidores" && !onFollowersClick) ||
+            (stat.label === "Seguindo" && !onFollowingClick) ||
+            (stat.label !== "Seguidores" && stat.label !== "Seguindo")
+          }
+        >
+          <div className="p-2 rounded-lg bg-secondary/50">
             <stat.icon className={`w-4 h-4 ${stat.color}`} />
           </div>
           <div>
             <p className="text-lg font-bold">{stat.value}</p>
             <p className="text-xs text-muted-foreground">{stat.label}</p>
           </div>
-        </div>
+        </button>
       ))}
     </div>
   );

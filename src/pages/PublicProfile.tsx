@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   GamepadIcon,
@@ -14,11 +14,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfileByUsername } from "@/hooks/useProfile";
 import { useUserGames } from "@/hooks/useUserGames";
 import { useReviewsByUser } from "@/hooks/useReviews";
-import { useFollowCounts, useFollowUser, useFollowingIds, useUnfollowUser } from "@/hooks/useFollows";
+import { useFollowCounts, useFollowUser, useFollowing, useFollowers, useFollowingIds, useUnfollowUser } from "@/hooks/useFollows";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { GameLibrary } from "@/components/profile/GameLibrary";
 import { ProfileReviews } from "@/components/profile/ProfileReviews";
+import { FollowListDialog } from "@/components/profile/FollowListDialog";
 import NotFound from "./NotFound";
 
 const PublicProfile = () => {
@@ -31,6 +32,8 @@ const PublicProfile = () => {
   const { data: userGames = [], isLoading: gamesLoading } = useUserGames(userId, false);
   const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByUser(userId, false);
   const { data: followCounts } = useFollowCounts(userId);
+  const { data: followersList = [], isLoading: followersLoading } = useFollowers(userId);
+  const { data: followingList = [], isLoading: followingLoading } = useFollowing(userId);
 
   const profileIds = useMemo(() => (userId ? [userId] : []), [userId]);
   const { data: followingIds = [] } = useFollowingIds(profileIds);
@@ -39,6 +42,8 @@ const PublicProfile = () => {
 
   const followUser = useFollowUser();
   const unfollowUser = useUnfollowUser();
+  const [isFollowersOpen, setIsFollowersOpen] = useState(false);
+  const [isFollowingOpen, setIsFollowingOpen] = useState(false);
 
   const favoriteGames = userGames.filter(g => g.is_favorite);
   const platinumGames = userGames.filter(g => g.is_platinumed);
@@ -128,6 +133,8 @@ const PublicProfile = () => {
               reviews={reviews.length}
               followers={followCounts?.followers ?? 0}
               following={followCounts?.following ?? 0}
+              onFollowersClick={() => setIsFollowersOpen(true)}
+              onFollowingClick={() => setIsFollowingOpen(true)}
             />
           </div>
         </div>
@@ -197,6 +204,23 @@ const PublicProfile = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      <FollowListDialog
+        open={isFollowersOpen}
+        onOpenChange={setIsFollowersOpen}
+        title="Seguidores"
+        profiles={followersList}
+        isLoading={followersLoading}
+        emptyMessage="Ainda sem seguidores."
+      />
+      <FollowListDialog
+        open={isFollowingOpen}
+        onOpenChange={setIsFollowingOpen}
+        title="Seguindo"
+        profiles={followingList}
+        isLoading={followingLoading}
+        emptyMessage="Ainda n?o est? seguindo ningu?m."
+      />
     </div>
   );
 };

@@ -27,7 +27,7 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
 
   const [isPositive, setIsPositive] = useState(true);
   const [content, setContent] = useState("");
-  const [hoursAtReview, setHoursAtReview] = useState("");
+  const [hoursAtReview, setHoursAtReview] = useState<number | "">("");
 
   useEffect(() => {
     if (existingReview) {
@@ -35,7 +35,7 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
       setContent(existingReview.content || "");
       setHoursAtReview(
         existingReview.hours_at_review !== null
-          ? String(existingReview.hours_at_review)
+          ? Math.trunc(existingReview.hours_at_review)
           : ""
       );
     } else {
@@ -58,8 +58,8 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
       return;
     }
 
-    const hoursValue = hoursAtReview.trim() ? Number(hoursAtReview) : undefined;
-    if (hoursValue !== undefined && Number.isNaN(hoursValue)) {
+    const hoursValue = hoursAtReview === "" ? undefined : Number(hoursAtReview);
+    if (hoursValue !== undefined && (!Number.isFinite(hoursValue) || !Number.isInteger(hoursValue))) {
       toast({ title: "Horas jogadas inválidas", variant: "destructive" });
       return;
     }
@@ -133,9 +133,23 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
         <Input
           type="number"
           min="0"
-          step="0.5"
+          step="1"
+          inputMode="numeric"
+          pattern="[0-9]*"
           value={hoursAtReview}
-          onChange={(e) => setHoursAtReview(e.target.value)}
+          onChange={(e) => {
+            const raw = e.target.value;
+            if (raw === "") {
+              setHoursAtReview("");
+              return;
+            }
+            const parsed = Number.parseInt(raw, 10);
+            if (Number.isNaN(parsed)) {
+              setHoursAtReview("");
+              return;
+            }
+            setHoursAtReview(parsed);
+          }}
           placeholder="Ex: 12"
         />
       </div>

@@ -9,6 +9,13 @@ export interface Follow {
   created_at: string;
 }
 
+export interface ProfileSummary {
+  user_id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
 export function useFollowingIds(userIds: string[]) {
   const { user } = useAuth();
 
@@ -108,6 +115,66 @@ export function useFollowCounts(userId?: string) {
         followers: followersCount ?? 0,
         following: followingCount ?? 0,
       };
+    },
+    enabled: !!userId,
+  });
+}
+
+export function useFollowers(userId?: string) {
+  return useQuery({
+    queryKey: ['follows', 'followers', userId],
+    queryFn: async () => {
+      if (!userId) return [] as ProfileSummary[];
+
+      const { data: rows, error } = await supabase
+        .from('follows')
+        .select('follower_id')
+        .eq('following_id', userId);
+
+      if (error) throw error;
+
+      const ids = (rows || []).map((row) => row.follower_id);
+      if (ids.length === 0) return [] as ProfileSummary[];
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, username, display_name, avatar_url')
+        .in('user_id', ids);
+
+      if (profilesError) throw profilesError;
+
+      const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
+      return ids.map((id) => profileMap.get(id)).filter(Boolean) as ProfileSummary[];
+    },
+    enabled: !!userId,
+  });
+}
+
+export function useFollowing(userId?: string) {
+  return useQuery({
+    queryKey: ['follows', 'following-list', userId],
+    queryFn: async () => {
+      if (!userId) return [] as ProfileSummary[];
+
+      const { data: rows, error } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', userId);
+
+      if (error) throw error;
+
+      const ids = (rows || []).map((row) => row.following_id);
+      if (ids.length === 0) return [] as ProfileSummary[];
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, username, display_name, avatar_url')
+        .in('user_id', ids);
+
+      if (profilesError) throw profilesError;
+
+      const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
+      return ids.map((id) => profileMap.get(id)).filter(Boolean) as ProfileSummary[];
     },
     enabled: !!userId,
   });

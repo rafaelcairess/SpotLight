@@ -3,6 +3,8 @@ import {
   Skull,
   Sword,
   Users,
+  UsersRound,
+  Sofa,
   BookOpen,
   Zap,
   Sparkles,
@@ -22,6 +24,8 @@ const iconMap: Record<string, LucideIcon> = {
   Skull,
   Sword,
   Users,
+  UsersRound,
+  Sofa,
   BookOpen,
   Zap,
   Sparkles,
@@ -36,11 +40,13 @@ const CategoryCard = ({ category, index = 0 }: CategoryCardProps) => {
     <Link
       to={`/collections/${category.id}`}
       className={cn(
-        "group relative block aspect-[16/10] rounded-xl overflow-hidden",
+        "group relative block aspect-[4/3] sm:aspect-[16/10] rounded-xl overflow-hidden",
         "bg-gradient-to-br",
         category.gradient,
         "border border-border/30 hover:border-primary/50",
         "transition-all duration-300 hover:-translate-y-1",
+        category.featured &&
+          "ring-2 ring-primary/40 shadow-[0_0_30px_rgba(34,197,94,0.25)] hover:scale-[1.02]",
         "animate-fade-in"
       )}
       style={{ animationDelay: `${index * 100}ms` }}

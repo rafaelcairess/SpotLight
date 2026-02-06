@@ -16,9 +16,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useUserGames } from "@/hooks/useUserGames";
 import { useReviewsByUser } from "@/hooks/useReviews";
-import { useFollowCounts } from "@/hooks/useFollows";
+import { useFollowCounts, useFollowers, useFollowing } from "@/hooks/useFollows";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { ProfileStats } from "@/components/profile/ProfileStats";
+import { FollowListDialog } from "@/components/profile/FollowListDialog";
 import { GameLibrary } from "@/components/profile/GameLibrary";
 import { ProfileReviews } from "@/components/profile/ProfileReviews";
 import { ProfileEditDialog } from "@/components/profile/ProfileEditDialog";
@@ -30,7 +31,11 @@ const Profile = () => {
   const { data: userGames = [], isLoading: gamesLoading } = useUserGames();
   const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByUser();
   const { data: followCounts } = useFollowCounts(profile?.user_id);
+  const { data: followersList = [], isLoading: followersLoading } = useFollowers(profile?.user_id);
+  const { data: followingList = [], isLoading: followingLoading } = useFollowing(profile?.user_id);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isFollowersOpen, setIsFollowersOpen] = useState(false);
+  const [isFollowingOpen, setIsFollowingOpen] = useState(false);
 
   // Redirect to auth if not logged in
   if (!authLoading && !user) {
@@ -109,6 +114,8 @@ const Profile = () => {
               reviews={reviews.length}
               followers={followCounts?.followers ?? 0}
               following={followCounts?.following ?? 0}
+              onFollowersClick={() => setIsFollowersOpen(true)}
+              onFollowingClick={() => setIsFollowingOpen(true)}
             />
           </div>
         </div>
@@ -183,6 +190,23 @@ const Profile = () => {
         open={isEditOpen} 
         onOpenChange={setIsEditOpen}
         profile={profile}
+      />
+
+      <FollowListDialog
+        open={isFollowersOpen}
+        onOpenChange={setIsFollowersOpen}
+        title="Seguidores"
+        profiles={followersList}
+        isLoading={followersLoading}
+        emptyMessage="Ainda sem seguidores."
+      />
+      <FollowListDialog
+        open={isFollowingOpen}
+        onOpenChange={setIsFollowingOpen}
+        title="Seguindo"
+        profiles={followingList}
+        isLoading={followingLoading}
+        emptyMessage="Ainda não está seguindo ninguém."
       />
     </div>
   );

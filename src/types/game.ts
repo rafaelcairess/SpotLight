@@ -22,9 +22,34 @@ export interface CategoryData {
   icon: string;
   description: string;
   gradient: string;
+  featured?: boolean;
 }
 
 export const CATEGORIES: CategoryData[] = [
+  {
+    id: "coop-2-couch",
+    name: "Dupla no Sofá",
+    icon: "Sofa",
+    description: "Jogos para duas pessoas no mesmo sofá",
+    gradient: "from-green-900/50 to-black",
+    featured: true,
+  },
+  {
+    id: "coop-2-online",
+    name: "Dupla Online",
+    icon: "Users",
+    description: "Duas pessoas jogando online",
+    gradient: "from-emerald-900/50 to-black",
+    featured: true,
+  },
+  {
+    id: "coop-4-online",
+    name: "Grupo Online",
+    icon: "UsersRound",
+    description: "Partidas online para quatro pessoas",
+    gradient: "from-teal-900/50 to-black",
+    featured: true,
+  },
   {
     id: "terror",
     name: "Terror",
@@ -38,13 +63,6 @@ export const CATEGORIES: CategoryData[] = [
     icon: "Sword",
     description: "Mundos épicos e histórias imersivas",
     gradient: "from-purple-900/50 to-black",
-  },
-  {
-    id: "coop",
-    name: "Co-op",
-    icon: "Users",
-    description: "Jogue com amigos em cooperação",
-    gradient: "from-green-900/50 to-black",
   },
   {
     id: "story-rich",
@@ -81,4 +99,4 @@ export const CATEGORIES: CategoryData[] = [
     description: "Planeje, conquiste e domine",
     gradient: "from-blue-900/50 to-black",
   },
-];
+];

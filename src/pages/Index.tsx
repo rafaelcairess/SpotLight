@@ -1,5 +1,12 @@
-import { useState } from "react";
-import { TrendingUp, Sparkles, Orbit, Loader2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import {
+  TrendingUp,
+  Sparkles,
+  Orbit,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import Header from "@/components/Header";
 import FeaturedBanner from "@/components/FeaturedBanner";
 import GameCard from "@/components/GameCard";
@@ -10,7 +17,7 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import LayoutToggle from "@/components/LayoutToggle";
 import { Button } from "@/components/ui/button";
 import { useLayoutPreference } from "@/hooks/useLayoutPreference";
-import { GameData, CATEGORIES } from "@/types/game";
+import { GameData, CATEGORIES, CategoryData } from "@/types/game";
 import { usePopularGames, useTopRatedGames } from "@/hooks/useGames";
 
 const Index = () => {
@@ -25,8 +32,34 @@ const Index = () => {
     isFetching: topRatedFetching,
   } = useTopRatedGames(discoverLimit);
   const [layoutMode, setLayoutMode] = useLayoutPreference();
+  const categoriesScrollRef = useRef<HTMLDivElement | null>(null);
 
   const featuredGame = popularGames[0] || topRatedGames[0] || null;
+
+  const exploreCategories = useMemo(() => {
+    const featured = CATEGORIES.filter((category) => category.featured);
+    const others = CATEGORIES.filter((category) => !category.featured);
+    const shuffled = [...others];
+
+    for (let i = shuffled.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    const result: CategoryData[] = [];
+    const gap = Math.max(1, Math.floor(shuffled.length / (featured.length + 1)));
+    let cursor = 0;
+
+    featured.forEach((category) => {
+      result.push(...shuffled.slice(cursor, cursor + gap));
+      result.push(category);
+      cursor += gap;
+    });
+
+    result.push(...shuffled.slice(cursor));
+
+    return result.map((category) => ({ ...category, featured: false }));
+  }, []);
 
   const handleGameClick = (game: GameData) => {
     setSelectedGame(game);
@@ -36,6 +69,16 @@ const Index = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedGame(null);
+  };
+
+  const handleCategoryScroll = (direction: "left" | "right") => {
+    const container = categoriesScrollRef.current;
+    if (!container) return;
+    const scrollAmount = container.clientWidth * 0.8;
+    container.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
   };
 
   const discoverGridClass =
@@ -121,10 +164,41 @@ const Index = () => {
             actionHref="/collections"
           />
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {CATEGORIES.slice(0, 4).map((category, idx) => (
-              <CategoryCard key={category.id} category={category} index={idx} />
-            ))}
+          <div className="-mx-4 px-4 relative">
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              onClick={() => handleCategoryScroll("left")}
+              className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-sm border border-border/40 bg-background/80 backdrop-blur hover:bg-background"
+              aria-label="Voltar categorias"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              onClick={() => handleCategoryScroll("right")}
+              className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-sm border border-border/40 bg-background/80 backdrop-blur hover:bg-background"
+              aria-label="Avançar categorias"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+
+            <div
+              ref={categoriesScrollRef}
+              className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth md:px-12"
+            >
+              {exploreCategories.map((category, idx) => (
+                <div
+                  key={category.id}
+                  className="min-w-[240px] sm:min-w-[280px] lg:min-w-[300px] snap-start"
+                >
+                  <CategoryCard category={category} index={idx} />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -203,4 +277,3 @@ const Index = () => {
 };
 
 export default Index;
-
