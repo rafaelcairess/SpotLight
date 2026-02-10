@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Search as SearchIcon, ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
@@ -46,7 +46,7 @@ const Search = () => {
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
-            Voltar ao Início
+            {"Voltar ao In\u00edcio"}
           </Link>
 
           {/* Search Header */}
@@ -117,3 +117,4 @@ const Search = () => {
 };
 
 export default Search;
+

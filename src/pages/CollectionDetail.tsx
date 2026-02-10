@@ -1,4 +1,4 @@
-import { useState } from "react";
+ï»¿import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
@@ -86,9 +86,8 @@ const CATEGORY_GAME_IDS: Record<string, number[]> = {
   ]),
   racing: uniqueIds([
     1551360, 805550, 244210, 270880, 227300,
-    271590, 12210, 236390, 359550, 730,
-    578080, 1172470, 1240440, 218620, 550,
-    49520, 397540, 239140, 534380, 686810,
+    1222680, 1262580, 646910, 228380, 284160,
+    1465360, 675010, 2225070,
   ]),
   "free-to-play": uniqueIds([
     570, 730, 578080, 1172470, 230410,
@@ -195,9 +194,9 @@ const CollectionDetail = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Categoria não encontrada</h1>
+          <h1 className="text-2xl font-bold mb-4">Categoria n\u00e3o encontrada</h1>
           <Link to="/collections">
-            <Button>Voltar às Coleções</Button>
+            <Button>{"Voltar \u00e0s Cole\u00e7\u00f5es"}</Button>
           </Link>
         </div>
       </div>
@@ -216,7 +215,7 @@ const CollectionDetail = () => {
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
-            Voltar às Coleções
+            {"Voltar \u00e0s Cole\u00e7\u00f5es"}
           </Link>
 
           {/* Category Header */}
