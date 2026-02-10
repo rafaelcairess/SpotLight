@@ -36,9 +36,7 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
   if (reviews.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">
-          Você ainda não escreveu nenhuma review.
-        </p>
+        <p className="text-muted-foreground">Voce ainda nao escreveu nenhuma review.</p>
       </div>
     );
   }
@@ -49,11 +47,10 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
         const gameInfo = gameMap.get(review.app_id);
 
         return (
-          <div 
+          <div
             key={review.id}
             className="bg-card rounded-lg border border-border/50 overflow-hidden"
           >
-            {/* Game Header */}
             <div className="flex items-center gap-3 p-4 border-b border-border/50 bg-secondary/30">
               {gameInfo && (
                 <img
@@ -63,9 +60,7 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
                 />
               )}
               <div className="flex-1">
-                <h3 className="font-semibold">
-                  {gameInfo?.title || `App ID: ${review.app_id}`}
-                </h3>
+                <h3 className="font-semibold">{gameInfo?.title || `App ID: ${review.app_id}`}</h3>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span>
                     {formatDistanceToNow(new Date(review.created_at), {
@@ -81,33 +76,37 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
                   )}
                 </div>
               </div>
-              <div 
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium",
-                  review.is_positive 
-                    ? "bg-emerald-500/10 text-emerald-500" 
-                    : "bg-rose-500/10 text-rose-500"
-                )}
-              >
-                {review.is_positive ? (
-                  <>
-                    <ThumbsUp className="w-4 h-4" />
-                    Recomendado
-                  </>
-                ) : (
-                  <>
-                    <ThumbsDown className="w-4 h-4" />
-                    Não Recomendado
-                  </>
+              <div className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium",
+                    review.is_positive
+                      ? "bg-emerald-500/10 text-emerald-500"
+                      : "bg-rose-500/10 text-rose-500"
+                  )}
+                >
+                  {review.is_positive ? (
+                    <>
+                      <ThumbsUp className="w-4 h-4" />
+                      Recomendado
+                    </>
+                  ) : (
+                    <>
+                      <ThumbsDown className="w-4 h-4" />
+                      Nao recomendado
+                    </>
+                  )}
+                </div>
+                {typeof review.score === "number" && (
+                  <div className="px-3 py-1.5 rounded-full text-sm font-semibold bg-primary/10 text-primary">
+                    {review.score}/100
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Review Content */}
             <div className="p-4">
-              <p className="text-foreground/90 whitespace-pre-wrap">
-                {review.content}
-              </p>
+              <p className="text-foreground/90 whitespace-pre-wrap">{review.content}</p>
             </div>
           </div>
         );

@@ -23,6 +23,8 @@ import { GameLibrary } from "@/components/profile/GameLibrary";
 import { ProfileReviews } from "@/components/profile/ProfileReviews";
 import { ProfileEditDialog } from "@/components/profile/ProfileEditDialog";
 import { TrophyShowcase } from "@/components/profile/TrophyShowcase";
+import { ProfileInsights } from "@/components/profile/ProfileInsights";
+import { PlayerBadges } from "@/components/profile/PlayerBadges";
 import GameModal from "@/components/GameModal";
 import { GameData } from "@/types/game";
 
@@ -133,6 +135,12 @@ const Profile = () => {
 
         <div className="mb-8">
           <TrophyShowcase games={platinumGames} isLoading={gamesLoading} />
+        </div>
+        <div className="mb-8">
+          <ProfileInsights games={userGames} isLoading={gamesLoading} />
+        </div>
+        <div className="mb-8">
+          <PlayerBadges games={userGames} isLoading={gamesLoading} />
         </div>
 
         {/* Tabs */}

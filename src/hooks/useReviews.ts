@@ -8,6 +8,7 @@ export interface Review {
   app_id: number;
   content: string;
   is_positive: boolean;
+  score: number | null;
   hours_at_review: number | null;
   created_at: string;
   updated_at: string;
@@ -114,15 +115,17 @@ export function useCreateReview() {
     mutationFn: async ({ 
       appId, 
       content, 
-      isPositive, 
+      score,
       hoursAtReview 
     }: { 
       appId: number;
       content: string;
-      isPositive: boolean;
+      score: number;
       hoursAtReview?: number;
     }) => {
       if (!user?.id) throw new Error('Not authenticated');
+      const normalizedScore = Math.max(0, Math.min(100, Math.round(score)));
+      const isPositive = normalizedScore >= 60;
       
       const { data, error } = await supabase
         .from('reviews')
@@ -131,6 +134,7 @@ export function useCreateReview() {
           app_id: appId,
           content,
           is_positive: isPositive,
+          score: normalizedScore,
           hours_at_review: hoursAtReview || 0,
         })
         .select()
@@ -155,11 +159,18 @@ export function useUpdateReview() {
       updates 
     }: { 
       id: string; 
-      updates: Partial<Pick<Review, 'content' | 'is_positive' | 'hours_at_review'>>;
+      updates: Partial<Pick<Review, 'content' | 'is_positive' | 'score' | 'hours_at_review'>>;
     }) => {
+      const nextUpdates = { ...updates };
+      if (typeof nextUpdates.score === "number") {
+        const normalizedScore = Math.max(0, Math.min(100, Math.round(nextUpdates.score)));
+        nextUpdates.score = normalizedScore;
+        nextUpdates.is_positive = normalizedScore >= 60;
+      }
+
       const { data, error } = await supabase
         .from('reviews')
-        .update(updates)
+        .update(nextUpdates)
         .eq('id', id)
         .select()
         .single();

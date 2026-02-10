@@ -205,6 +205,7 @@ export type Database = {
           hours_at_review: number | null
           id: string
           is_positive: boolean
+          score: number | null
           updated_at: string
           user_id: string
         }
@@ -215,6 +216,7 @@ export type Database = {
           hours_at_review?: number | null
           id?: string
           is_positive: boolean
+          score?: number | null
           updated_at?: string
           user_id: string
         }
@@ -225,6 +227,7 @@ export type Database = {
           hours_at_review?: number | null
           id?: string
           is_positive?: boolean
+          score?: number | null
           updated_at?: string
           user_id?: string
         }

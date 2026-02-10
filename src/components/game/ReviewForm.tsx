@@ -27,6 +27,7 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
 
   const [isPositive, setIsPositive] = useState(true);
   const [content, setContent] = useState("");
+  const [score, setScore] = useState<number | "">(80);
   const [hoursAtReview, setHoursAtReview] = useState<number | "">("");
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
 
@@ -35,7 +36,14 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
 
   useEffect(() => {
     if (existingReview) {
-      setIsPositive(existingReview.is_positive);
+      const initialScore =
+        typeof existingReview.score === "number"
+          ? Math.max(0, Math.min(100, Math.round(existingReview.score)))
+          : existingReview.is_positive
+          ? 80
+          : 40;
+      setScore(initialScore);
+      setIsPositive(initialScore >= 60);
       setContent(existingReview.content || "");
       setHoursAtReview(
         existingReview.hours_at_review !== null
@@ -44,6 +52,7 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
       );
     } else {
       setIsPositive(true);
+      setScore(80);
       setContent("");
       setHoursAtReview("");
     }
@@ -85,6 +94,14 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
       return;
     }
 
+    const scoreValue = score === "" ? NaN : Number(score);
+    if (!Number.isFinite(scoreValue) || scoreValue < 0 || scoreValue > 100) {
+      toast({ title: "A nota precisa estar entre 0 e 100", variant: "destructive" });
+      return;
+    }
+    const normalizedScore = Math.round(scoreValue);
+    setIsPositive(normalizedScore >= 60);
+
     if (cooldownRemaining > 0) {
       const seconds = Math.ceil(cooldownRemaining / 1000);
       toast({ title: `Aguarde ${seconds}s para enviar outra review`, variant: "destructive" });
@@ -105,7 +122,8 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
           id: existingReview.id,
           updates: {
             content: content.trim(),
-            is_positive: isPositive,
+            is_positive: normalizedScore >= 60,
+            score: normalizedScore,
             hours_at_review: hoursValue ?? 0,
           },
         });
@@ -114,7 +132,7 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
         await createReview.mutateAsync({
           appId,
           content: content.trim(),
-          isPositive,
+          score: normalizedScore,
           hoursAtReview: hoursValue ?? 0,
         });
         toast({ title: "Review publicada!" });
@@ -139,17 +157,53 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
         <Button
           type="button"
           variant={isPositive ? "default" : "outline"}
-          onClick={() => setIsPositive(true)}
+          onClick={() => {
+            setIsPositive(true);
+            if (score === "" || score < 60) setScore(80);
+          }}
         >
           Recomendado
         </Button>
         <Button
           type="button"
           variant={!isPositive ? "default" : "outline"}
-          onClick={() => setIsPositive(false)}
+          onClick={() => {
+            setIsPositive(false);
+            if (score === "" || score >= 60) setScore(40);
+          }}
         >
           Não recomendado
         </Button>
+      </div>
+
+      <div>
+        <label className="text-sm text-muted-foreground">Nota (0 a 100)</label>
+        <Input
+          type="number"
+          min="0"
+          max="100"
+          step="1"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          value={score}
+          onChange={(e) => {
+            const raw = e.target.value;
+            if (raw === "") {
+              setScore("");
+              return;
+            }
+            const parsed = Number.parseInt(raw, 10);
+            if (Number.isNaN(parsed)) {
+              setScore("");
+              return;
+            }
+            const bounded = Math.max(0, Math.min(100, parsed));
+            setScore(bounded);
+            setIsPositive(bounded >= 60);
+          }}
+          placeholder="Ex: 85"
+          required
+        />
       </div>
 
       <Textarea

@@ -15,13 +15,17 @@ import SectionHeader from "@/components/SectionHeader";
 import CategoryCard from "@/components/CategoryCard";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import LayoutToggle from "@/components/LayoutToggle";
+import ReadyListsSection from "@/components/ready-lists/ReadyListsSection";
 import { Button } from "@/components/ui/button";
 import { useLayoutPreference } from "@/hooks/useLayoutPreference";
 import { GameData, CATEGORIES, CategoryData } from "@/types/game";
 import { usePopularGames, useTopRatedGames } from "@/hooks/useGames";
+import { useRecommendations } from "@/hooks/useRecommendations";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const PAGE_SIZE = 24;
+  const { user } = useAuth();
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: popularGames = [], isLoading: popularLoading } = usePopularGames(10);
@@ -31,6 +35,7 @@ const Index = () => {
     isLoading: topRatedLoading,
     isFetching: topRatedFetching,
   } = useTopRatedGames(discoverLimit);
+  const { data: recommendedGames = [], isLoading: recommendationsLoading } = useRecommendations(12);
   const [layoutMode, setLayoutMode] = useLayoutPreference();
   const categoriesScrollRef = useRef<HTMLDivElement | null>(null);
   const [scrollLocked, setScrollLocked] = useState(false);
@@ -256,6 +261,37 @@ const Index = () => {
             </>
           )}
         </section>
+        {user && (
+          <section className="container mx-auto px-4 pb-12 md:pb-16">
+            <SectionHeader
+              title="Recomendacoes pessoais"
+              subtitle="Baseado no que voce joga e avalia"
+              icon={Sparkles}
+            />
+
+            {recommendationsLoading ? (
+              <LoadingSkeleton variant="card" count={6} />
+            ) : recommendedGames.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Jogue e avalie alguns titulos para destravar recomendacoes personalizadas.
+              </div>
+            ) : (
+              <div className={discoverGridClass}>
+                {recommendedGames.map((game, idx) => (
+                  <GameCard
+                    key={game.app_id}
+                    game={game}
+                    index={idx}
+                    variant={layoutMode === "compact" ? "compact" : "default"}
+                    onClick={() => handleGameClick(game)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        <ReadyListsSection onGameClick={handleGameClick} />
       </main>
 
       {/* Footer */}
@@ -282,3 +318,4 @@ const Index = () => {
 };
 
 export default Index;
+

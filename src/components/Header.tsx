@@ -1,4 +1,4 @@
-import { Search, Orbit, Menu, X, LogOut, DollarSign, Users, Bell } from "lucide-react";
+import { Search, Orbit, Menu, X, LogOut, DollarSign, Users, Bell, Trophy } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,7 @@ const Header = () => {
     { href: "/collections", label: "Coleções" },
     { href: "/promocoes", label: "Promoções", icon: DollarSign },
     { href: "/comunidade", label: "Comunidade", icon: Users },
+    { href: "/top", label: "Top Games", icon: Trophy },
   ];
 
   const unreadCount = notifications.filter((notification) => !notification.read_at).length;
@@ -302,3 +303,4 @@ const Header = () => {
 };
 
 export default Header;
+
