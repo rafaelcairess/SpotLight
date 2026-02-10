@@ -72,7 +72,7 @@ export default function ReadyListsSection({ onGameClick }: ReadyListsSectionProp
       <section className="container mx-auto px-4 pb-12 md:pb-16">
         <SectionHeader
           title="Listas prontas"
-          subtitle="Curadoria para quando voce quer decidir rapido"
+          subtitle="Listas para decidir rápido"
           icon={Sparkles}
         />
         <LoadingSkeleton variant="card" count={6} />
@@ -84,7 +84,7 @@ export default function ReadyListsSection({ onGameClick }: ReadyListsSectionProp
     <section className="container mx-auto px-4 pb-12 md:pb-16">
       <SectionHeader
         title="Listas prontas"
-        subtitle="Curadoria para quando voce quer decidir rapido"
+        subtitle="Listas para decidir rápido"
         icon={Sparkles}
       />
 

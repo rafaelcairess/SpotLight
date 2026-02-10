@@ -39,7 +39,7 @@ import { ProfileReviews } from "@/components/profile/ProfileReviews";
 import { FollowListDialog } from "@/components/profile/FollowListDialog";
 import { TrophyShowcase } from "@/components/profile/TrophyShowcase";
 import { ProfileInsights } from "@/components/profile/ProfileInsights";
-import { PlayerBadges } from "@/components/profile/PlayerBadges";
+import { ProfileTopGames } from "@/components/profile/ProfileTopGames";
 import GameModal from "@/components/GameModal";
 import { GameData } from "@/types/game";
 import NotFound from "./NotFound";
@@ -314,7 +314,19 @@ const PublicProfile = () => {
           <ProfileInsights games={userGames} isLoading={gamesLoading} />
         </div>
         <div className="mb-8">
-          <PlayerBadges games={userGames} isLoading={gamesLoading} />
+          {canViewLibrary ? (
+            <ProfileTopGames
+              userId={userId}
+              games={userGames}
+              isLoading={gamesLoading}
+              readOnly
+              onGameSelect={handleOpenGame}
+            />
+          ) : (
+            <div className="rounded-xl border border-border/50 bg-card p-4 text-sm text-muted-foreground">
+              Top 5 privado.
+            </div>
+          )}
         </div>
 
         {/* Tabs */}

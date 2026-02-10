@@ -159,3 +159,27 @@ export function useGamesByIds(appIds: number[]) {
     gcTime: 24 * 60 * 60 * 1000,
   });
 }
+
+export function useSearchGames(query: string, limit = 20) {
+  const normalized = query.trim();
+
+  return useQuery({
+    queryKey: ["games", "search", normalized, limit],
+    queryFn: async () => {
+      if (normalized.length < 2) return [];
+
+      const { data, error } = await supabase
+        .from("games")
+        .select("*")
+        .ilike("title", `%${normalized}%`)
+        .order("active_players", { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return (data as GameRow[]).map(mapGameRow);
+    },
+    enabled: normalized.length >= 2,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+}

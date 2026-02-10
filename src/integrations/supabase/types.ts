@@ -269,6 +269,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_top_games: {
+        Row: {
+          app_id: number
+          created_at: string
+          id: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_id: number
+          created_at?: string
+          id?: string
+          position: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_id?: number
+          created_at?: string
+          id?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -411,3 +438,4 @@ export const Constants = {
     },
   },
 } as const
+

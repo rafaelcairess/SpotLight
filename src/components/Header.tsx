@@ -64,7 +64,7 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to="/" className="flex items-center gap-2 group -ml-6 md:-ml-10">
             <div className="relative">
               <Orbit className="w-7 h-7 md:w-8 md:h-8 text-primary transition-transform group-hover:scale-110" />
               <div className="absolute inset-0 blur-lg bg-primary/30 group-hover:bg-primary/50 transition-colors" />

@@ -24,7 +24,7 @@ import { ProfileReviews } from "@/components/profile/ProfileReviews";
 import { ProfileEditDialog } from "@/components/profile/ProfileEditDialog";
 import { TrophyShowcase } from "@/components/profile/TrophyShowcase";
 import { ProfileInsights } from "@/components/profile/ProfileInsights";
-import { PlayerBadges } from "@/components/profile/PlayerBadges";
+import { ProfileTopGames } from "@/components/profile/ProfileTopGames";
 import GameModal from "@/components/GameModal";
 import { GameData } from "@/types/game";
 
@@ -140,7 +140,11 @@ const Profile = () => {
           <ProfileInsights games={userGames} isLoading={gamesLoading} />
         </div>
         <div className="mb-8">
-          <PlayerBadges games={userGames} isLoading={gamesLoading} />
+          <ProfileTopGames
+            games={userGames}
+            isLoading={gamesLoading}
+            onGameSelect={handleOpenGame}
+          />
         </div>
 
         {/* Tabs */}
