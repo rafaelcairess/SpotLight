@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
-import { X, Users, Star, Calendar, Building, ExternalLink, ThumbsUp, ThumbsDown, Clock } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { X, Users, Star, Calendar, Building, ExternalLink, ThumbsUp, ThumbsDown, Clock, Trash2, Pencil } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GameData } from "@/types/game";
@@ -9,10 +9,11 @@ import { GameLibraryActions } from "@/components/game/GameLibraryActions";
 import ReviewForm from "@/components/game/ReviewForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { useReviewsByGame } from "@/hooks/useReviews";
+import { useReviewsByGame, useDeleteReview } from "@/hooks/useReviews";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 
 interface GameModalProps {
   game: GameData | null;
@@ -23,16 +24,20 @@ interface GameModalProps {
 const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [editingReviewAppId, setEditingReviewAppId] = useState<number | null>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByGame(
     Number(game?.app_id)
   );
+  const deleteReview = useDeleteReview();
 
   useEffect(() => {
     if (!isOpen) {
       setIsReviewOpen(false);
       setShowAllReviews(false);
+      setEditingReviewAppId(null);
     }
   }, [isOpen]);
 
@@ -66,6 +71,22 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
       return;
     }
     setIsReviewOpen(true);
+  };
+
+  const handleEditReview = () => {
+    if (!user || !game) return;
+    setEditingReviewAppId(Number(game.app_id));
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    const confirmed = window.confirm("Tem certeza que deseja apagar sua review?");
+    if (!confirmed) return;
+    try {
+      await deleteReview.mutateAsync(reviewId);
+      toast({ title: "Review apagada!" });
+    } catch (error) {
+      toast({ title: "Erro ao apagar review", variant: "destructive" });
+    }
   };
 
   const visibleReviews = showAllReviews ? reviews : reviews.slice(0, 3);
@@ -247,15 +268,42 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                           username={review.profiles?.username}
                           size="sm"
                         />
-                        <div className="flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-sm font-semibold">{author}</p>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(review.created_at), {
-                                addSuffix: true,
-                                locale: ptBR,
-                              })}
-                            </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-semibold">{author}</p>
+                              <span className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(new Date(review.created_at), {
+                                  addSuffix: true,
+                                  locale: ptBR,
+                                })}
+                              </span>
+                            </div>
+                            {isMine && (
+                              <div className="ml-auto flex items-center gap-1">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                  onClick={handleEditReview}
+                                  aria-label="Editar review"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                  onClick={() => handleDeleteReview(review.id)}
+                                  disabled={deleteReview.isPending}
+                                  aria-label="Apagar review"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
                           </div>
                           <div className="flex flex-wrap items-center gap-2 mt-2">
                             <span
@@ -313,7 +361,29 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
             )}
           </div>
 
-          {/* Price & CTA */}
+          <Dialog
+            open={editingReviewAppId !== null}
+            onOpenChange={(open) => {
+              if (!open) setEditingReviewAppId(null);
+            }}
+          >
+            <DialogContent className="max-w-xl">
+              <DialogHeader>
+                <DialogTitle>Editar review</DialogTitle>
+                <DialogDescription>
+                  Atualize sua opinião sobre {game.title}.
+                </DialogDescription>
+              </DialogHeader>
+              {editingReviewAppId !== null && (
+                <ReviewForm
+                  appId={editingReviewAppId}
+                  onClose={() => setEditingReviewAppId(null)}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Price & CTA */}
           <div className="flex items-center justify-between pt-4 border-t border-border/50">
             {game.price && (
               <div>

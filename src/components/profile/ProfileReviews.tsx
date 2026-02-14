@@ -1,10 +1,15 @@
-import { useMemo } from "react";
-import { ThumbsUp, ThumbsDown, Clock } from "lucide-react";
-import { Review } from "@/hooks/useReviews";
+import { useMemo, useState } from "react";
+import { ThumbsUp, ThumbsDown, Clock, Trash2, Pencil } from "lucide-react";
+import { Review, useDeleteReview } from "@/hooks/useReviews";
 import { useGamesByIds } from "@/hooks/useGames";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import ReviewForm from "@/components/game/ReviewForm";
 
 interface ProfileReviewsProps {
   reviews: Review[];
@@ -12,6 +17,12 @@ interface ProfileReviewsProps {
 }
 
 export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const deleteReview = useDeleteReview();
+  const [editingAppId, setEditingAppId] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState<string>("");
+
   const appIds = reviews.map((review) => review.app_id);
   const { data: catalogGames = [], isLoading: catalogLoading } = useGamesByIds(appIds);
   const gameMap = useMemo(
@@ -45,6 +56,7 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
     <div className="space-y-4">
       {reviews.map((review) => {
         const gameInfo = gameMap.get(review.app_id);
+        const isMine = user?.id === review.user_id;
 
         return (
           <div
@@ -102,6 +114,45 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
                     {review.score}/5
                   </div>
                 )}
+                {isMine && (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        setEditingAppId(review.app_id);
+                        setEditingTitle(gameInfo?.title || `App ID: ${review.app_id}`);
+                      }}
+                      aria-label="Editar review"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      disabled={deleteReview.isPending}
+                      onClick={async () => {
+                        const confirmed = window.confirm(
+                          "Tem certeza que deseja apagar sua review?"
+                        );
+                        if (!confirmed) return;
+                        try {
+                          await deleteReview.mutateAsync(review.id);
+                          toast({ title: "Review apagada!" });
+                        } catch (error) {
+                          toast({ title: "Erro ao apagar review", variant: "destructive" });
+                        }
+                      }}
+                      aria-label="Apagar review"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -111,6 +162,32 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
           </div>
         );
       })}
+
+      <Dialog
+        open={editingAppId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingAppId(null);
+            setEditingTitle("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Editar review</DialogTitle>
+            <DialogDescription>Atualize sua opinião sobre {editingTitle}.</DialogDescription>
+          </DialogHeader>
+          {editingAppId !== null && (
+            <ReviewForm
+              appId={editingAppId}
+              onClose={() => {
+                setEditingAppId(null);
+                setEditingTitle("");
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
