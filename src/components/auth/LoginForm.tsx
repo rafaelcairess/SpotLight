@@ -85,18 +85,13 @@ export function LoginForm({ onSwitchToSignup, onForgotPassword }: LoginFormProps
         type="button"
         variant="outline"
         className="w-full"
-        disabled={loading}
-        onClick={async () => {
-          const { error } = await signInWithGoogle();
-          if (error) {
-            toast.error('Erro ao entrar com Google', {
-              description: error.message,
-            });
-          }
-        }}
+        disabled
       >
-        Entrar com Google
+        Entrar com Google (indisponível)
       </Button>
+      <p className="text-xs text-muted-foreground text-center">
+        Login com Google estará disponível em breve.
+      </p>
 
       <Button
         type="submit"
