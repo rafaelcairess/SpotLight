@@ -7,6 +7,8 @@ import { SignupForm } from '@/components/auth/SignupForm';
 import { PasswordResetRequestForm } from '@/components/auth/PasswordResetRequestForm';
 import { PasswordResetForm } from '@/components/auth/PasswordResetForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const Auth = () => {
   const [mode, setMode] = useState<'login' | 'signup' | 'reset' | 'recover'>('login');
@@ -14,6 +16,21 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const maybeExchange = async () => {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('code')) {
+        const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+        if (error) {
+          toast.error('Erro ao validar login', {
+            description: error.message,
+          });
+        }
+        window.history.replaceState({}, '', '/auth?mode=login');
+      }
+    };
+
+    maybeExchange();
+
     const params = new URLSearchParams(window.location.search);
     const queryMode = params.get('mode');
     if (queryMode === 'signup') setMode('signup');
