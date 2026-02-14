@@ -155,7 +155,7 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
         {onWriteReview && (
           <Button
             variant="outline"
-            className="gap-2"
+            className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
             onClick={onWriteReview}
             disabled={isLoaderShown}
           >
@@ -230,7 +230,11 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
 
       {/* Write Review Button */}
       {onWriteReview && (
-        <Button variant="outline" className="gap-2" onClick={onWriteReview}>
+        <Button
+          variant="outline"
+          className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
+          onClick={onWriteReview}
+        >
           <BookOpen className="w-4 h-4" />
           Escrever Review
         </Button>

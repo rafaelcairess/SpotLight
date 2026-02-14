@@ -144,7 +144,7 @@ export function useRecommendations(limit = 12) {
       for (const review of reviews) {
         const catalogGame = ownedGameMap.get(review.app_id);
         if (!catalogGame) continue;
-        const positiveSignal = (review.score ?? (review.is_positive ? 80 : 40)) >= 60;
+        const positiveSignal = (review.score ?? (review.is_positive ? 4 : 2)) >= 3;
         const weight = positiveSignal ? 2 : -1;
         for (const token of gameToTokens(catalogGame)) {
           addWeight(token, weight);

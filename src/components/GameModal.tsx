@@ -1,14 +1,18 @@
 ﻿import { useEffect, useState } from "react";
-import { X, Users, Star, Calendar, Building, Tag, ExternalLink } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { GameData } from "@/types/game";
-import { cn } from "@/lib/utils";
-import { GameLibraryActions } from "@/components/game/GameLibraryActions";
-import ReviewForm from "@/components/game/ReviewForm";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { X, Users, Star, Calendar, Building, ExternalLink, ThumbsUp, ThumbsDown, Clock } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { GameData } from "@/types/game";
+import { cn } from "@/lib/utils";
+import { GameLibraryActions } from "@/components/game/GameLibraryActions";
+import ReviewForm from "@/components/game/ReviewForm";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useReviewsByGame } from "@/hooks/useReviews";
+import { UserAvatar } from "@/components/profile/UserAvatar";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface GameModalProps {
   game: GameData | null;
@@ -18,12 +22,17 @@ interface GameModalProps {
 
 const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
   const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByGame(
+    Number(game?.app_id)
+  );
 
   useEffect(() => {
     if (!isOpen) {
       setIsReviewOpen(false);
+      setShowAllReviews(false);
     }
   }, [isOpen]);
 
@@ -51,46 +60,48 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
     );
   };
 
-  const handleWriteReview = () => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    setIsReviewOpen(true);
-  };
+  const handleWriteReview = () => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    setIsReviewOpen(true);
+  };
+
+  const visibleReviews = showAllReviews ? reviews : reviews.slice(0, 3);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl p-0 bg-card border-border/50 gap-0 max-h-[90vh] overflow-hidden grid-rows-[auto_1fr]">
-        {/* Hero Image */}
-        <div className="relative aspect-video">
-          <img
-            src={game.image}
-            alt={game.title}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 featured-overlay" />
-
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          {/* Title Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-6">
-            <h2 className="text-2xl md:text-3xl font-bold">{game.title}</h2>
-            {game.genre && (
-              <Badge variant="secondary" className="mt-2">
-                {game.genre}
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        {/* Content */}
+        {/* Compact Header */}
+        <div className="border-b border-border/50 bg-gradient-to-br from-background via-background/95 to-background p-4 sm:p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-24 sm:w-28 md:w-32 aspect-[2/3] rounded-lg overflow-hidden border border-white/10 bg-black/40 flex-shrink-0">
+              <img
+                src={`https://cdn.cloudflare.steamstatic.com/steam/apps/${game.app_id}/library_600x900.jpg`}
+                alt={game.title}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                onError={(event) => {
+                  const target = event.currentTarget;
+                  if (target.src !== game.image) {
+                    target.src = game.image;
+                  }
+                }}
+              />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-2xl md:text-3xl font-bold">{game.title}</h2>
+              {game.genre && (
+                <Badge variant="secondary" className="mt-2">
+                  {game.genre}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
         <div className="p-6 space-y-6 overflow-y-auto min-h-0">
           {/* Stats Row */}
           <div className="flex flex-wrap items-center gap-6">
@@ -175,25 +186,8 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
             </div>
           )}
 
-          {/* Tags */}
-          {game.tags && game.tags.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Tag className="w-4 h-4 text-muted-foreground" />
-                <h3 className="text-sm font-medium text-muted-foreground">Tags</h3>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {game.tags.map((tag, idx) => (
-                  <Badge key={idx} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Library Actions */}
-          <div className="pt-4 border-t border-border/50 space-y-4">
+          {/* Library Actions */}
+          <div className="pt-4 border-t border-border/50 space-y-4">
             <GameLibraryActions appId={Number(game.app_id)} onWriteReview={handleWriteReview} />
             {isReviewOpen && (
               <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 space-y-3">
@@ -204,7 +198,120 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                 />
               </div>
             )}
-          </div>
+          </div>
+
+          {/* Community Reviews */}
+          <div className="pt-4 border-t border-border/50 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-foreground">Reviews da comunidade</h3>
+              <span className="text-xs text-muted-foreground">
+                {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
+              </span>
+            </div>
+
+            {reviewsLoading ? (
+              <div className="space-y-3">
+                {[...Array(2)].map((_, idx) => (
+                  <div key={idx} className="animate-pulse bg-secondary/30 rounded-lg p-4">
+                    <div className="h-3 bg-secondary rounded w-1/3 mb-2" />
+                    <div className="h-3 bg-secondary rounded w-full mb-1" />
+                    <div className="h-3 bg-secondary rounded w-3/4" />
+                  </div>
+                ))}
+              </div>
+            ) : reviews.length === 0 ? (
+              <div className="text-sm text-muted-foreground">
+                Nenhuma review ainda. Seja o primeiro a comentar.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {visibleReviews.map((review) => {
+                  const author =
+                    review.profiles?.display_name ||
+                    review.profiles?.username ||
+                    "Jogador";
+                  const isMine = !!user && review.user_id === user.id;
+
+                  return (
+                    <div
+                      key={review.id}
+                      className={cn(
+                        "rounded-lg border border-border/50 bg-secondary/20 p-4 space-y-3",
+                        isMine && "border-primary/40 bg-primary/5"
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <UserAvatar
+                          src={review.profiles?.avatar_url}
+                          displayName={author}
+                          username={review.profiles?.username}
+                          size="sm"
+                        />
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-sm font-semibold">{author}</p>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(review.created_at), {
+                                addSuffix: true,
+                                locale: ptBR,
+                              })}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 mt-2">
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
+                                review.is_positive
+                                  ? "bg-emerald-500/10 text-emerald-500"
+                                  : "bg-rose-500/10 text-rose-500"
+                              )}
+                            >
+                              {review.is_positive ? (
+                                <>
+                                  <ThumbsUp className="w-3.5 h-3.5" />
+                                  Recomendado
+                                </>
+                              ) : (
+                                <>
+                                  <ThumbsDown className="w-3.5 h-3.5" />
+                                  Não recomendado
+                                </>
+                              )}
+                            </span>
+                            {typeof review.score === "number" && (
+                              <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold bg-primary/10 text-primary">
+                                {review.score}/5
+                              </span>
+                            )}
+                            {review.hours_at_review !== null &&
+                              review.hours_at_review > 0 && (
+                                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                  <Clock className="w-3.5 h-3.5" />
+                                  {review.hours_at_review}h
+                                </span>
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-foreground/90 whitespace-pre-wrap">
+                        {review.content}
+                      </p>
+                    </div>
+                  );
+                })}
+                {reviews.length > 3 && !showAllReviews && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => setShowAllReviews(true)}
+                  >
+                    Ver todas as reviews
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Price & CTA */}
           <div className="flex items-center justify-between pt-4 border-t border-border/50">

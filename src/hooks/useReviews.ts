@@ -124,8 +124,8 @@ export function useCreateReview() {
       hoursAtReview?: number;
     }) => {
       if (!user?.id) throw new Error('Not authenticated');
-      const normalizedScore = Math.max(0, Math.min(100, Math.round(score)));
-      const isPositive = normalizedScore >= 60;
+      const normalizedScore = Math.max(0, Math.min(5, Math.round(score)));
+      const isPositive = normalizedScore >= 3;
       
       const { data, error } = await supabase
         .from('reviews')
@@ -163,9 +163,9 @@ export function useUpdateReview() {
     }) => {
       const nextUpdates = { ...updates };
       if (typeof nextUpdates.score === "number") {
-        const normalizedScore = Math.max(0, Math.min(100, Math.round(nextUpdates.score)));
+        const normalizedScore = Math.max(0, Math.min(5, Math.round(nextUpdates.score)));
         nextUpdates.score = normalizedScore;
-        nextUpdates.is_positive = normalizedScore >= 60;
+        nextUpdates.is_positive = normalizedScore >= 3;
       }
 
       const { data, error } = await supabase

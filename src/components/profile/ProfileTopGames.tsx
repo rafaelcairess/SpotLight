@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Star } from "lucide-react";
+import { Star, Settings } from "lucide-react";
 import { useUserTopGames } from "@/hooks/useTopGames";
 import { useGamesByIds, useSearchGames } from "@/hooks/useGames";
 import { UserGame } from "@/hooks/useUserGames";
@@ -83,16 +83,33 @@ export function ProfileTopGames({
 
   return (
     <div className="rounded-xl border border-border/50 bg-card p-4 space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <Star className="w-4 h-4 text-primary" />
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Star className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold">Top 5 jogos</h3>
+            <p className="text-xs text-muted-foreground">
+              {readOnly ? "Favoritos do jogador" : "Escolha seus favoritos"}
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-sm font-semibold">Top 5 jogos</h3>
-          <p className="text-xs text-muted-foreground">
-            {readOnly ? "Favoritos do jogador" : "Escolha seus favoritos"}
-          </p>
-        </div>
+        {!readOnly && (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-9 w-9"
+            onClick={() => {
+              setActivePosition(defaultPosition);
+              setDialogOpen(true);
+            }}
+            aria-label="Configurar Top 5"
+          >
+            <Settings className="w-4 h-4" />
+          </Button>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -133,7 +150,7 @@ export function ProfileTopGames({
                         {game.title}
                       </p>
                       <p className="text-xs text-muted-foreground line-clamp-1">
-                        {game.genre || "Sem genero"}
+                        {game.genre || "Sem gênero"}
                       </p>
                     </button>
                   ) : (
@@ -150,32 +167,7 @@ export function ProfileTopGames({
                   #{position}
                 </div>
                 {!readOnly && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={currentPosition === position ? "secondary" : "outline"}
-                      onClick={() => {
-                        setActivePosition(position);
-                        setDialogOpen(true);
-                      }}
-                    >
-                      Escolher
-                    </Button>
-                    {appId && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        disabled={isPending}
-                        onClick={async () => {
-                          await setTopGame({ position, appId: null });
-                        }}
-                      >
-                        Remover
-                      </Button>
-                    )}
-                  </div>
+                  <span className="text-xs text-muted-foreground">&nbsp;</span>
                 )}
               </div>
             </div>
@@ -195,10 +187,40 @@ export function ProfileTopGames({
         >
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>Escolher jogo para Top #{currentPosition}</DialogTitle>
+              <div className="flex items-center justify-between gap-3">
+                <DialogTitle>Configurar Top #{currentPosition}</DialogTitle>
+                {topByPosition.get(currentPosition) && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={isPending}
+                    onClick={async () => {
+                      await setTopGame({ position: currentPosition, appId: null });
+                      setDialogOpen(false);
+                      setSearch("");
+                    }}
+                  >
+                    Remover
+                  </Button>
+                )}
+              </div>
             </DialogHeader>
 
             <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                {POSITIONS.map((position) => (
+                  <Button
+                    key={position}
+                    type="button"
+                    size="sm"
+                    variant={currentPosition === position ? "secondary" : "outline"}
+                    onClick={() => setActivePosition(position)}
+                  >
+                    #{position}
+                  </Button>
+                ))}
+              </div>
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
@@ -246,7 +268,7 @@ export function ProfileTopGames({
                           {result.title}
                         </p>
                         <p className="text-xs text-muted-foreground line-clamp-1">
-                          {result.genre || "Sem genero"}
+                          {result.genre || "Sem gênero"}
                         </p>
                       </div>
                       <span className="text-xs text-primary">Adicionar</span>

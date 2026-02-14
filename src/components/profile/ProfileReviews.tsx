@@ -36,7 +36,7 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
   if (reviews.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Voce ainda nao escreveu nenhuma review.</p>
+        <p className="text-muted-foreground">Você ainda não escreveu nenhuma review.</p>
       </div>
     );
   }
@@ -93,13 +93,13 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
                   ) : (
                     <>
                       <ThumbsDown className="w-4 h-4" />
-                      Nao recomendado
+                      Não recomendado
                     </>
                   )}
                 </div>
                 {typeof review.score === "number" && (
                   <div className="px-3 py-1.5 rounded-full text-sm font-semibold bg-primary/10 text-primary">
-                    {review.score}/100
+                    {review.score}/5
                   </div>
                 )}
               </div>
