@@ -31,6 +31,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
       toast.success('Conta criada com sucesso!', {
         description: 'Verifique seu email para confirmar o cadastro.',
       });
+      onSwitchToLogin();
     }
 
     setLoading(false);
@@ -86,9 +87,9 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         </div>
       </div>
 
-      <Button 
-        type="submit" 
-        className="w-full" 
+      <Button
+        type="submit"
+        className="w-full"
         variant="glow"
         disabled={loading}
       >

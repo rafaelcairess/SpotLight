@@ -9,13 +9,14 @@ import { Loader2, Mail, Lock } from 'lucide-react';
 
 interface LoginFormProps {
   onSwitchToSignup: () => void;
+  onForgotPassword: () => void;
 }
 
-export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
+export function LoginForm({ onSwitchToSignup, onForgotPassword }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,11 +70,37 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
             minLength={6}
           />
         </div>
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            className="text-xs text-primary hover:underline"
+          >
+            Esqueceu sua senha?
+          </button>
+        </div>
       </div>
 
-      <Button 
-        type="submit" 
-        className="w-full" 
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        disabled={loading}
+        onClick={async () => {
+          const { error } = await signInWithGoogle();
+          if (error) {
+            toast.error('Erro ao entrar com Google', {
+              description: error.message,
+            });
+          }
+        }}
+      >
+        Entrar com Google
+      </Button>
+
+      <Button
+        type="submit"
+        className="w-full"
         variant="glow"
         disabled={loading}
       >

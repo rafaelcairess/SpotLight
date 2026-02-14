@@ -99,7 +99,7 @@ const Index = () => {
       <Header />
 
       <main className="pt-20 md:pt-24">
-        {/* Featured Banner */}
+        {/* Destaque principal */}
         <section className="container mx-auto px-4 mb-12 md:mb-16">
           {featuredGame ? (
             <FeaturedBanner
@@ -115,7 +115,7 @@ const Index = () => {
           )}
         </section>
 
-        {/* Rankings Section */}
+        {/* Ranking de populares */}
         <section className="container mx-auto px-4 mb-12 md:mb-16">
           <SectionHeader
             title="Mais Vendidos"
@@ -162,7 +162,7 @@ const Index = () => {
           )}
         </section>
 
-        {/* Categories Preview */}
+        {/* Explorar coleções (carrossel horizontal) */}
         <section className="container mx-auto px-4 mb-12 md:mb-16">
           <SectionHeader
             title="Explorar Coleções"
@@ -212,7 +212,7 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Discover Section */}
+        {/* Descubra novos jogos (lista principal) */}
         <section className="container mx-auto px-4 pb-12 md:pb-16">
           <SectionHeader
             title="Descubra Novos Jogos"
@@ -261,11 +261,12 @@ const Index = () => {
             </>
           )}
         </section>
+        {/* Recomendações pessoais (apenas logado) */}
         {user && (
           <section className="container mx-auto px-4 pb-12 md:pb-16">
             <SectionHeader
-              title="Recomendacoes pessoais"
-              subtitle="Baseado no que voce joga e avalia"
+              title="Recomendações pessoais"
+              subtitle="Baseado no que você joga e avalia"
               icon={Sparkles}
             />
 
@@ -273,7 +274,7 @@ const Index = () => {
               <LoadingSkeleton variant="card" count={6} />
             ) : recommendedGames.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                Jogue e avalie alguns titulos para destravar recomendacoes personalizadas.
+                Jogue e avalie alguns títulos para destravar recomendações personalizadas.
               </div>
             ) : (
               <div className={discoverGridClass}>

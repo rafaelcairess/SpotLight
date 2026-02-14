@@ -4,18 +4,31 @@ import { Orbit } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { SignupForm } from '@/components/auth/SignupForm';
+import { PasswordResetRequestForm } from '@/components/auth/PasswordResetRequestForm';
+import { PasswordResetForm } from '@/components/auth/PasswordResetForm';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<'login' | 'signup' | 'reset' | 'recover'>('login');
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user) {
+    const params = new URLSearchParams(window.location.search);
+    const queryMode = params.get('mode');
+    if (queryMode === 'signup') setMode('signup');
+    if (queryMode === 'reset') setMode('recover');
+
+    if (window.location.hash.includes('type=recovery')) {
+      setMode('recover');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!loading && user && mode !== 'recover') {
       navigate('/');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, mode]);
 
   if (loading) {
     return (
@@ -44,19 +57,33 @@ const Auth = () => {
         <Card className="glass border-border/30">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">
-              {isLogin ? 'Bem-vindo de volta!' : 'Crie sua conta'}
+              {mode === 'login' && 'Bem-vindo de volta!'}
+              {mode === 'signup' && 'Crie sua conta'}
+              {mode === 'reset' && 'Recuperar senha'}
+              {mode === 'recover' && 'Definir nova senha'}
             </CardTitle>
             <CardDescription>
-              {isLogin 
-                ? 'Entre para acessar sua biblioteca de jogos' 
-                : 'Junte-se à comunidade SpotLight'}
+              {mode === 'login' && 'Entre para acessar sua biblioteca de jogos'}
+              {mode === 'signup' && 'Junte-se à comunidade SpotLight'}
+              {mode === 'reset' && 'Enviaremos um link de recuperação para seu email'}
+              {mode === 'recover' && 'Crie uma nova senha para sua conta'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isLogin ? (
-              <LoginForm onSwitchToSignup={() => setIsLogin(false)} />
-            ) : (
-              <SignupForm onSwitchToLogin={() => setIsLogin(true)} />
+            {mode === 'login' && (
+              <LoginForm
+                onSwitchToSignup={() => setMode('signup')}
+                onForgotPassword={() => setMode('reset')}
+              />
+            )}
+            {mode === 'signup' && (
+              <SignupForm onSwitchToLogin={() => setMode('login')} />
+            )}
+            {mode === 'reset' && (
+              <PasswordResetRequestForm onBackToLogin={() => setMode('login')} />
+            )}
+            {mode === 'recover' && (
+              <PasswordResetForm onBackToLogin={() => setMode('login')} />
             )}
           </CardContent>
         </Card>
