@@ -1,23 +1,24 @@
 import { useEffect, useState } from "react";
 import type { LayoutMode } from "@/components/LayoutToggle";
 
-const STORAGE_KEY = "spotlight.layoutMode";
-
-export const useLayoutPreference = () => {
-  const [mode, setMode] = useState<LayoutMode>("standard");
+export const useLayoutPreference = (
+  storageKey = "spotlight.layoutMode",
+  defaultMode: LayoutMode = "standard"
+) => {
+  const [mode, setMode] = useState<LayoutMode>(defaultMode);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const stored = window.localStorage.getItem(storageKey);
     if (stored === "standard" || stored === "compact") {
       setMode(stored);
     }
-  }, []);
+  }, [storageKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem(STORAGE_KEY, mode);
-  }, [mode]);
+    window.localStorage.setItem(storageKey, mode);
+  }, [mode, storageKey]);
 
   return [mode, setMode] as const;
 };

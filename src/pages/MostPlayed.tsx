@@ -1,27 +1,22 @@
 import { useState } from "react";
-import { Trophy, Loader2 } from "lucide-react";
+import { Flame, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import SectionHeader from "@/components/SectionHeader";
-import { useTopGamesRanking } from "@/hooks/useTopGamesRanking";
 import LayoutToggle from "@/components/LayoutToggle";
 import GameCard from "@/components/GameCard";
-import { useLayoutPreference } from "@/hooks/useLayoutPreference";
 import GameModal from "@/components/GameModal";
 import { GameData } from "@/types/game";
+import { useMostPlayedGames } from "@/hooks/useMostPlayedGames";
+import { useLayoutPreference } from "@/hooks/useLayoutPreference";
 
-export default function TopGames() {
+export default function MostPlayed() {
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [layoutMode, setLayoutMode] = useLayoutPreference(
-    "spotlight.layoutMode.topGames",
-    "compact"
+    "spotlight.layoutMode.mostPlayed",
+    "standard"
   );
-
-  const { data: ranking = [], isLoading, isFetching } = useTopGamesRanking(
-    "",
-    "",
-    10
-  );
+  const { data: games = [], isLoading, isFetching } = useMostPlayedGames(50);
 
   const handleOpenGame = (game: GameData) => {
     setSelectedGame(game);
@@ -40,9 +35,9 @@ export default function TopGames() {
       <main className="pt-24 md:pt-28 pb-12">
         <div className="container mx-auto px-4">
           <SectionHeader
-            title="Top Games"
-            subtitle="Top 10 pelo SpotLight"
-            icon={Trophy}
+            title="Mais jogados da Steam"
+            subtitle="Ranking pelos jogadores ativos (atualiza a cada 6 horas)"
+            icon={Flame}
             actions={<LayoutToggle value={layoutMode} onChange={setLayoutMode} />}
           />
 
@@ -62,26 +57,26 @@ export default function TopGames() {
                 />
               ))}
             </div>
-          ) : ranking.length === 0 ? (
+          ) : games.length === 0 ? (
             <div className="rounded-xl border border-border/40 bg-card/50 p-8 text-center text-muted-foreground">
-              Nenhum jogo encontrado para os filtros atuais.
+              Nenhum jogo encontrado.
             </div>
           ) : layoutMode === "compact" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-              {ranking.map((game, index) => (
+              {games.map((game, index) => (
                 <GameCard
-          key={game.app_id}
-          game={game}
-          variant="poster"
-          rank={index + 1}
-          index={index}
-          onClick={() => handleOpenGame(game)}
-        />
-      ))}
-    </div>
-  ) : (
+                  key={game.app_id}
+                  game={game}
+                  variant="poster"
+                  rank={index + 1}
+                  index={index}
+                  onClick={() => handleOpenGame(game)}
+                />
+              ))}
+            </div>
+          ) : (
             <div className="space-y-2">
-              {ranking.map((game, index) => (
+              {games.map((game, index) => (
                 <button
                   key={game.app_id}
                   type="button"

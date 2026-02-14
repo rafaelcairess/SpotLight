@@ -31,8 +31,8 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
   const [hoursAtReview, setHoursAtReview] = useState<number | "">("");
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
 
-  const COOLDOWN_MS = 30_000;
-  const cooldownKey = user?.id ? `spotlight.review.cooldown.${user.id}.${appId}` : "";
+  const COOLDOWN_MS = 60_000;
+  const cooldownKey = user?.id ? `spotlight.review.cooldown.${user.id}` : "";
 
   useEffect(() => {
     if (existingReview) {
@@ -144,6 +144,15 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
         setCooldownRemaining(COOLDOWN_MS);
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (message.includes("RATE_LIMIT:60")) {
+        toast({ title: "Aguarde 60s para enviar outra review", variant: "destructive" });
+        return;
+      }
+      if (message.includes("DAILY_LIMIT:20")) {
+        toast({ title: "Você atingiu o limite diário de 20 reviews", variant: "destructive" });
+        return;
+      }
       toast({ title: "Erro ao salvar review", variant: "destructive" });
     }
   };
@@ -239,6 +248,10 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
           placeholder="Ex: 12"
         />
       </div>
+
+      <p className="text-xs text-muted-foreground">
+        Limite: 1 review por minuto e 20 por dia.
+      </p>
 
       <div className="flex justify-end gap-2">
         {onClose && (

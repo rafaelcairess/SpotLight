@@ -36,7 +36,10 @@ const Index = () => {
     isFetching: topRatedFetching,
   } = useTopRatedGames(discoverLimit);
   const { data: recommendedGames = [], isLoading: recommendationsLoading } = useRecommendations(12);
-  const [layoutMode, setLayoutMode] = useLayoutPreference();
+  const [layoutMode, setLayoutMode] = useLayoutPreference(
+    "spotlight.layoutMode.explore",
+    "compact"
+  );
   const categoriesScrollRef = useRef<HTMLDivElement | null>(null);
   const [scrollLocked, setScrollLocked] = useState(false);
 
@@ -91,7 +94,7 @@ const Index = () => {
 
   const discoverGridClass =
     layoutMode === "compact"
-      ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+      ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"
       : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6";
 
   return (
@@ -119,7 +122,7 @@ const Index = () => {
         <section className="container mx-auto px-4 mb-12 md:mb-16">
           <SectionHeader
             title="Mais Vendidos"
-            subtitle="Os jogos mais populares na Steam agora"
+            subtitle="Os jogos mais populares na Steam agora (atualiza a cada 6 horas)"
             icon={TrendingUp}
           />
 
@@ -234,7 +237,7 @@ const Index = () => {
                     key={game.app_id}
                     game={game}
                     index={idx}
-                    variant={layoutMode === "compact" ? "compact" : "default"}
+                    variant={layoutMode === "compact" ? "poster" : "default"}
                     onClick={() => handleGameClick(game)}
                   />
                 ))}
@@ -283,7 +286,7 @@ const Index = () => {
                     key={game.app_id}
                     game={game}
                     index={idx}
-                    variant={layoutMode === "compact" ? "compact" : "default"}
+                    variant={layoutMode === "compact" ? "poster" : "default"}
                     onClick={() => handleGameClick(game)}
                   />
                 ))}

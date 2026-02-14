@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { Heart, Trophy, Clock, Trash2, MoreVertical } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -33,9 +32,9 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 };
 
 const cardToneStyles: Record<NonNullable<GameLibraryProps["cardTone"]>, string> = {
-  default: "border-border/50",
-  completed: "border-emerald-500/30 bg-emerald-500/5",
-  dropped: "border-rose-500/30 bg-rose-500/5",
+  default: "border-white/5 bg-card/40",
+  completed: "border-emerald-500/20 bg-emerald-500/5",
+  dropped: "border-rose-500/20 bg-rose-500/5",
 };
 
 export function GameLibrary({
@@ -106,13 +105,25 @@ export function GameLibrary({
     }
   };
 
+  const formatPlaytime = (hours?: number | null) => {
+    if (hours === null || hours === undefined || hours <= 0) return "";
+    if (hours < 1) {
+      const minutes = Math.max(1, Math.round(hours * 60));
+      return `${minutes} min`;
+    }
+    if (hours === 1) return "1 hora";
+    return `${Math.round(hours)} horas`;
+  };
+
+  const getPortraitImage = (appId: number, fallback: string) =>
+    `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`;
+
   if (isLoading || catalogLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {[...Array(6)].map((_, i) => (
           <div key={i} className="animate-pulse">
-            <div className="aspect-video bg-secondary rounded-lg mb-2" />
-            <div className="h-4 bg-secondary rounded w-3/4" />
+            <div className="aspect-[2/3] bg-secondary rounded-xl" />
           </div>
         ))}
       </div>
@@ -128,17 +139,19 @@ export function GameLibrary({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
       {games.map((userGame) => {
         const gameInfo = gameMap.get(userGame.app_id);
         if (!gameInfo) return null;
         const handleSelect = () => onGameSelect?.(gameInfo);
+        const playtimeLabel = formatPlaytime(userGame.hours_played);
+        const portraitImage = getPortraitImage(gameInfo.app_id, gameInfo.image);
 
         return (
           <div
             key={userGame.id}
             className={cn(
-              "group relative bg-card rounded-lg overflow-hidden border hover:border-primary/50 transition-all",
+              "group relative rounded-xl overflow-hidden border hover:border-primary/40 transition-all",
               cardToneStyles[cardTone],
               highlightPlatinum &&
                 userGame.is_platinumed &&
@@ -159,16 +172,36 @@ export function GameLibrary({
             }
           >
             {/* Image */}
-            <div className="aspect-video relative">
+            <div className="aspect-[2/3] relative">
               <img
-                src={gameInfo.image}
+                src={portraitImage}
                 alt={gameInfo.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+                onError={(event) => {
+                  const target = event.currentTarget;
+                  if (target.src !== gameInfo.image) {
+                    target.src = gameInfo.image;
+                  }
+                }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
               {/* Badges */}
-              <div className="absolute top-2 left-2 flex gap-1">
+              <div className="absolute top-2 left-2 flex items-center gap-2">
+                {playtimeLabel && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-black/70 text-white text-[11px] px-2 py-0.5">
+                    <Clock className="w-3 h-3" />
+                    {playtimeLabel}
+                  </span>
+                )}
+              </div>
+              {highlightPlatinum && userGame.is_platinumed && (
+                <div className="absolute bottom-2 left-2 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-400 text-black rounded-full shadow">
+                  Platina
+                </div>
+              )}
+              <div className="absolute bottom-12 right-2 flex items-center gap-1">
                 {userGame.is_favorite && (
                   <div className="p-1.5 rounded-full bg-rose-500/90">
                     <Heart className="w-3 h-3 fill-current text-white" />
@@ -180,11 +213,6 @@ export function GameLibrary({
                   </div>
                 )}
               </div>
-              {highlightPlatinum && userGame.is_platinumed && (
-                <div className="absolute bottom-2 left-2 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-400 text-black rounded-full shadow">
-                  Platina
-                </div>
-              )}
 
               {/* Actions Menu */}
               {!readOnly && (
@@ -280,18 +308,12 @@ export function GameLibrary({
             </div>
 
             {/* Info */}
-            <div className="p-3">
-              <h3 className="font-semibold truncate">{gameInfo.title}</h3>
-              <div className="flex items-center justify-between mt-2">
-                <Badge variant="secondary" className={cn("text-xs", statusLabels[userGame.status].color)}>
-                  {statusLabels[userGame.status].label}
-                </Badge>
-                {userGame.hours_played !== null && userGame.hours_played > 0 && (
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="w-3 h-3" />
-                    {userGame.hours_played}h
-                  </span>
-                )}
+            <div className="absolute inset-x-0 bottom-0 p-3">
+              <div className="flex items-end justify-between gap-2">
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-white truncate">{gameInfo.title}</h3>
+                  <p className="text-[11px] text-white/70 truncate">{statusLabels[userGame.status].label}</p>
+                </div>
               </div>
             </div>
           </div>

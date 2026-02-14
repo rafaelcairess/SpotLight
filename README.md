@@ -1,4 +1,4 @@
-# SpotLight
+﻿# SpotLight
 
 Uma plataforma de descoberta de jogos com curadoria, comunidade e reviews reais. O foco é facilitar a busca por bons jogos, acompanhar descontos e criar uma biblioteca pessoal com progresso e conquistas.
 
@@ -45,3 +45,8 @@ https://spot-light-xi.vercel.app/
 ---
 
 Feito com foco em qualidade e evolução constante.
+
+## Nota sobre o código aberto
+
+Este repositório não inclui as migrations SQL do Supabase (schema/DDL), pois o projeto está publicado e não exige execução local.
+Se você quiser rodar localmente, será necessário criar seu próprio schema.

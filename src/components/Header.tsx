@@ -1,4 +1,4 @@
-import { Search, Orbit, Menu, X, LogOut, DollarSign, Users, Bell, Trophy } from "lucide-react";
+﻿import { Search, Orbit, Menu, X, LogOut, DollarSign, Users, Bell, Trophy, Flame, MessageSquare } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,7 @@ const Header = () => {
     { href: "/promocoes", label: "Promoções", icon: DollarSign },
     { href: "/comunidade", label: "Comunidade", icon: Users },
     { href: "/top", label: "Top Games", icon: Trophy },
+    { href: "/mais-jogados", label: "Mais jogados", icon: Flame },
   ];
 
   const unreadCount = notifications.filter((notification) => !notification.read_at).length;
@@ -61,10 +62,10 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
-      <div className="container mx-auto px-4">
+      <div className="w-full px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group -ml-6 md:-ml-10">
+          <Link to="/" className="flex items-center gap-2 group -ml-30 md:-ml-50">
             <div className="relative">
               <Orbit className="w-7 h-7 md:w-8 md:h-8 text-primary transition-transform group-hover:scale-110" />
               <div className="absolute inset-0 blur-lg bg-primary/30 group-hover:bg-primary/50 transition-colors" />
@@ -96,7 +97,7 @@ const Header = () => {
           </nav>
 
           {/* Search Bar - Desktop */}
-          <form onSubmit={handleSearch} className="hidden md:flex items-center gap-2 flex-1 max-w-md mx-8">
+          <form onSubmit={handleSearch} className="hidden md:flex items-center gap-2 flex-1 max-w-md ml-4 mr-2">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -113,7 +114,8 @@ const Header = () => {
           <div className="hidden md:flex items-center gap-4">
             {!authLoading && (
               user ? (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center">
+                  <div className="flex items-center gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="relative">
@@ -183,6 +185,8 @@ const Header = () => {
                       size="md"
                     />
                   </Link>
+                  </div>
+                  <div className="flex items-center gap-3 ml-5">
                   <button
                     onClick={handleSignOut}
                     className="inline-flex items-center gap-2 text-sm font-medium text-destructive hover:text-destructive/90 transition-colors"
@@ -190,11 +194,28 @@ const Header = () => {
                     <LogOut className="w-4 h-4" />
                     Sair
                   </button>
+                  <Link
+                    to="/feedback"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Feedback
+                  </Link>
+                  </div>
                 </div>
               ) : (
-                <Button variant="glow" size="sm" asChild>
-                  <Link to="/auth">Entrar</Link>
-                </Button>
+                <div className="flex items-center gap-4">
+                  <Link
+                    to="/feedback"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Feedback
+                  </Link>
+                  <Button variant="glow" size="sm" asChild>
+                    <Link to="/auth">Entrar</Link>
+                  </Button>
+                </div>
               )
             )}
           </div>
@@ -255,6 +276,14 @@ const Header = () => {
 
             {/* Mobile Auth */}
             <div className="mt-4 pt-4 border-t border-border/30">
+              <Link
+                to="/feedback"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-2 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary"
+              >
+                <MessageSquare className="w-4 h-4" />
+                Feedback
+              </Link>
               {!authLoading && (
                 user ? (
                   <div className="space-y-2">
@@ -303,4 +332,11 @@ const Header = () => {
 };
 
 export default Header;
+
+
+
+
+
+
+
 

@@ -14,6 +14,8 @@ import Promotions from "./pages/Promotions";
 import Community from "./pages/Community";
 import PublicProfile from "./pages/PublicProfile";
 import TopGames from "./pages/TopGames";
+import MostPlayed from "./pages/MostPlayed";
+import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,8 @@ const App = () => (
             <Route path="/promocoes" element={<Promotions />} />
             <Route path="/comunidade" element={<Community />} />
             <Route path="/top" element={<TopGames />} />
+            <Route path="/mais-jogados" element={<MostPlayed />} />
+            <Route path="/feedback" element={<Feedback />} />
             <Route path="/u/:username" element={<PublicProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

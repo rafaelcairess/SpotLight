@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils";
 
 interface GameCardProps {
   game: GameData;
-  onClick?: () => void;
-  index?: number;
-  variant?: "default" | "compact" | "ranking";
-  rank?: number;
-}
+  onClick?: () => void;
+  index?: number;
+  variant?: "default" | "compact" | "ranking" | "poster";
+  rank?: number;
+}
 
 const GameCard = ({
   game,
@@ -24,14 +24,17 @@ const GameCard = ({
     return count.toString();
   };
 
-  const getRatingColor = (rating?: number) => {
-    if (!rating) return "text-muted-foreground";
-    if (rating >= 80) return "rating-positive";
-    if (rating >= 50) return "rating-mixed";
-    return "rating-negative";
-  };
-
-  if (variant === "ranking") {
+  const getRatingColor = (rating?: number) => {
+    if (!rating) return "text-muted-foreground";
+    if (rating >= 80) return "rating-positive";
+    if (rating >= 50) return "rating-mixed";
+    return "rating-negative";
+  };
+
+  const getPosterImage = (appId: number, fallback: string) =>
+    `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`;
+
+  if (variant === "ranking") {
     return (
       <div
         onClick={onClick}
@@ -93,9 +96,68 @@ const GameCard = ({
         <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     );
-  }
-
-  return (
+  }
+
+  if (variant === "poster") {
+    const posterImage = getPosterImage(game.app_id, game.image);
+
+    return (
+      <div
+        onClick={onClick}
+        className="group relative cursor-pointer rounded-xl overflow-hidden border border-white/5 bg-card/40 hover:border-primary/40 transition-all"
+        style={{ animationDelay: `${index * 50}ms` }}
+      >
+        <div className="aspect-[2/3] relative">
+          <img
+            src={posterImage}
+            alt={game.title}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+            onError={(event) => {
+              const target = event.currentTarget;
+              if (target.src !== game.image) {
+                target.src = game.image;
+              }
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+          <div className="absolute top-2 left-2 flex items-center gap-2">
+            {rank && (
+              <span className="inline-flex items-center justify-center h-6 min-w-[24px] rounded-full bg-black/70 text-white text-xs font-semibold px-2">
+                #{rank}
+              </span>
+            )}
+            {game.activePlayers && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-black/70 text-white text-[11px] px-2 py-0.5">
+                <Users className="w-3 h-3" />
+                {formatPlayers(game.activePlayers)}
+              </span>
+            )}
+          </div>
+
+          <div className="absolute inset-x-0 bottom-0 p-3">
+            <h3 className="text-sm font-semibold text-white truncate">
+              {game.title}
+            </h3>
+            {game.communityRating && (
+              <span
+                className={cn(
+                  "mt-1 inline-flex items-center gap-1 text-xs",
+                  getRatingColor(game.communityRating)
+                )}
+              >
+                <Star className="w-3 h-3 fill-current" />
+                {game.communityRating}%
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
     <div
       onClick={onClick}
       className={cn(
@@ -105,7 +167,7 @@ const GameCard = ({
       style={{ animationDelay: `${index * 50}ms` }}
     >
       {/* Image Container */}
-      <div className="relative aspect-[16/9] overflow-hidden">
+      <div className="relative aspect-[460/215] overflow-hidden">
         <img
           src={game.image}
           alt={game.title}
