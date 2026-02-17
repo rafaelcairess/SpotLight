@@ -1,3 +1,6 @@
+/// <reference types="node" />
+/// <reference lib="dom" />
+
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -110,21 +113,27 @@ const sendEmail = async ({
   subject: string;
   html: string;
 }) => {
-  const res = await fetch(`${FUNCTIONS_URL}/send-price-alert-email`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-    },
-    body: JSON.stringify({ to, subject, html }),
-  });
+  try {
+    const res = await fetch(`${FUNCTIONS_URL}/send-price-alert-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({ to, subject, html }),
+    });
 
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Email function error: ${res.status} ${body}`);
+    if (!res.ok) {
+      const body = await res.text();
+      console.warn(`Email function error (${res.status}): ${body}`);
+      return false;
+    }
+
+    return true;
+  } catch (error: any) {
+    console.warn("Falha ao chamar a função de email:", error?.message || error);
+    return false;
   }
-
-  return true;
 };
 
 const main = async () => {
@@ -211,19 +220,18 @@ const main = async () => {
       </div>
     `;
 
-    try {
-      const sent = await sendEmail({ to: email, subject, html });
-      if (!sent) continue;
-
-      await supabase
-        .from("price_alerts")
-        .update({ notified_at: new Date().toISOString() })
-        .eq("id", alert.id);
-
-      console.log(`Email enviado para ${email} (${snapshot.title})`);
-    } catch (err: any) {
-      console.error(`Falha ao enviar email para ${email}:`, err?.message || err);
+    const sent = await sendEmail({ to: email, subject, html });
+    if (!sent) {
+      console.warn(`Email não enviado para ${email} (${snapshot.title})`);
+      continue;
     }
+
+    await supabase
+      .from("price_alerts")
+      .update({ notified_at: new Date().toISOString() })
+      .eq("id", alert.id);
+
+    console.log(`Email enviado para ${email} (${snapshot.title})`);
   }
 };
 
