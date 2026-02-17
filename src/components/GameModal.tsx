@@ -1,8 +1,11 @@
-﻿import { useEffect, useState } from "react";
-import { X, Users, Star, Calendar, Building, ExternalLink, ThumbsUp, ThumbsDown, Clock, Trash2, Pencil } from "lucide-react";
+﻿import { useEffect, useState } from "react";
+
+import { X, Users, Star, Calendar, Building, ExternalLink, ThumbsUp, ThumbsDown, Clock, Trash2, Pencil, Bell } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { GameData } from "@/types/game";
 import { cn } from "@/lib/utils";
 import { GameLibraryActions } from "@/components/game/GameLibraryActions";
@@ -10,21 +13,32 @@ import ReviewForm from "@/components/game/ReviewForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useReviewsByGame, useDeleteReview } from "@/hooks/useReviews";
+import { usePriceAlerts } from "@/hooks/usePriceAlerts";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-
-interface GameModalProps {
-  game: GameData | null;
-  isOpen: boolean;
-  onClose: () => void;
-}
-
+
+
+interface GameModalProps {
+
+  game: GameData | null;
+
+  isOpen: boolean;
+
+  onClose: () => void;
+
+}
+
+
+
 const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
+  // Estado local da UI (editor de review + controles da lista).
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [editingReviewAppId, setEditingReviewAppId] = useState<number | null>(null);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [targetPriceInput, setTargetPriceInput] = useState("");
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -32,39 +46,79 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
     Number(game?.app_id)
   );
   const deleteReview = useDeleteReview();
+  const {
+    alerts: priceAlerts,
+    addAlert,
+    removeAlert,
+    isLoading: alertsLoading,
+  } = usePriceAlerts(Number(game?.app_id));
 
   useEffect(() => {
     if (!isOpen) {
       setIsReviewOpen(false);
       setShowAllReviews(false);
       setEditingReviewAppId(null);
+      setIsAlertOpen(false);
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isAlertOpen) return;
+    const currentAlert = priceAlerts[0];
+    if (currentAlert?.target_price !== null && currentAlert?.target_price !== undefined) {
+      setTargetPriceInput(String(currentAlert.target_price));
+    } else {
+      setTargetPriceInput("");
+    }
+  }, [isAlertOpen, priceAlerts]);
+
   if (!game) return null;
-
-  const getRatingColor = (rating?: number) => {
-    if (!rating) return "text-muted-foreground";
-    if (rating >= 80) return "rating-positive";
-    if (rating >= 50) return "rating-mixed";
-    return "rating-negative";
-  };
-
-  const formatPlayers = (count?: number) => {
-    if (!count) return null;
-    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
-    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
-    return count.toString();
-  };
-
-  const handleOpenSteam = () => {
-    window.open(
-      `https://store.steampowered.com/app/${game.app_id}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
-  };
-
+
+
+  // Helpers de UI para formataÃ§Ã£o de nota e jogadores.
+  const getRatingColor = (rating?: number) => {
+    if (!rating) return "text-muted-foreground";
+
+    if (rating >= 80) return "rating-positive";
+
+    if (rating >= 50) return "rating-mixed";
+
+    return "rating-negative";
+
+  };
+
+
+
+  const formatPlayers = (count?: number) => {
+    if (!count) return null;
+
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+
+    return count.toString();
+
+  };
+
+
+
+  // CTA externo (Steam).
+  const handleOpenSteam = () => {
+    window.open(
+
+      `https://store.steampowered.com/app/${game.app_id}`,
+
+      "_blank",
+
+      "noopener,noreferrer"
+
+    );
+
+  };
+
+
+
+  // AÃ§Ãµes para criar/editar/excluir reviews.
   const handleWriteReview = () => {
     if (!user) {
       navigate("/auth");
@@ -78,6 +132,53 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
     setEditingReviewAppId(Number(game.app_id));
   };
 
+  const handleOpenAlert = () => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    setIsAlertOpen(true);
+  };
+
+  const handleSaveAlert = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!game) return;
+
+    const raw = targetPriceInput.trim();
+    const normalized = raw === "" ? null : Number(raw.replace(",", "."));
+    if (normalized !== null && (Number.isNaN(normalized) || normalized < 0)) {
+      toast({
+        title: "PreÃ§o invÃ¡lido",
+        description: "Informe um valor válido ou deixe vazio para qualquer promoção.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await addAlert.mutateAsync({
+        gameId: Number(game.app_id),
+        targetPrice: normalized,
+      });
+      toast({ title: "Alerta de promoção ativado!" });
+      setIsAlertOpen(false);
+    } catch (error) {
+      toast({ title: "NÃ£o foi possÃ­vel salvar o alerta", variant: "destructive" });
+    }
+  };
+
+  const handleRemoveAlert = async () => {
+    const currentAlert = priceAlerts[0];
+    if (!currentAlert) return;
+    try {
+      await removeAlert.mutateAsync(currentAlert.id);
+      toast({ title: "Alerta removido." });
+      setIsAlertOpen(false);
+    } catch (error) {
+      toast({ title: "NÃ£o foi possÃ­vel remover o alerta", variant: "destructive" });
+    }
+  };
+
   const handleDeleteReview = async (reviewId: string) => {
     const confirmed = window.confirm("Tem certeza que deseja apagar sua review?");
     if (!confirmed) return;
@@ -89,10 +190,16 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
     }
   };
 
+  // Mostra sÃ³ as reviews mais recentes por padrÃ£o (expandir sob demanda).
   const visibleReviews = showAllReviews ? reviews : reviews.slice(0, 3);
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  const activeAlert = priceAlerts[0] ?? null;
+  const isAlertBusy = addAlert.isPending || removeAlert.isPending;
+
+
+  return (
+
+    <Dialog open={isOpen} onOpenChange={onClose}>
+
       <DialogContent className="max-w-3xl p-0 bg-card border-border/50 gap-0 max-h-[90vh] overflow-hidden grid-rows-[auto_1fr]">
         {/* Compact Header */}
         <div className="border-b border-border/50 bg-gradient-to-br from-background via-background/95 to-background p-4 sm:p-6">
@@ -124,89 +231,172 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
 
         {/* Content */}
         <div className="p-6 space-y-6 overflow-y-auto min-h-0">
-          {/* Stats Row */}
-          <div className="flex flex-wrap items-center gap-6">
-            {game.activePlayers && (
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Users className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Jogando Agora</p>
-                  <p className="font-semibold">
-                    {formatPlayers(game.activePlayers)}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {game.communityRating && (
-              <div className="flex items-center gap-2">
-                <div
-                  className={cn(
-                    "p-2 rounded-lg",
-                    game.communityRating >= 80
-                      ? "bg-emerald-500/10"
-                      : game.communityRating >= 50
-                      ? "bg-amber-500/10"
-                      : "bg-red-500/10"
-                  )}
-                >
-                  <Star
-                    className={cn(
-                      "w-4 h-4 fill-current",
-                      getRatingColor(game.communityRating)
-                    )}
-                  />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Avaliação</p>
-                  <p
-                    className={cn("font-semibold", getRatingColor(game.communityRating))}
-                  >
-                    {game.communityRating}%
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {game.releaseDate && (
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-secondary">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Lançamento</p>
-                  <p className="font-semibold">{game.releaseDate}</p>
-                </div>
-              </div>
-            )}
-
-            {game.developer && (
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-secondary">
-                  <Building className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Desenvolvedor</p>
-                  <p className="font-semibold">{game.developer}</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Description */}
-          {game.short_description && (
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                Sobre o Jogo
-              </h3>
-              <p className="text-foreground/90 leading-relaxed">
-                {game.short_description}
-              </p>
-            </div>
-          )}
-
+          {/* Stats Row */}
+
+          <div className="flex flex-wrap items-center gap-6">
+
+            {game.activePlayers && (
+
+              <div className="flex items-center gap-2">
+
+                <div className="p-2 rounded-lg bg-primary/10">
+
+                  <Users className="w-4 h-4 text-primary" />
+
+                </div>
+
+                <div>
+
+                  <p className="text-xs text-muted-foreground">Jogando Agora</p>
+
+                  <p className="font-semibold">
+
+                    {formatPlayers(game.activePlayers)}
+
+                  </p>
+
+                </div>
+
+              </div>
+
+            )}
+
+
+
+            {game.communityRating && (
+
+              <div className="flex items-center gap-2">
+
+                <div
+
+                  className={cn(
+
+                    "p-2 rounded-lg",
+
+                    game.communityRating >= 80
+
+                      ? "bg-emerald-500/10"
+
+                      : game.communityRating >= 50
+
+                      ? "bg-amber-500/10"
+
+                      : "bg-red-500/10"
+
+                  )}
+
+                >
+
+                  <Star
+
+                    className={cn(
+
+                      "w-4 h-4 fill-current",
+
+                      getRatingColor(game.communityRating)
+
+                    )}
+
+                  />
+
+                </div>
+
+                <div>
+
+                  <p className="text-xs text-muted-foreground">Avaliação</p>
+
+                  <p
+
+                    className={cn("font-semibold", getRatingColor(game.communityRating))}
+
+                  >
+
+                    {game.communityRating}%
+
+                  </p>
+
+                </div>
+
+              </div>
+
+            )}
+
+
+
+            {game.releaseDate && (
+
+              <div className="flex items-center gap-2">
+
+                <div className="p-2 rounded-lg bg-secondary">
+
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+
+                </div>
+
+                <div>
+
+                  <p className="text-xs text-muted-foreground">Lançamento</p>
+
+                  <p className="font-semibold">{game.releaseDate}</p>
+
+                </div>
+
+              </div>
+
+            )}
+
+
+
+            {game.developer && (
+
+              <div className="flex items-center gap-2">
+
+                <div className="p-2 rounded-lg bg-secondary">
+
+                  <Building className="w-4 h-4 text-muted-foreground" />
+
+                </div>
+
+                <div>
+
+                  <p className="text-xs text-muted-foreground">Desenvolvedor</p>
+
+                  <p className="font-semibold">{game.developer}</p>
+
+                </div>
+
+              </div>
+
+            )}
+
+          </div>
+
+
+
+          {/* Description */}
+
+          {game.short_description && (
+
+            <div>
+
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">
+
+                Sobre o Jogo
+
+              </h3>
+
+              <p className="text-foreground/90 leading-relaxed">
+
+                {game.short_description}
+
+              </p>
+
+            </div>
+
+          )}
+
+
+
           {/* Library Actions */}
           <div className="pt-4 border-t border-border/50 space-y-4">
             <GameLibraryActions appId={Number(game.app_id)} onWriteReview={handleWriteReview} />
@@ -360,7 +550,8 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
               </div>
             )}
           </div>
-
+
+
           <Dialog
             open={editingReviewAppId !== null}
             onOpenChange={(open) => {
@@ -383,27 +574,104 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
             </DialogContent>
           </Dialog>
 
+          <Dialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Alerta de promoção</DialogTitle>
+                <DialogDescription>
+                  Defina um preço alvo ou deixe vazio para ser avisado em qualquer desconto.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSaveAlert} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="alert-target-price">Preço alvo (opcional)</Label>
+                  <Input
+                    id="alert-target-price"
+                    type="number"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="Ex: 49.90"
+                    value={targetPriceInput}
+                    onChange={(event) => setTargetPriceInput(event.target.value)}
+                  />
+                </div>
+
+                {activeAlert && (
+                  <div className="rounded-lg border border-border/50 bg-secondary/30 p-3 text-xs text-muted-foreground">
+                    Alerta ativo {activeAlert.target_price ? "com preço alvo" : "para qualquer promoção"}.
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {activeAlert && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                      onClick={handleRemoveAlert}
+                      disabled={isAlertBusy}
+                    >
+                      Remover alerta
+                    </Button>
+                  )}
+                  <Button type="submit" disabled={isAlertBusy}>
+                    {isAlertBusy ? "Salvando..." : "Salvar alerta"}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
           {/* Price & CTA */}
-          <div className="flex items-center justify-between pt-4 border-t border-border/50">
-            {game.price && (
-              <div>
-                <p className="text-xs text-muted-foreground">Preço</p>
-                <p className="text-xl font-bold text-primary">
-                  {game.price === "Free" || game.price === "0"
-                    ? "Grátis"
-                    : game.price}
-                </p>
-              </div>
-            )}
-            <Button onClick={handleOpenSteam} variant="outline" className="gap-2">
-              Ver na Steam
-              <ExternalLink className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-export default GameModal;
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-border/50">
+            <div className="space-y-2">
+              {game.price && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Preço</p>
+                  <p className="text-xl font-bold text-primary">
+                    {game.price === "Free" || game.price === "0"
+                      ? "Grátis"
+                      : game.price}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={handleOpenAlert}
+                  disabled={alertsLoading}
+                >
+                  <Bell className="w-4 h-4" />
+                  {activeAlert ? "Editar alerta de promoção" : "Receber alerta de promoção"}
+                </Button>
+                {activeAlert && (
+                  <span className="text-xs text-muted-foreground">
+                    Alerta ativo
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <Button onClick={handleOpenSteam} variant="outline" className="gap-2">
+              Ver na Steam
+              <ExternalLink className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+      </DialogContent>
+
+    </Dialog>
+
+  );
+
+};
+
+
+
+export default GameModal;
+

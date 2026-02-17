@@ -31,6 +31,8 @@ export function useNotifications(limit = 20) {
       return data as NotificationItem[];
     },
     enabled: !!user?.id,
+    staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 }
 

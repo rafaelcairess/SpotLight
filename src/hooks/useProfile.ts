@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Modelo de perfil usado nas pÃ¡ginas privada e pÃºblica.
 export interface Profile {
   id: string;
   user_id: string;
@@ -16,6 +17,7 @@ export interface Profile {
   updated_at: string;
 }
 
+// Busca o perfil do usuÃ¡rio logado.
 export function useProfile() {
   const { user } = useAuth();
 
@@ -34,9 +36,12 @@ export function useProfile() {
       return data as Profile;
     },
     enabled: !!user?.id,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
+// Busca perfil por username (pÃ¡gina pÃºblica).
 export function useProfileByUsername(username: string | undefined) {
   return useQuery({
     queryKey: ['profile', 'username', username],
@@ -53,9 +58,12 @@ export function useProfileByUsername(username: string | undefined) {
       return data as Profile;
     },
     enabled: !!username,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
+// Perfis recentes para seÃ§Ãµes de descoberta.
 export function useCommunityProfiles(limit = 24) {
   return useQuery({
     queryKey: ['profiles', 'community', limit],
@@ -69,9 +77,12 @@ export function useCommunityProfiles(limit = 24) {
       if (error) throw error;
       return data as Profile[];
     },
+    staleTime: 2 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
+// Atualiza campos do perfil (username, bio, visibilidade, avatar).
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -104,11 +115,13 @@ export function useUpdateProfile() {
       return data as Profile;
     },
     onSuccess: () => {
+      // Atualiza o cache do perfil apÃ³s salvar.
       queryClient.invalidateQueries({ queryKey: ['profile'] });
     },
   });
 }
 
+// Busca perfis por username ou nome de exibiÃ§Ã£o.
 export function useSearchProfiles(searchTerm: string) {
   return useQuery({
     queryKey: ['profiles', 'search', searchTerm],
@@ -125,5 +138,7 @@ export function useSearchProfiles(searchTerm: string) {
       return data as Profile[];
     },
     enabled: searchTerm.length >= 2,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }

@@ -28,3 +28,10 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           STEAM_STORE_LANGUAGE: ${{ secrets.STEAM_STORE_LANGUAGE }}
+
+      - name: Check price alerts
+        run: npm run check:alerts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STEAM_STORE_LANGUAGE: ${{ secrets.STEAM_STORE_LANGUAGE }}

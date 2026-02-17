@@ -7,6 +7,8 @@ interface UserAvatarProps {
   displayName?: string | null;
   username?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  shape?: 'circle' | 'square';
+  imageFit?: 'cover' | 'contain';
   className?: string;
 }
 
@@ -28,7 +30,9 @@ export function UserAvatar({
   src, 
   displayName, 
   username, 
-  size = 'md', 
+  size = 'md',
+  shape = 'circle',
+  imageFit = 'cover',
   className 
 }: UserAvatarProps) {
   const initials = displayName
@@ -41,10 +45,22 @@ export function UserAvatar({
     <Avatar className={cn(
       sizeClasses[size],
       'ring-2 ring-primary/20',
+      shape === 'square' ? 'rounded-lg' : 'rounded-full',
       className
     )}>
-      <AvatarImage src={src || undefined} alt={displayName || username || 'Avatar'} />
-      <AvatarFallback className="bg-secondary text-muted-foreground">
+      <AvatarImage
+        src={src || undefined}
+        alt={displayName || username || 'Avatar'}
+        className={cn(
+          imageFit === 'contain' ? 'object-contain bg-secondary/40' : 'object-cover'
+        )}
+      />
+      <AvatarFallback
+        className={cn(
+          "bg-secondary text-muted-foreground",
+          shape === "square" ? "rounded-lg" : "rounded-full"
+        )}
+      >
         {initials || <User className={iconSizes[size]} />}
       </AvatarFallback>
     </Avatar>

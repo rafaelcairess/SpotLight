@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Tipos de reviews usados por componentes e hooks.
+
 export interface Review {
   id: string;
   user_id: string;
@@ -22,11 +24,12 @@ export interface ReviewWithProfile extends Review {
   };
 }
 
+// Busca reviews de um jogo e enriquece com dados de perfil para exibiÃ§Ã£o.
 export function useReviewsByGame(appId: number) {
   return useQuery({
     queryKey: ['reviews', 'game', appId],
     queryFn: async () => {
-      // First get reviews
+      // 1) Reviews do jogo (mais recentes primeiro)
       const { data: reviews, error: reviewsError } = await supabase
         .from('reviews')
         .select('*')
@@ -36,10 +39,10 @@ export function useReviewsByGame(appId: number) {
       if (reviewsError) throw reviewsError;
       if (!reviews || reviews.length === 0) return [];
 
-      // Get unique user IDs
+      // 2) UsuÃ¡rios Ãºnicos para buscar perfis em uma consulta
       const userIds = [...new Set(reviews.map(r => r.user_id))];
       
-      // Fetch profiles for those users
+      // 3) Perfis para nome e avatar
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('user_id, username, display_name, avatar_url')
@@ -47,10 +50,9 @@ export function useReviewsByGame(appId: number) {
       
       if (profilesError) throw profilesError;
 
-      // Map profiles by user_id
+      // 4) Junta reviews + perfis no cliente
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
-      // Combine reviews with profiles
       return reviews.map(review => ({
         ...review,
         profiles: profileMap.get(review.user_id) || {
@@ -60,9 +62,12 @@ export function useReviewsByGame(appId: number) {
         },
       })) as ReviewWithProfile[];
     },
+    staleTime: 2 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
+// Busca todas as reviews de um usuÃ¡rio (perfil prÃ³prio ou pÃºblico).
 export function useReviewsByUser(userId?: string, useAuthFallback = true) {
   const { user } = useAuth();
   const targetUserId = userId ?? (useAuthFallback ? user?.id : undefined);
@@ -82,9 +87,12 @@ export function useReviewsByUser(userId?: string, useAuthFallback = true) {
       return data as Review[];
     },
     enabled: !!targetUserId,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 
+// Busca a review do usuÃ¡rio logado para um jogo especÃ­fico.
 export function useUserReviewForGame(appId: number) {
   const { user } = useAuth();
 
@@ -107,6 +115,7 @@ export function useUserReviewForGame(appId: number) {
   });
 }
 
+// Cria review com nota normalizada e is_positive derivado.
 export function useCreateReview() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -124,6 +133,7 @@ export function useCreateReview() {
       hoursAtReview?: number;
     }) => {
       if (!user?.id) throw new Error('Not authenticated');
+      // Normaliza nota para 0..5 (inteiro) e define "recomendado".
       const normalizedScore = Math.max(0, Math.min(5, Math.round(score)));
       const isPositive = normalizedScore >= 3;
       
@@ -144,12 +154,14 @@ export function useCreateReview() {
       return data as Review;
     },
     onSuccess: (_, variables) => {
+      // Atualiza listas globais e reviews do jogo.
       queryClient.invalidateQueries({ queryKey: ['reviews'] });
       queryClient.invalidateQueries({ queryKey: ['reviews', 'game', variables.appId] });
     },
   });
 }
 
+// Atualiza review e re-normaliza a nota, se enviada.
 export function useUpdateReview() {
   const queryClient = useQueryClient();
 
@@ -163,6 +175,7 @@ export function useUpdateReview() {
     }) => {
       const nextUpdates = { ...updates };
       if (typeof nextUpdates.score === "number") {
+        // MantÃ©m a nota entre 0..5 e sincroniza is_positive.
         const normalizedScore = Math.max(0, Math.min(5, Math.round(nextUpdates.score)));
         nextUpdates.score = normalizedScore;
         nextUpdates.is_positive = normalizedScore >= 3;
@@ -179,11 +192,13 @@ export function useUpdateReview() {
       return data as Review;
     },
     onSuccess: () => {
+      // Invalida todas as reviews para atualizar a UI.
       queryClient.invalidateQueries({ queryKey: ['reviews'] });
     },
   });
 }
 
+// Exclui uma review por id (RLS garante que sÃ³ o dono pode excluir).
 export function useDeleteReview() {
   const queryClient = useQueryClient();
 

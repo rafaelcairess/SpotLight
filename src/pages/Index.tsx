@@ -24,10 +24,12 @@ import { useRecommendations } from "@/hooks/useRecommendations";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  // PaginaÃ§Ã£o de "Descubra Novos Jogos".
   const PAGE_SIZE = 24;
   const { user } = useAuth();
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Top 10 do ranking "Mais Vendidos".
   const { data: popularGames = [], isLoading: popularLoading } = usePopularGames(10);
   const [discoverLimit, setDiscoverLimit] = useState(PAGE_SIZE);
   const {
@@ -35,6 +37,7 @@ const Index = () => {
     isLoading: topRatedLoading,
     isFetching: topRatedFetching,
   } = useTopRatedGames(discoverLimit);
+  // RecomendaÃ§Ãµes personalizadas (somente logado).
   const { data: recommendedGames = [], isLoading: recommendationsLoading } = useRecommendations(12);
   const [layoutMode, setLayoutMode] = useLayoutPreference(
     "spotlight.layoutMode.explore",
@@ -43,9 +46,11 @@ const Index = () => {
   const categoriesScrollRef = useRef<HTMLDivElement | null>(null);
   const [scrollLocked, setScrollLocked] = useState(false);
 
+  // O banner usa o jogo mais popular ou mais bem avaliado como fallback.
   const featuredGame = popularGames[0] || topRatedGames[0] || null;
 
   const exploreCategories = useMemo(() => {
+    // Mistura categorias em destaque para nÃ£o ficarem em bloco.
     const featured = CATEGORIES.filter((category) => category.featured);
     const others = CATEGORIES.filter((category) => !category.featured);
     const shuffled = [...others];
@@ -70,6 +75,7 @@ const Index = () => {
     return result.map((category) => ({ ...category, featured: false }));
   }, []);
 
+  // Helpers do modal.
   const handleGameClick = (game: GameData) => {
     setSelectedGame(game);
     setIsModalOpen(true);
@@ -80,6 +86,7 @@ const Index = () => {
     setSelectedGame(null);
   };
 
+  // Scroll suave do carrossel de categorias (apenas desktop).
   const handleCategoryScroll = (direction: "left" | "right") => {
     const container = categoriesScrollRef.current;
     if (!container || scrollLocked) return;
@@ -92,6 +99,7 @@ const Index = () => {
     setTimeout(() => setScrollLocked(false), 600);
   };
 
+  // Classes da grade alternam entre pÃ´ster compacto e card padrÃ£o.
   const discoverGridClass =
     layoutMode === "compact"
       ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"

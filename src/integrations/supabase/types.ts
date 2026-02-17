@@ -182,6 +182,60 @@ export type Database = {
         }
         Relationships: []
       }
+      price_alerts: {
+        Row: {
+          created_at: string
+          game_id: number
+          id: string
+          is_active: boolean
+          notified_at: string | null
+          target_price: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: number
+          id?: string
+          is_active?: boolean
+          notified_at?: string | null
+          target_price?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: number
+          id?: string
+          is_active?: boolean
+          notified_at?: string | null
+          target_price?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      price_history: {
+        Row: {
+          currency: string | null
+          discount_percent: number | null
+          game_id: number
+          price: number | null
+          recorded_at: string
+        }
+        Insert: {
+          currency?: string | null
+          discount_percent?: number | null
+          game_id: number
+          price?: number | null
+          recorded_at?: string
+        }
+        Update: {
+          currency?: string | null
+          discount_percent?: number | null
+          game_id?: number
+          price?: number | null
+          recorded_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

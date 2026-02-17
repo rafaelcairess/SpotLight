@@ -16,7 +16,9 @@ import PublicProfile from "./pages/PublicProfile";
 import TopGames from "./pages/TopGames";
 import MostPlayed from "./pages/MostPlayed";
 import Feedback from "./pages/Feedback";
+import Alerts from "./pages/Alerts";
 import NotFound from "./pages/NotFound";
+import OnboardingModal from "./components/onboarding/OnboardingModal";
 
 const queryClient = new QueryClient();
 
@@ -39,10 +41,12 @@ const App = () => (
             <Route path="/top" element={<TopGames />} />
             <Route path="/mais-jogados" element={<MostPlayed />} />
             <Route path="/feedback" element={<Feedback />} />
+            <Route path="/alerts" element={<Alerts />} />
             <Route path="/u/:username" element={<PublicProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <OnboardingModal />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

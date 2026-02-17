@@ -5,6 +5,7 @@ import {
   Heart,
   Trophy,
   BookOpen,
+  Bell,
   Settings,
 } from "lucide-react";
 import Header from "@/components/Header";
@@ -108,15 +109,27 @@ const Profile = () => {
                   <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>
                 )}
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => setIsEditOpen(true)}
-              >
-                <Settings className="w-4 h-4" />
-                Configurações
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => navigate("/alerts")}
+                >
+                  <Bell className="w-4 h-4" />
+                  Alertas
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setIsEditOpen(true)}
+                >
+                  <Settings className="w-4 h-4" />
+                  Configurações
+                </Button>
+              </div>
+
             </div>
 
             {/* Stats */}

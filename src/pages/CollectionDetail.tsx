@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { GameData, CATEGORIES } from "@/types/game";
 import { useGamesByIds } from "@/hooks/useGames";
 
+// UtilitÃ¡rio para evitar IDs duplicados nas listas.
 const uniqueIds = (ids: number[]) => Array.from(new Set(ids));
 
+// Curadoria manual apenas (sem auto-fill). Mantenha a ordem desejada.
 const CATEGORY_GAME_IDS: Record<string, number[]> = {
   "coop-2-couch": uniqueIds([
     1426210, 268910, 413150, 105600, 477160,
@@ -167,16 +169,19 @@ const CollectionDetail = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Lista de IDs curados para a categoria ativa.
   const manualIds = categoryId ? CATEGORY_GAME_IDS[categoryId] ?? [] : [];
   const { data: manualGames = [], isLoading } = useGamesByIds(manualIds || []);
 
   const category = CATEGORIES.find((c) => c.id === categoryId);
 
+  // Preserva a ordem manual apÃ³s o fetch.
   const manualOrder = new Map((manualIds || []).map((id, idx) => [id, idx]));
   const manualSorted = [...manualGames].sort(
     (a, b) => (manualOrder.get(a.app_id) ?? 0) - (manualOrder.get(b.app_id) ?? 0)
   );
 
+  // Lista final da pÃ¡gina (apenas manual).
   const games = manualSorted;
   const isPageLoading = isLoading;
 
