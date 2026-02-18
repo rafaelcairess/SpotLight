@@ -19,7 +19,7 @@ import ReadyListsSection from "@/components/ready-lists/ReadyListsSection";
 import { Button } from "@/components/ui/button";
 import { useLayoutPreference } from "@/hooks/useLayoutPreference";
 import { GameData, CATEGORIES, CategoryData } from "@/types/game";
-import { usePopularGames, useTopRatedGames } from "@/hooks/useGames";
+import { useDailyFeaturedGame, usePopularGames, useTopRatedGames } from "@/hooks/useGames";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -46,8 +46,9 @@ const Index = () => {
   const categoriesScrollRef = useRef<HTMLDivElement | null>(null);
   const [scrollLocked, setScrollLocked] = useState(false);
 
-  // O banner usa o jogo mais popular ou mais bem avaliado como fallback.
-  const featuredGame = popularGames[0] || topRatedGames[0] || null;
+  // O banner usa o jogo do dia (server-side) e cai para populares/top rated.
+  const { data: dailyFeaturedGame, isLoading: dailyFeaturedLoading } = useDailyFeaturedGame();
+  const featuredGame = dailyFeaturedGame || popularGames[0] || topRatedGames[0] || null;
 
   const exploreCategories = useMemo(() => {
     // Mistura categorias em destaque para nÃ£o ficarem em bloco.
@@ -117,7 +118,7 @@ const Index = () => {
               game={featuredGame}
               onExplore={() => handleGameClick(featuredGame)}
             />
-          ) : popularLoading || topRatedLoading ? (
+          ) : dailyFeaturedLoading || popularLoading || topRatedLoading ? (
             <LoadingSkeleton variant="banner" />
           ) : (
             <div className="text-center py-8 text-muted-foreground">

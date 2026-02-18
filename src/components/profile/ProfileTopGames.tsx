@@ -197,7 +197,6 @@ export function ProfileTopGames({
                     disabled={isPending}
                     onClick={async () => {
                       await setTopGame({ position: currentPosition, appId: null });
-                      setDialogOpen(false);
                       setSearch("");
                     }}
                   >
@@ -247,7 +246,6 @@ export function ProfileTopGames({
                     disabled={isPending}
                     onClick={async () => {
                       await setTopGame({ position: currentPosition, appId: result.app_id });
-                      setDialogOpen(false);
                       setSearch("");
                     }}
                     className="w-full rounded-lg border border-border/40 bg-card px-3 py-3 text-left transition hover:border-primary/40"

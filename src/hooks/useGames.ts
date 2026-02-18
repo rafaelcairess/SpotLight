@@ -183,3 +183,31 @@ export function useSearchGames(query: string, limit = 20) {
     gcTime: 10 * 60 * 1000,
   });
 }
+
+export function useDailyFeaturedGame() {
+  return useQuery({
+    queryKey: ["games", "featured", "daily"],
+    queryFn: async () => {
+      const { data: featured, error: featuredError } = await supabase
+        .from("daily_featured")
+        .select("app_id, featured_date")
+        .order("featured_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (featuredError) throw featuredError;
+      if (!featured?.app_id) return null;
+
+      const { data: game, error: gameError } = await supabase
+        .from("games")
+        .select("*")
+        .eq("app_id", featured.app_id)
+        .single();
+
+      if (gameError) throw gameError;
+      return mapGameRow(game as GameRow);
+    },
+    staleTime: 60 * 60 * 1000,
+    gcTime: 24 * 60 * 60 * 1000,
+  });
+}

@@ -29,6 +29,13 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           STEAM_STORE_LANGUAGE: ${{ secrets.STEAM_STORE_LANGUAGE }}
 
+      - name: Set daily featured game
+        run: npm run set:featured
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          FEATURED_TIMEZONE: ${{ secrets.FEATURED_TIMEZONE }}
+
       - name: Check price alerts
         run: npm run check:alerts
         env:

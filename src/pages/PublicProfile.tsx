@@ -6,15 +6,12 @@ import {
   Trophy,
   BookOpen,
   UserPlus,
-  Users,
-  Check,
-  X,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile, useProfileByUsername } from "@/hooks/useProfile";
+import { useProfileByUsername } from "@/hooks/useProfile";
 import { useUserGames } from "@/hooks/useUserGames";
 import { useReviewsByUser } from "@/hooks/useReviews";
 import {
@@ -25,12 +22,6 @@ import {
   useFollowingIds,
   useUnfollowUser,
 } from "@/hooks/useFollows";
-import {
-  useFriendStatus,
-  useSendFriendRequest,
-  useAcceptFriendRequest,
-  useDeclineFriendRequest,
-} from "@/hooks/useFriends";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ProfileLibrarySections } from "@/components/profile/ProfileLibrarySections";
@@ -48,7 +39,6 @@ const PublicProfile = () => {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: currentProfile } = useProfile();
   const { data: profile, isLoading: profileLoading, error } = useProfileByUsername(username);
 
   const userId = profile?.user_id;
@@ -61,26 +51,17 @@ const PublicProfile = () => {
   const isFollowing = userId ? followingIds.includes(userId) : false;
   const isSelf = userId && user?.id === userId;
 
-  const { data: friendStatus } = useFriendStatus(userId);
-  const isFriend = friendStatus?.status === "accepted";
+  const isPublicVisibility = (value?: string) =>
+    value === "public" || value === "friends";
 
   const canViewProfile =
-    !!profile &&
-    (isSelf ||
-      profile.profile_visibility === "public" ||
-      (profile.profile_visibility === "friends" && isFriend));
+    !!profile && (isSelf || isPublicVisibility(profile.profile_visibility));
 
   const canViewLibrary =
-    !!profile &&
-    (isSelf ||
-      profile.library_visibility === "public" ||
-      (profile.library_visibility === "friends" && isFriend));
+    !!profile && (isSelf || isPublicVisibility(profile.library_visibility));
 
   const canViewReviews =
-    !!profile &&
-    (isSelf ||
-      profile.reviews_visibility === "public" ||
-      (profile.reviews_visibility === "friends" && isFriend));
+    !!profile && (isSelf || isPublicVisibility(profile.reviews_visibility));
 
   const { data: userGames = [], isLoading: gamesLoading } = useUserGames(
     canViewLibrary ? userId : undefined,
@@ -93,9 +74,6 @@ const PublicProfile = () => {
 
   const followUser = useFollowUser();
   const unfollowUser = useUnfollowUser();
-  const sendFriendRequest = useSendFriendRequest();
-  const acceptFriendRequest = useAcceptFriendRequest();
-  const declineFriendRequest = useDeclineFriendRequest();
 
   const [isFollowersOpen, setIsFollowersOpen] = useState(false);
   const [isFollowingOpen, setIsFollowingOpen] = useState(false);
@@ -172,35 +150,6 @@ const PublicProfile = () => {
     }
   };
 
-  const handleSendFriendRequest = () => {
-    if (!userId) return;
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    const actorLabel = currentProfile?.display_name || currentProfile?.username || "Alguém";
-    sendFriendRequest.mutate({
-      addresseeId: userId,
-      message: `${actorLabel} quer ser seu amigo.`,
-      link: `/u/${currentProfile?.username ?? user.id}`,
-    });
-  };
-
-  const handleAcceptFriendRequest = () => {
-    if (!friendStatus?.request || !currentProfile) return;
-    acceptFriendRequest.mutate({
-      requestId: friendStatus.request.id,
-      requesterId: friendStatus.request.requester_id,
-      message: `${currentProfile.display_name || currentProfile.username} aceitou seu pedido de amizade.`,
-      link: `/u/${currentProfile.username}`,
-    });
-  };
-
-  const handleDeclineFriendRequest = () => {
-    if (!friendStatus?.request) return;
-    declineFriendRequest.mutate(friendStatus.request.id);
-  };
-
   const handleOpenGame = (game: GameData) => {
     setSelectedGame(game);
     setIsModalOpen(true);
@@ -251,44 +200,9 @@ const PublicProfile = () => {
                     {isFollowing ? "Seguindo" : "Seguir"}
                   </Button>
 
-                  {friendStatus?.status === "accepted" && (
-                    <Button variant="outline" size="sm" className="gap-2" disabled>
-                      <Users className="w-4 h-4" />
-                      Amigos
-                    </Button>
-                  )}
 
-                  {friendStatus?.status === "pending_outgoing" && (
-                    <Button variant="outline" size="sm" disabled>
-                      Solicitação enviada
-                    </Button>
-                  )}
 
-                  {friendStatus?.status === "pending_incoming" && (
-                    <div className="flex gap-2">
-                      <Button size="sm" className="gap-2" onClick={handleAcceptFriendRequest}>
-                        <Check className="w-4 h-4" />
-                        Aceitar
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={handleDeclineFriendRequest}>
-                        <X className="w-4 h-4" />
-                        Recusar
-                      </Button>
-                    </div>
-                  )}
 
-                  {(!friendStatus || friendStatus.status === "none" || friendStatus.status === "declined") && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={handleSendFriendRequest}
-                      disabled={sendFriendRequest.isPending}
-                    >
-                      <Users className="w-4 h-4" />
-                      Adicionar amigo
-                    </Button>
-                  )}
                 </div>
               )}
             </div>

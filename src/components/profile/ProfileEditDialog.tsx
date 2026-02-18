@@ -29,16 +29,16 @@ const VISIBILITY_OPTIONS = [
     description: "Qualquer pessoa pode ver.",
   },
   {
-    value: "friends",
-    label: "Só amigos",
-    description: "Somente amigos podem ver.",
-  },
-  {
     value: "private",
     label: "Privado",
     description: "Apenas você pode ver.",
   },
 ];
+
+const normalizeVisibility = (value?: string) => {
+  if (!value || value === "friends") return "public";
+  return value;
+};
 
 const BANNED_WORDS = [
   "caralho",
@@ -81,9 +81,9 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
   const [username, setUsername] = useState(profile?.username || "");
   const [bio, setBio] = useState(profile?.bio || "");
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "");
-  const [profileVisibility, setProfileVisibility] = useState(profile?.profile_visibility || "public");
-  const [reviewsVisibility, setReviewsVisibility] = useState(profile?.reviews_visibility || "public");
-  const [libraryVisibility, setLibraryVisibility] = useState(profile?.library_visibility || "public");
+  const [profileVisibility, setProfileVisibility] = useState(normalizeVisibility(profile?.profile_visibility));
+  const [reviewsVisibility, setReviewsVisibility] = useState(normalizeVisibility(profile?.reviews_visibility));
+  const [libraryVisibility, setLibraryVisibility] = useState(normalizeVisibility(profile?.library_visibility));
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
@@ -92,9 +92,9 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
       setUsername(profile.username || "");
       setBio(profile.bio || "");
       setAvatarUrl(profile.avatar_url || "");
-      setProfileVisibility(profile.profile_visibility || "public");
-      setReviewsVisibility(profile.reviews_visibility || "public");
-      setLibraryVisibility(profile.library_visibility || "public");
+      setProfileVisibility(normalizeVisibility(profile.profile_visibility));
+      setReviewsVisibility(normalizeVisibility(profile.reviews_visibility));
+      setLibraryVisibility(normalizeVisibility(profile.library_visibility));
     }
   }, [profile]);
 

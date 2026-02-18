@@ -1,4 +1,4 @@
-﻿import { Search, Orbit, Menu, X, LogOut, DollarSign, Users, Bell, Trophy, Flame, MessageSquare } from "lucide-react";
+﻿import { Search, Menu, X, LogOut, DollarSign, Users, Bell, Trophy, Flame, MessageSquare } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import logoSpotlight from "../../assets/logospotlight.png";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,10 +68,14 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group -ml-30 md:-ml-50">
             <div className="relative">
-              <Orbit className="w-7 h-7 md:w-8 md:h-8 text-primary transition-transform group-hover:scale-110" />
-              <div className="absolute inset-0 blur-lg bg-primary/30 group-hover:bg-primary/50 transition-colors" />
+              <img
+                src={logoSpotlight}
+                alt="SpotLight"
+                className="w-[5.25rem] h-[5.25rem] md:w-[6rem] md:h-[6rem] object-contain transition-transform group-hover:scale-110"
+              />
+              <div className="absolute inset-0 blur-lg bg-primary/20 group-hover:bg-primary/40 transition-colors" />
             </div>
-            <span className="text-xl md:text-2xl font-bold text-gradient-primary">
+            <span className="text-xl md:text-2xl font-bold text-gradient-primary font-logo">
               SpotLight
             </span>
           </Link>

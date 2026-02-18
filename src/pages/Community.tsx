@@ -64,7 +64,7 @@ const Community = () => {
         <div className="container mx-auto px-4">
           <SectionHeader
             title="Comunidade"
-            subtitle="Ache seus amigos gamers e siga perfis interessantes"
+            subtitle="Encontre jogadores e siga perfis interessantes"
             icon={Users}
           />
 

@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 
-import { X, Users, Star, Calendar, Building, ExternalLink, ThumbsUp, ThumbsDown, Clock, Trash2, Pencil, Bell } from "lucide-react";
+import { X, Users, Star, Calendar, Building, ThumbsUp, ThumbsDown, Clock, Trash2, Pencil, Bell, Smile, BadgeCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,10 +14,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useReviewsByGame, useDeleteReview } from "@/hooks/useReviews";
 import { usePriceAlerts } from "@/hooks/usePriceAlerts";
+import { useAddReviewReaction, useRemoveReviewReaction, useReviewReactions, type ReviewReactionType } from "@/hooks/useReviewReactions";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import steamIcon from "../../assets/steam.png";
 
 
 interface GameModalProps {
@@ -46,6 +48,9 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
     Number(game?.app_id)
   );
   const deleteReview = useDeleteReview();
+  const { data: reactionData } = useReviewReactions(reviews.map((review) => review.id));
+  const addReaction = useAddReviewReaction();
+  const removeReaction = useRemoveReviewReaction();
   const {
     alerts: priceAlerts,
     addAlert,
@@ -194,6 +199,48 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
   const visibleReviews = showAllReviews ? reviews : reviews.slice(0, 3);
   const activeAlert = priceAlerts[0] ?? null;
   const isAlertBusy = addAlert.isPending || removeAlert.isPending;
+  const isReactionBusy = addReaction.isPending || removeReaction.isPending;
+
+  const reactionItems: Array<{
+    type: ReviewReactionType;
+    label: string;
+    icon: typeof ThumbsUp;
+    showLabel?: boolean;
+  }> = [
+    { type: "like", label: "Curtir", icon: ThumbsUp, showLabel: false },
+    { type: "dislike", label: "Não curti", icon: ThumbsDown, showLabel: false },
+    { type: "funny", label: "Engraçada", icon: Smile, showLabel: true },
+    { type: "useful", label: "Útil", icon: BadgeCheck, showLabel: true },
+  ];
+
+  const handleToggleReaction = async (
+    reviewId: string,
+    reaction: ReviewReactionType,
+    userSet: Set<ReviewReactionType>
+  ) => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    const isActive = userSet.has(reaction);
+    const opposite: ReviewReactionType | null =
+      reaction === "like" ? "dislike" : reaction === "dislike" ? "like" : null;
+
+    try {
+      if (opposite && userSet.has(opposite)) {
+        await removeReaction.mutateAsync({ reviewId, reaction: opposite });
+      }
+
+      if (isActive) {
+        await removeReaction.mutateAsync({ reviewId, reaction });
+      } else {
+        await addReaction.mutateAsync({ reviewId, reaction });
+      }
+    } catch (error) {
+      toast({ title: "Não foi possível atualizar a reação", variant: "destructive" });
+    }
+  };
 
 
   return (
@@ -534,6 +581,40 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                       <p className="text-sm text-foreground/90 whitespace-pre-wrap">
                         {review.content}
                       </p>
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        {reactionItems.map((item) => {
+                          const counts =
+                            reactionData?.counts.get(review.id) ?? {
+                              like: 0,
+                              dislike: 0,
+                              funny: 0,
+                              useful: 0,
+                            };
+                          const userSet =
+                            reactionData?.userReactions.get(review.id) ?? new Set();
+                          const isActive = userSet.has(item.type);
+
+                          return (
+                            <button
+                              key={item.type}
+                              type="button"
+                              disabled={isReactionBusy}
+                              onClick={() => handleToggleReaction(review.id, item.type, userSet)}
+                              aria-label={item.label}
+                              className={cn(
+                                "inline-flex items-center gap-1 rounded-full border border-border/40 bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:border-primary/40 hover:text-foreground",
+                                isActive && "border-primary/50 bg-primary/10 text-primary"
+                              )}
+                            >
+                              <item.icon className="h-3.5 w-3.5" />
+                              {item.showLabel && <span>{item.label}</span>}
+                              <span className="text-[11px] tabular-nums text-muted-foreground">
+                                {counts[item.type]}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   );
                 })}
@@ -643,10 +724,14 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                   size="sm"
                   className="gap-2"
                   onClick={handleOpenAlert}
-                  disabled={alertsLoading}
+                  disabled={isAlertBusy}
                 >
                   <Bell className="w-4 h-4" />
-                  {activeAlert ? "Editar alerta de promoção" : "Receber alerta de promoção"}
+                  {alertsLoading
+                    ? "Carregando alerta..."
+                    : activeAlert
+                    ? "Editar alerta de promoção"
+                    : "Receber alerta de promoção"}
                 </Button>
                 {activeAlert && (
                   <span className="text-xs text-muted-foreground">
@@ -657,8 +742,8 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
             </div>
 
             <Button onClick={handleOpenSteam} variant="outline" className="gap-2">
+              <img src={steamIcon} alt="Steam" className="w-4 h-4" />
               Ver na Steam
-              <ExternalLink className="w-4 h-4" />
             </Button>
           </div>
         </div>

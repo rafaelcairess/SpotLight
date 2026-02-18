@@ -182,6 +182,27 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_featured: {
+        Row: {
+          app_id: number
+          created_at: string
+          featured_date: string
+          id: string
+        }
+        Insert: {
+          app_id: number
+          created_at?: string
+          featured_date: string
+          id?: string
+        }
+        Update: {
+          app_id?: number
+          created_at?: string
+          featured_date?: string
+          id?: string
+        }
+        Relationships: []
+      }
       price_alerts: {
         Row: {
           created_at: string
@@ -314,6 +335,30 @@ export type Database = {
         }
         Relationships: []
       }
+      review_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          reaction: Database["public"]["Enums"]["review_reaction_type"]
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reaction: Database["public"]["Enums"]["review_reaction_type"]
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reaction?: Database["public"]["Enums"]["review_reaction_type"]
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_games: {
         Row: {
           added_at: string
@@ -388,6 +433,7 @@ export type Database = {
       friend_request_status: "pending" | "accepted" | "declined"
       game_status: "wishlist" | "playing" | "completed" | "dropped"
       notification_type: "friend_request" | "friend_accept" | "message"
+      review_reaction_type: "like" | "dislike" | "funny" | "useful"
     }
     CompositeTypes: {
       [_ in never]: never

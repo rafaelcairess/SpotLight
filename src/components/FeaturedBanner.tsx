@@ -1,7 +1,8 @@
-import { Play, Info, Users, Star } from "lucide-react";
+import { Info, Users, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GameData } from "@/types/game";
 import { cn } from "@/lib/utils";
+import steamIcon from "../../assets/steam.png";
 
 interface FeaturedBannerProps {
   game: GameData;
@@ -109,7 +110,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
             className="gap-2 glow-primary"
             onClick={handleOpenSteam}
           >
-            <Play className="w-4 h-4" />
+            <img src={steamIcon} alt="Steam" className="w-4 h-4" />
             Ver na Steam
           </Button>
           <Button
