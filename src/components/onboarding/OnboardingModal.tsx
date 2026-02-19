@@ -236,7 +236,7 @@ export default function OnboardingModal() {
         else setOpen(nextOpen);
       }}
     >
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <div className="flex items-center gap-2 text-primary">
             <Sparkles className="w-4 h-4" />
@@ -245,7 +245,7 @@ export default function OnboardingModal() {
           <DialogTitle>{STEP_TITLES[step]}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">{renderStep()}</div>
+        <div className="flex-1 overflow-y-auto pr-1 space-y-6">{renderStep()}</div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-4">
           <Button type="button" variant="ghost" onClick={closeOnboarding}>
