@@ -144,6 +144,7 @@ const run = async () => {
         );
       }
       urls.push("https://api.steampowered.com/ISteamApps/GetAppList/v0002/");
+      urls.push("https://steamcommunity.com/ISteamApps/GetAppList/v0002/");
       if (STEAM_API_KEY) {
         urls.push(
           `https://api.steampowered.com/ISteamApps/GetAppList/v0002/?key=${encodeURIComponent(
