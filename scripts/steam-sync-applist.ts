@@ -34,6 +34,7 @@ loadEnvFile(".env.local");
 const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "").trim();
 const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 const STEAM_API_KEY = (process.env.STEAM_API_KEY || "").trim();
+const STEAM_APP_LIST_URL = (process.env.STEAM_APP_LIST_URL || "").trim();
 
 if (!SUPABASE_URL) {
   throw new Error("SUPABASE_URL not found. Check .env or set SUPABASE_URL.");
@@ -41,18 +42,24 @@ if (!SUPABASE_URL) {
 if (!SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("SUPABASE_SERVICE_ROLE_KEY not found. Add it to .env.local.");
 }
-if (!STEAM_API_KEY) {
-  throw new Error("STEAM_API_KEY not found. Add it to .env.local.");
-}
+const USER_AGENT =
+  process.env.STEAM_USER_AGENT || "SpotLight/1.0 (+https://github.com/rafaelcairess/SpotLight)";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });
 
 const fetchJson = async (url: string) => {
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": USER_AGENT,
+      Accept: "application/json",
+    },
+  });
   if (!res.ok) {
-    throw new Error(`HTTP ${res.status} for ${url}`);
+    const error = new Error(`HTTP ${res.status} for ${url}`) as Error & { status?: number };
+    error.status = res.status;
+    throw error;
   }
   return res.json();
 };
@@ -66,20 +73,7 @@ const run = async () => {
   let lastAppId = 0;
   let safety = 0;
 
-  while (true) {
-    const url =
-      `https://api.steampowered.com/IStoreService/GetAppList/v1/` +
-      `?key=${encodeURIComponent(STEAM_API_KEY)}` +
-      `&max_results=50000` +
-      `&last_appid=${lastAppId}`;
-    const data = await fetchJson(url);
-    const response = data?.response ?? {};
-    const apps: { appid: number; name: string }[] = response.apps ?? [];
-
-    if (!apps.length) {
-      throw new Error("No apps found in Steam app list.");
-    }
-
+  const upsertBatch = async (apps: { appid: number; name: string }[]) => {
     for (let i = 0; i < apps.length; i += batchSize) {
       const slice = apps.slice(i, i + batchSize);
       const batch = slice
@@ -101,18 +95,79 @@ const run = async () => {
       console.log(`Upserted ${synced}`);
       await sleep(200);
     }
+  };
 
-    const nextLastAppId = Number(response.last_appid ?? 0);
-    if (!Number.isFinite(nextLastAppId) || nextLastAppId === 0 || nextLastAppId === lastAppId) {
-      break;
+  const tryIStoreService = async () => {
+    if (!STEAM_API_KEY) {
+      throw new Error("STEAM_API_KEY not found for IStoreService.");
     }
 
-    lastAppId = nextLastAppId;
-    safety += 1;
-    if (safety > 200) {
-      throw new Error("Safety stop: too many pages while syncing app list.");
+    while (true) {
+      const url =
+        `https://api.steampowered.com/IStoreService/GetAppList/v1/` +
+        `?key=${encodeURIComponent(STEAM_API_KEY)}` +
+        `&max_results=50000` +
+        `&last_appid=${lastAppId}`;
+      const data = await fetchJson(url);
+      const response = data?.response ?? {};
+      const apps: { appid: number; name: string }[] = response.apps ?? [];
+
+      if (!apps.length) {
+        throw new Error("No apps found in Steam app list.");
+      }
+
+      await upsertBatch(apps);
+
+      const nextLastAppId = Number(response.last_appid ?? 0);
+      if (!Number.isFinite(nextLastAppId) || nextLastAppId === 0 || nextLastAppId === lastAppId) {
+        break;
+      }
+
+      lastAppId = nextLastAppId;
+      safety += 1;
+      if (safety > 200) {
+        throw new Error("Safety stop: too many pages while syncing app list.");
+      }
+      await sleep(250);
     }
-    await sleep(250);
+  };
+
+  const tryPublicAppList = async () => {
+    const urlPrimary =
+      STEAM_APP_LIST_URL || "https://api.steampowered.com/ISteamApps/GetAppList/v2/";
+    let data;
+    try {
+      data = await fetchJson(urlPrimary);
+    } catch (error) {
+      const status = (error as Error & { status?: number }).status;
+      if (status === 404 && !STEAM_APP_LIST_URL) {
+        data = await fetchJson("https://api.steampowered.com/ISteamApps/GetAppList/v1/");
+      } else {
+        throw error;
+      }
+    }
+
+    const apps: { appid: number; name: string }[] = data?.applist?.apps ?? [];
+    if (!apps.length) {
+      throw new Error("No apps found in Steam app list.");
+    }
+    await upsertBatch(apps);
+  };
+
+  if (STEAM_API_KEY) {
+    try {
+      await tryIStoreService();
+    } catch (error) {
+      const status = (error as Error & { status?: number }).status;
+      if (status === 403) {
+        console.warn("IStoreService returned 403. Falling back to public app list.");
+        await tryPublicAppList();
+      } else {
+        throw error;
+      }
+    }
+  } else {
+    await tryPublicAppList();
   }
 
   console.log(`Done. Total synced: ${synced}`);
