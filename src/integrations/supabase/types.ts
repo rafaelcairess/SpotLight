@@ -335,6 +335,27 @@ export type Database = {
         }
         Relationships: []
       }
+      steam_apps: {
+        Row: {
+          app_id: number
+          is_game: boolean | null
+          last_seen: string
+          name: string
+        }
+        Insert: {
+          app_id: number
+          is_game?: boolean | null
+          last_seen?: string
+          name: string
+        }
+        Update: {
+          app_id?: number
+          is_game?: boolean | null
+          last_seen?: string
+          name?: string
+        }
+        Relationships: []
+      }
       review_reactions: {
         Row: {
           created_at: string

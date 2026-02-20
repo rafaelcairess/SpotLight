@@ -39,7 +39,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
         src={game.image}
         alt={game.title}
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        fetchPriority="high"
+        fetchpriority="high"
         loading="eager"
         decoding="async"
       />

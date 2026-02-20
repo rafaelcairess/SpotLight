@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Star, Settings } from "lucide-react";
 import { useUserTopGames } from "@/hooks/useTopGames";
-import { useGamesByIds, useSearchGames } from "@/hooks/useGames";
+import { useEnsureGameDetails, useGamesByIds, useSearchGames } from "@/hooks/useGames";
 import { UserGame } from "@/hooks/useUserGames";
 import { GameData } from "@/types/game";
 import { useSetTopGame } from "@/hooks/useTopGames";
@@ -39,6 +39,7 @@ export function ProfileTopGames({
 }: ProfileTopGamesProps) {
   const { data: topGames = [], isLoading: topLoading } = useUserTopGames(userId, !userId);
   const { mutateAsync: setTopGame, isPending } = useSetTopGame();
+  const ensureDetails = useEnsureGameDetails();
   const [search, setSearch] = useState("");
   const [activePosition, setActivePosition] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -245,6 +246,11 @@ export function ProfileTopGames({
                     type="button"
                     disabled={isPending}
                     onClick={async () => {
+                      try {
+                        await ensureDetails.mutateAsync(result.app_id);
+                      } catch {
+                        // Se falhar, ainda tenta salvar o top.
+                      }
                       await setTopGame({ position: currentPosition, appId: result.app_id });
                       setSearch("");
                     }}

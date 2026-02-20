@@ -112,6 +112,14 @@ export function useEnsureFavoriteGame() {
     mutationFn: async (appId: number) => {
       if (!user?.id) throw new Error("Not authenticated");
 
+      try {
+        await supabase.functions.invoke("fetch-steam-details", {
+          body: { app_id: appId },
+        });
+      } catch {
+        // Melhor esforço: se falhar, ainda salva favorito.
+      }
+
       const { data: existing, error: existingError } = await supabase
         .from("user_games")
         .select("*")

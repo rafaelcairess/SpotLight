@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GameData } from "@/types/game";
 
@@ -39,6 +39,18 @@ const mapGameRow = (row: GameRow): GameData => ({
   publisher: row.publisher || undefined,
   platforms: row.platforms || undefined,
 });
+
+type SteamAppRow = {
+  app_id: number;
+  name: string;
+  is_game: boolean | null;
+  last_seen: string;
+};
+
+export type CatalogGame = GameData & { hasDetails: boolean };
+
+const getPosterImage = (appId: number) =>
+  `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`;
 
 export function usePopularGames(limit = 10) {
   return useQuery({
@@ -161,26 +173,103 @@ export function useGamesByIds(appIds: number[]) {
 }
 
 export function useSearchGames(query: string, limit = 20) {
+  const catalogQuery = useSearchCatalog(query, limit);
+  return {
+    ...catalogQuery,
+    data: (catalogQuery.data ?? []).map(({ hasDetails, ...game }) => game),
+  };
+}
+
+export function useSearchCatalog(query: string, limit = 20) {
   const normalized = query.trim();
 
-  return useQuery({
-    queryKey: ["games", "search", normalized, limit],
+  return useQuery<CatalogGame[]>({
+    queryKey: ["games", "catalog-search", normalized, limit],
     queryFn: async () => {
       if (normalized.length < 2) return [];
 
-      const { data, error } = await supabase
-        .from("games")
-        .select("*")
-        .ilike("title", `%${normalized}%`)
-        .order("active_players", { ascending: false })
+      const { data: apps, error: appsError } = await supabase
+        .from("steam_apps")
+        .select("app_id, name, is_game, last_seen")
+        .or("is_game.is.null,is_game.eq.true")
+        .textSearch("name", normalized, { type: "websearch", config: "simple" })
         .limit(limit);
 
-      if (error) throw error;
-      return (data as GameRow[]).map(mapGameRow);
+      if (appsError) throw appsError;
+
+      const list = (apps ?? []) as SteamAppRow[];
+      if (list.length === 0) return [];
+
+      const appIds = list.map((app) => app.app_id);
+      const { data: gameRows, error: gamesError } = await supabase
+        .from("games")
+        .select("*")
+        .in("app_id", appIds);
+
+      if (gamesError) throw gamesError;
+
+      const gameMap = new Map(
+        (gameRows as GameRow[]).map((row) => [row.app_id, mapGameRow(row)])
+      );
+
+      return list.map((app) => {
+        const fullGame = gameMap.get(app.app_id);
+        if (fullGame) {
+          return { ...fullGame, hasDetails: true };
+        }
+        return {
+          app_id: app.app_id,
+          title: app.name,
+          image: getPosterImage(app.app_id),
+          hasDetails: false,
+        };
+      });
     },
     enabled: normalized.length >= 2,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+  });
+}
+
+export function useGameById(appId?: number) {
+  const validId = Number.isFinite(appId) && (appId ?? 0) > 0;
+
+  return useQuery({
+    queryKey: ["games", "by-id", appId],
+    queryFn: async () => {
+      if (!validId) return null;
+
+      const { data, error } = await supabase
+        .from("games")
+        .select("*")
+        .eq("app_id", appId as number)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data ? mapGameRow(data as GameRow) : null;
+    },
+    enabled: validId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+}
+
+export function useEnsureGameDetails() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (appId: number) => {
+      const { data, error } = await supabase.functions.invoke("fetch-steam-details", {
+        body: { app_id: appId },
+      });
+      if (error) throw error;
+      return data as { status: string; app_id: number };
+    },
+    onSuccess: (_, appId) => {
+      queryClient.invalidateQueries({ queryKey: ["games", "by-id", appId] });
+      queryClient.invalidateQueries({ queryKey: ["games", "by-ids"] });
+      queryClient.invalidateQueries({ queryKey: ["games", "catalog-search"] });
+    },
   });
 }
 

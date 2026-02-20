@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "sync:steam": "node scripts/steam-sync-popular.mjs",
+    "sync:applist": "tsx scripts/steam-sync-applist.ts",
     "check:alerts": "tsx scripts/check_price_alerts.ts",
     "set:featured": "tsx scripts/set_daily_featured.ts",
     "test": "vitest run",

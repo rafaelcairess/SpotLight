@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -105,23 +105,25 @@ export default function OnboardingModal() {
 
     if (step === 1) {
       return (
-        <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-3">
+          <div className="grid gap-2 sm:grid-cols-2">
             {onboardingContent.howToUse.items.map((item) => (
               <div
                 key={item.title}
-                className="rounded-lg border border-border/40 bg-secondary/30 p-3"
+                className="rounded-lg border border-border/40 bg-secondary/30 p-2"
               >
-                <p className="text-sm font-semibold">{item.title}</p>
-                <p className="text-xs text-muted-foreground">{item.description}</p>
+                <p className="text-xs font-semibold">{item.title}</p>
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  {item.description}
+                </p>
               </div>
             ))}
           </div>
-          <div className="rounded-lg border border-border/40 bg-secondary/30 p-4 space-y-2">
-            <h4 className="text-sm font-semibold">{onboardingContent.roadmap.title}</h4>
-            <div className="flex flex-wrap gap-2">
+          <div className="rounded-lg border border-border/40 bg-secondary/30 p-3 space-y-2">
+            <h4 className="text-xs font-semibold">{onboardingContent.roadmap.title}</h4>
+            <div className="flex flex-wrap gap-1.5">
               {onboardingContent.roadmap.items.map((item) => (
-                <Badge key={item} variant="secondary">
+                <Badge key={item} variant="secondary" className="text-[11px] px-2 py-0.5">
                   {item}
                 </Badge>
               ))}
@@ -236,16 +238,21 @@ export default function OnboardingModal() {
         else setOpen(nextOpen);
       }}
     >
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[92vh] flex flex-col min-h-0 p-4 sm:p-6">
         <DialogHeader>
           <div className="flex items-center gap-2 text-primary">
             <Sparkles className="w-4 h-4" />
             <span className="text-xs font-semibold uppercase tracking-wider">Tutorial</span>
           </div>
           <DialogTitle>{STEP_TITLES[step]}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Passos rápidos para conhecer o SpotLight e escolher seus favoritos.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto pr-1 space-y-6">{renderStep()}</div>
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-4">
+          {renderStep()}
+        </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-4">
           <Button type="button" variant="ghost" onClick={closeOnboarding}>

@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Search as SearchIcon, ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
@@ -6,32 +6,47 @@ import GameCard from "@/components/GameCard";
 import GameModal from "@/components/GameModal";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { GameData } from "@/types/game";
-import { useAllGames } from "@/hooks/useGames";
+import { useEnsureGameDetails, useGameById, useSearchCatalog } from "@/hooks/useGames";
+import { useToast } from "@/hooks/use-toast";
 
 const Search = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { data: allGames = [], isLoading } = useAllGames(200);
+  const { toast } = useToast();
+  const { data: results = [], isLoading } = useSearchCatalog(query, 40);
+  const ensureDetails = useEnsureGameDetails();
+  const [selectedAppId, setSelectedAppId] = useState<number | null>(null);
+  const { data: fullGame } = useGameById(selectedAppId ?? undefined);
 
-  const results = query
-      ? allGames.filter(
-        (game) =>
-          game.title.toLowerCase().includes(query.toLowerCase()) ||
-          game.genre?.toLowerCase().includes(query.toLowerCase()) ||
-          game.tags?.some((tag) => tag.toLowerCase().includes(query.toLowerCase()))
-      )
-      : [];
+  useEffect(() => {
+    if (fullGame && selectedAppId === fullGame.app_id) {
+      setSelectedGame(fullGame);
+    }
+  }, [fullGame, selectedAppId]);
 
-  const handleGameClick = (game: GameData) => {
+  const handleGameClick = async (game: GameData & { hasDetails?: boolean }) => {
     setSelectedGame(game);
     setIsModalOpen(true);
+    setSelectedAppId(game.app_id);
+
+    if (!game.hasDetails) {
+      try {
+        await ensureDetails.mutateAsync(game.app_id);
+      } catch (error) {
+        toast({
+          title: "N?o foi poss?vel carregar os detalhes agora.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedGame(null);
+    setSelectedAppId(null);
   };
 
   return (

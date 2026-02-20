@@ -26,9 +26,11 @@ export interface ReviewWithProfile extends Review {
 
 // Busca reviews de um jogo e enriquece com dados de perfil para exibiÃ§Ã£o.
 export function useReviewsByGame(appId: number) {
+  const validAppId = Number.isFinite(appId) && appId > 0;
   return useQuery({
     queryKey: ['reviews', 'game', appId],
     queryFn: async () => {
+      if (!validAppId) return [];
       // 1) Reviews do jogo (mais recentes primeiro)
       const { data: reviews, error: reviewsError } = await supabase
         .from('reviews')
@@ -62,6 +64,7 @@ export function useReviewsByGame(appId: number) {
         },
       })) as ReviewWithProfile[];
     },
+    enabled: validAppId,
     staleTime: 2 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
