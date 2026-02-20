@@ -33,12 +33,16 @@ loadEnvFile(".env.local");
 
 const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "").trim();
 const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+const STEAM_API_KEY = (process.env.STEAM_API_KEY || "").trim();
 
 if (!SUPABASE_URL) {
   throw new Error("SUPABASE_URL not found. Check .env or set SUPABASE_URL.");
 }
 if (!SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("SUPABASE_SERVICE_ROLE_KEY not found. Add it to .env.local.");
+}
+if (!STEAM_API_KEY) {
+  throw new Error("STEAM_API_KEY not found. Add it to .env.local.");
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -56,36 +60,59 @@ const fetchJson = async (url: string) => {
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const run = async () => {
-  const data = await fetchJson("https://api.steampowered.com/ISteamApps/GetAppList/v2/");
-  const apps: { appid: number; name: string }[] = data?.applist?.apps ?? [];
-  if (!apps.length) {
-    throw new Error("No apps found in Steam app list.");
-  }
-
   const batchSize = 1000;
   const now = new Date().toISOString();
   let synced = 0;
+  let lastAppId = 0;
+  let safety = 0;
 
-  for (let i = 0; i < apps.length; i += batchSize) {
-    const slice = apps.slice(i, i + batchSize);
-    const batch = slice
-      .filter((app) => Number.isFinite(app.appid) && app.name)
-      .map((app) => ({
-        app_id: app.appid,
-        name: app.name,
-        last_seen: now,
-      }));
+  while (true) {
+    const url =
+      `https://api.steampowered.com/IStoreService/GetAppList/v1/` +
+      `?key=${encodeURIComponent(STEAM_API_KEY)}` +
+      `&max_results=50000` +
+      `&last_appid=${lastAppId}`;
+    const data = await fetchJson(url);
+    const response = data?.response ?? {};
+    const apps: { appid: number; name: string }[] = response.apps ?? [];
 
-    if (!batch.length) continue;
+    if (!apps.length) {
+      throw new Error("No apps found in Steam app list.");
+    }
 
-    const { error } = await supabase
-      .from("steam_apps")
-      .upsert(batch, { onConflict: "app_id" });
+    for (let i = 0; i < apps.length; i += batchSize) {
+      const slice = apps.slice(i, i + batchSize);
+      const batch = slice
+        .filter((app) => Number.isFinite(app.appid) && app.name)
+        .map((app) => ({
+          app_id: app.appid,
+          name: app.name,
+          last_seen: now,
+        }));
 
-    if (error) throw error;
-    synced += batch.length;
-    console.log(`Upserted ${synced}/${apps.length}`);
-    await sleep(200);
+      if (!batch.length) continue;
+
+      const { error } = await supabase
+        .from("steam_apps")
+        .upsert(batch, { onConflict: "app_id" });
+
+      if (error) throw error;
+      synced += batch.length;
+      console.log(`Upserted ${synced}`);
+      await sleep(200);
+    }
+
+    const nextLastAppId = Number(response.last_appid ?? 0);
+    if (!Number.isFinite(nextLastAppId) || nextLastAppId === 0 || nextLastAppId === lastAppId) {
+      break;
+    }
+
+    lastAppId = nextLastAppId;
+    safety += 1;
+    if (safety > 200) {
+      throw new Error("Safety stop: too many pages while syncing app list.");
+    }
+    await sleep(250);
   }
 
   console.log(`Done. Total synced: ${synced}`);

@@ -24,5 +24,6 @@ jobs:
       - name: Sync Steam app list
         run: npm run sync:applist
         env:
+          STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
