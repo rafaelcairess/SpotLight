@@ -188,39 +188,89 @@ export function useSearchCatalog(query: string, limit = 20) {
     queryFn: async () => {
       if (normalized.length < 2) return [];
 
-      const { data: apps, error: appsError } = await supabase
-        .from("steam_apps")
-        .select("app_id, name, is_game, last_seen")
-        .or("is_game.is.null,is_game.eq.true")
-        .textSearch("name", normalized, { type: "websearch", config: "simple" })
-        .limit(limit);
+      let list: SteamAppRow[] = [];
+      let appsFailed = false;
 
-      if (appsError) throw appsError;
+      try {
+        const { data: apps, error: appsError } = await supabase
+          .from("steam_apps")
+          .select("app_id, name, is_game, last_seen")
+          .or("is_game.is.null,is_game.eq.true")
+          .textSearch("name", normalized, { type: "websearch", config: "simple" })
+          .limit(limit);
 
-      const list = (apps ?? []) as SteamAppRow[];
-      if (list.length === 0) return [];
+        if (appsError) {
+          appsFailed = true;
+        } else {
+          list = (apps ?? []) as SteamAppRow[];
+        }
+      } catch {
+        appsFailed = true;
+      }
 
-      const appIds = list.map((app) => app.app_id);
-      const { data: gameRows, error: gamesError } = await supabase
-        .from("games")
-        .select("*")
-        .in("app_id", appIds);
+      if (!appsFailed && list.length > 0) {
+        const appIds = list.map((app) => app.app_id);
+        const { data: gameRows, error: gamesError } = await supabase
+          .from("games")
+          .select("*")
+          .in("app_id", appIds);
 
-      if (gamesError) throw gamesError;
+        if (gamesError) throw gamesError;
 
-      const gameMap = new Map(
-        (gameRows as GameRow[]).map((row) => [row.app_id, mapGameRow(row)])
+        const gameMap = new Map(
+          (gameRows as GameRow[]).map((row) => [row.app_id, mapGameRow(row)])
+        );
+
+        return list.map((app) => {
+          const fullGame = gameMap.get(app.app_id);
+          if (fullGame) {
+            return { ...fullGame, hasDetails: true };
+          }
+          return {
+            app_id: app.app_id,
+            title: app.name,
+            image: getPosterImage(app.app_id),
+            hasDetails: false,
+          };
+        });
+      }
+
+      const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke(
+        "search-steam",
+        { body: { query: normalized, limit } }
       );
 
-      return list.map((app) => {
-        const fullGame = gameMap.get(app.app_id);
+      if (fallbackError) {
+        return [];
+      }
+
+      const items = (fallbackData?.items ?? []) as Array<{
+        app_id: number;
+        title: string;
+        image?: string;
+      }>;
+
+      if (items.length === 0) return [];
+
+      const fallbackIds = items.map((item) => item.app_id);
+      const { data: gameRows } = await supabase
+        .from("games")
+        .select("*")
+        .in("app_id", fallbackIds);
+
+      const gameMap = new Map(
+        ((gameRows ?? []) as GameRow[]).map((row) => [row.app_id, mapGameRow(row)])
+      );
+
+      return items.map((item) => {
+        const fullGame = gameMap.get(item.app_id);
         if (fullGame) {
           return { ...fullGame, hasDetails: true };
         }
         return {
-          app_id: app.app_id,
-          title: app.name,
-          image: getPosterImage(app.app_id),
+          app_id: item.app_id,
+          title: item.title,
+          image: item.image || getPosterImage(item.app_id),
           hasDetails: false,
         };
       });
