@@ -235,6 +235,22 @@ export function useSearchCatalog(query: string, limit = 20) {
         });
       }
 
+      // Fallback 1: if the catalog is empty, try searching the existing games table
+      // so we still return something even if the applist job has not run yet.
+      const { data: gamesFallback, error: gamesFallbackError } = await supabase
+        .from("games")
+        .select("*")
+        .ilike("title", `%${normalized}%`)
+        .order("active_players", { ascending: false })
+        .limit(limit);
+
+      if (!gamesFallbackError && (gamesFallback?.length ?? 0) > 0) {
+        return (gamesFallback as GameRow[]).map((row) => ({
+          ...mapGameRow(row),
+          hasDetails: true,
+        }));
+      }
+
       const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke(
         "search-steam",
         { body: { query: normalized, limit } }
