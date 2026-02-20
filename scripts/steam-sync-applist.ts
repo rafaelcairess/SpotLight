@@ -133,25 +133,48 @@ const run = async () => {
   };
 
   const tryPublicAppList = async () => {
-    const urlPrimary =
-      STEAM_APP_LIST_URL || "https://api.steampowered.com/ISteamApps/GetAppList/v2/";
-    let data;
-    try {
-      data = await fetchJson(urlPrimary);
-    } catch (error) {
-      const status = (error as Error & { status?: number }).status;
-      if (status === 404 && !STEAM_APP_LIST_URL) {
-        data = await fetchJson("https://api.steampowered.com/ISteamApps/GetAppList/v1/");
-      } else {
-        throw error;
+    const urls: string[] = [];
+    if (STEAM_APP_LIST_URL) {
+      urls.push(STEAM_APP_LIST_URL);
+    } else {
+      urls.push("https://api.steampowered.com/ISteamApps/GetAppList/v2/");
+      if (STEAM_API_KEY) {
+        urls.push(
+          `https://api.steampowered.com/ISteamApps/GetAppList/v2/?key=${encodeURIComponent(STEAM_API_KEY)}`
+        );
+      }
+      urls.push("https://api.steampowered.com/ISteamApps/GetAppList/v0002/");
+      if (STEAM_API_KEY) {
+        urls.push(
+          `https://api.steampowered.com/ISteamApps/GetAppList/v0002/?key=${encodeURIComponent(
+            STEAM_API_KEY
+          )}`
+        );
+        urls.push(
+          `https://steamcommunity.com/ISteamApps/GetAppList/v0002/?key=${encodeURIComponent(
+            STEAM_API_KEY
+          )}`
+        );
       }
     }
 
-    const apps: { appid: number; name: string }[] = data?.applist?.apps ?? [];
-    if (!apps.length) {
-      throw new Error("No apps found in Steam app list.");
+    let lastError: Error | null = null;
+    for (const url of urls) {
+      try {
+        const data = await fetchJson(url);
+        const apps: { appid: number; name: string }[] = data?.applist?.apps ?? [];
+        if (!apps.length) {
+          throw new Error(`No apps found in Steam app list from ${url}`);
+        }
+        await upsertBatch(apps);
+        return;
+      } catch (error) {
+        lastError = error as Error;
+        console.warn(`App list fetch failed for ${url}: ${lastError.message}`);
+      }
     }
-    await upsertBatch(apps);
+
+    throw lastError ?? new Error("No app list endpoints available.");
   };
 
   if (STEAM_API_KEY) {
