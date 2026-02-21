@@ -136,6 +136,15 @@ const run = async () => {
     }
   };
 
+  const tryGitHubAppList = async () => {
+    const data = await fetchJson(GITHUB_APP_LIST_URL);
+    const apps: { appid: number; name: string }[] = Array.isArray(data) ? data : [];
+    if (!apps.length) {
+      throw new Error(`No apps found in GitHub app list from ${GITHUB_APP_LIST_URL}`);
+    }
+    await upsertBatch(apps);
+  };
+
   const tryPublicAppList = async () => {
     const urls: string[] = [];
     if (STEAM_APP_LIST_URL) {
@@ -179,30 +188,28 @@ const run = async () => {
       }
     }
 
-    try {
-      const data = await fetchJson(GITHUB_APP_LIST_URL);
-      const apps: { appid: number; name: string }[] = Array.isArray(data) ? data : [];
-      if (!apps.length) {
-        throw new Error(`No apps found in GitHub app list from ${GITHUB_APP_LIST_URL}`);
-      }
-      await upsertBatch(apps);
-      return;
-    } catch (error) {
-      const githubError = error as Error;
-      console.warn(`GitHub app list fetch failed: ${githubError.message}`);
-      throw lastError ?? githubError;
-    }
+    throw lastError ?? new Error("No app list endpoints available.");
   };
 
   if (STEAM_API_KEY) {
     try {
       await tryIStoreService();
     } catch (error) {
-      console.warn("IStoreService failed. Falling back to public app list.");
-      await tryPublicAppList();
+      console.warn("IStoreService failed. Trying GitHub app list first.");
+      try {
+        await tryGitHubAppList();
+      } catch (githubError) {
+        console.warn(`GitHub app list fetch failed: ${(githubError as Error).message}`);
+        await tryPublicAppList();
+      }
     }
   } else {
-    await tryPublicAppList();
+    try {
+      await tryGitHubAppList();
+    } catch (githubError) {
+      console.warn(`GitHub app list fetch failed: ${(githubError as Error).message}`);
+      await tryPublicAppList();
+    }
   }
 
   console.log(`Done. Total synced: ${synced}`);
