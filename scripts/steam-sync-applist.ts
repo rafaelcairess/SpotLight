@@ -35,6 +35,10 @@ const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL 
 const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 const STEAM_API_KEY = (process.env.STEAM_API_KEY || "").trim();
 const STEAM_APP_LIST_URL = (process.env.STEAM_APP_LIST_URL || "").trim();
+const GITHUB_APP_LIST_URL = (
+  process.env.GITHUB_APP_LIST_URL ||
+  "https://raw.githubusercontent.com/jsnli/steamappidlist/master/data/games_appid.json"
+).trim();
 
 if (!SUPABASE_URL) {
   throw new Error("SUPABASE_URL not found. Check .env or set SUPABASE_URL.");
@@ -175,20 +179,27 @@ const run = async () => {
       }
     }
 
-    throw lastError ?? new Error("No app list endpoints available.");
+    try {
+      const data = await fetchJson(GITHUB_APP_LIST_URL);
+      const apps: { appid: number; name: string }[] = Array.isArray(data) ? data : [];
+      if (!apps.length) {
+        throw new Error(`No apps found in GitHub app list from ${GITHUB_APP_LIST_URL}`);
+      }
+      await upsertBatch(apps);
+      return;
+    } catch (error) {
+      const githubError = error as Error;
+      console.warn(`GitHub app list fetch failed: ${githubError.message}`);
+      throw lastError ?? githubError;
+    }
   };
 
   if (STEAM_API_KEY) {
     try {
       await tryIStoreService();
     } catch (error) {
-      const status = (error as Error & { status?: number }).status;
-      if (status === 403) {
-        console.warn("IStoreService returned 403. Falling back to public app list.");
-        await tryPublicAppList();
-      } else {
-        throw error;
-      }
+      console.warn("IStoreService failed. Falling back to public app list.");
+      await tryPublicAppList();
     }
   } else {
     await tryPublicAppList();
