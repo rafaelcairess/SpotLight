@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useMemo } from "react";
 import {
   Plus,
   Check,
@@ -27,18 +27,12 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 interface GameLibraryActionsProps {
   appId: number;
   onWriteReview?: () => void;
 }
-
-const statusOptions = [
-  { value: "wishlist", label: "Lista de Desejos", icon: "📋" },
-  { value: "playing", label: "Jogando", icon: "🎮" },
-  { value: "completed", label: "Completado", icon: "✅" },
-  { value: "dropped", label: "Abandonado", icon: "❌" },
-] as const;
 
 export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsProps) {
   const { user } = useAuth();
@@ -48,6 +42,17 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
   const addGame = useAddGame();
   const updateGame = useUpdateGame();
   const removeGame = useRemoveGame();
+  const { t } = useTranslation();
+
+  const statusOptions = useMemo(
+    () => [
+      { value: "wishlist", label: t("library.statusWishlist"), icon: "??" },
+      { value: "playing", label: t("library.statusPlaying"), icon: "??" },
+      { value: "completed", label: t("library.statusCompleted"), icon: "?" },
+      { value: "dropped", label: t("library.statusDropped"), icon: "?" },
+    ],
+    [t]
+  );
 
   const handleAddToLibrary = async (status: UserGame["status"] = "wishlist") => {
     if (!user) {
@@ -57,9 +62,9 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
 
     try {
       await addGame.mutateAsync({ appId, status });
-      toast({ title: "Jogo adicionado à biblioteca! 🎮" });
+      toast({ title: t("library.added") });
     } catch (error) {
-      toast({ title: "Erro ao adicionar jogo", variant: "destructive" });
+      toast({ title: t("library.updateError"), variant: "destructive" });
     }
   };
 
@@ -71,9 +76,9 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
         id: userGame.id,
         updates: { status },
       });
-      toast({ title: "Status alterado!" });
+      toast({ title: t("library.statusChanged", { status: statusOptions.find((s) => s.value === status)?.label }) });
     } catch (error) {
-      toast({ title: "Erro ao atualizar", variant: "destructive" });
+      toast({ title: t("library.updateError"), variant: "destructive" });
     }
   };
 
@@ -86,12 +91,10 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
         updates: { is_favorite: !userGame.is_favorite },
       });
       toast({
-        title: userGame.is_favorite
-          ? "Removido dos favoritos"
-          : "Adicionado aos favoritos! ❤️",
+        title: userGame.is_favorite ? t("library.favoriteRemoved") : t("library.favoriteAdded"),
       });
     } catch (error) {
-      toast({ title: "Erro ao atualizar", variant: "destructive" });
+      toast({ title: t("library.updateError"), variant: "destructive" });
     }
   };
 
@@ -104,10 +107,10 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
         updates: { is_platinumed: !userGame.is_platinumed },
       });
       toast({
-        title: userGame.is_platinumed ? "Platina removida" : "Platina conquistada! 🏆",
+        title: userGame.is_platinumed ? t("library.platinumRemoved") : t("library.platinumAdded"),
       });
     } catch (error) {
-      toast({ title: "Erro ao atualizar", variant: "destructive" });
+      toast({ title: t("library.updateError"), variant: "destructive" });
     }
   };
 
@@ -116,27 +119,22 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
 
     try {
       await removeGame.mutateAsync(userGame.id);
-      toast({ title: "Jogo removido da biblioteca" });
+      toast({ title: t("library.removeSuccess") });
     } catch (error) {
-      toast({ title: "Erro ao remover", variant: "destructive" });
+      toast({ title: t("library.removeError"), variant: "destructive" });
     }
   };
 
   const isLoaderShown = isLoading || addGame.isPending || updateGame.isPending;
 
-  // Not in library
   if (!userGame) {
     return (
       <div className="flex items-center gap-2 flex-wrap">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="glow" className="gap-2" disabled={isLoaderShown}>
-              {isLoaderShown ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Plus className="w-4 h-4" />
-              )}
-              Adicionar à Biblioteca
+              {isLoaderShown ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              {t("library.addToLibrary")}
               <ChevronDown className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -160,19 +158,17 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
             disabled={isLoaderShown}
           >
             <BookOpen className="w-4 h-4" />
-            Escrever Review
+            {t("gameModal.writeReview")}
           </Button>
         )}
       </div>
     );
   }
 
-  // In library - show management options
   const currentStatus = statusOptions.find((s) => s.value === userGame.status);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {/* Status Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="gap-2">
@@ -190,45 +186,38 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
             >
               <span className="mr-2">{option.icon}</span>
               {option.label}
-              {userGame.status === option.value && (
-                <Check className="w-4 h-4 ml-auto" />
-              )}
+              {userGame.status === option.value && <Check className="w-4 h-4 ml-auto" />}
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleRemove} className="text-destructive">
-            Remover da Biblioteca
+            {t("library.removeFromLibrary")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Favorite Button */}
       <Button
         variant={userGame.is_favorite ? "default" : "outline"}
         size="icon"
         onClick={handleToggleFavorite}
         disabled={updateGame.isPending}
-        className={cn(
-          userGame.is_favorite && "bg-rose-500 hover:bg-rose-600 border-rose-500"
-        )}
+        className={cn(userGame.is_favorite && "bg-rose-500 hover:bg-rose-600 border-rose-500")}
+        aria-label={t("library.favoriteToggle", { defaultValue: "Favorito" })}
       >
         <Heart className={cn("w-4 h-4", userGame.is_favorite && "fill-current")} />
       </Button>
 
-      {/* Platinum Button */}
       <Button
         variant={userGame.is_platinumed ? "default" : "outline"}
         size="icon"
         onClick={handleTogglePlatinum}
         disabled={updateGame.isPending}
-        className={cn(
-          userGame.is_platinumed && "bg-amber-500 hover:bg-amber-600 border-amber-500"
-        )}
+        className={cn(userGame.is_platinumed && "bg-amber-500 hover:bg-amber-600 border-amber-500")}
+        aria-label={t("library.platinumBadge")}
       >
         <Trophy className="w-4 h-4" />
       </Button>
 
-      {/* Write Review Button */}
       {onWriteReview && (
         <Button
           variant="outline"
@@ -236,9 +225,9 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
           onClick={onWriteReview}
         >
           <BookOpen className="w-4 h-4" />
-          Escrever Review
+          {t("gameModal.writeReview")}
         </Button>
       )}
     </div>
   );
-}
+}

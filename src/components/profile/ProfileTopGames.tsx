@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface ProfileTopGamesProps {
   userId?: string;
@@ -37,6 +38,7 @@ export function ProfileTopGames({
   readOnly = false,
   onGameSelect,
 }: ProfileTopGamesProps) {
+  const { t } = useTranslation();
   const { data: topGames = [], isLoading: topLoading } = useUserTopGames(userId, !userId);
   const { mutateAsync: setTopGame, isPending } = useSetTopGame();
   const ensureDetails = useEnsureGameDetails();
@@ -90,9 +92,11 @@ export function ProfileTopGames({
             <Star className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold">Top 5 jogos</h3>
+            <h3 className="text-sm font-semibold">{t("profileTopGames.title")}</h3>
             <p className="text-xs text-muted-foreground">
-              {readOnly ? "Favoritos do jogador" : "Escolha seus favoritos"}
+              {readOnly
+                ? t("profileTopGames.subtitleReadOnly")
+                : t("profileTopGames.subtitleEditable")}
             </p>
           </div>
         </div>
@@ -106,7 +110,7 @@ export function ProfileTopGames({
               setActivePosition(defaultPosition);
               setDialogOpen(true);
             }}
-            aria-label="Configurar Top 5"
+            aria-label={t("profileTopGames.configure")}
           >
             <Settings className="w-4 h-4" />
           </Button>
@@ -151,11 +155,13 @@ export function ProfileTopGames({
                         {game.title}
                       </p>
                       <p className="text-xs text-muted-foreground line-clamp-1">
-                        {game.genre || "Sem gênero"}
+                        {game.genre || t("profileTopGames.noGenre")}
                       </p>
                     </button>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Escolha um jogo</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("profileTopGames.chooseGame")}
+                    </p>
                   )}
                 </div>
               </div>
@@ -189,7 +195,9 @@ export function ProfileTopGames({
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <div className="flex items-center justify-between gap-3">
-                <DialogTitle>Configurar Top #{currentPosition}</DialogTitle>
+                <DialogTitle>
+                  {t("profileTopGames.configurePosition", { position: currentPosition })}
+                </DialogTitle>
                 {topByPosition.get(currentPosition) && (
                   <Button
                     type="button"
@@ -201,7 +209,7 @@ export function ProfileTopGames({
                       setSearch("");
                     }}
                   >
-                    Remover
+                    {t("profileTopGames.remove")}
                   </Button>
                 )}
               </div>
@@ -224,21 +232,25 @@ export function ProfileTopGames({
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Digite o nome do jogo..."
+                placeholder={t("profileTopGames.searchPlaceholder")}
                 autoFocus
               />
 
               <div className="max-h-72 space-y-2 overflow-auto pr-1">
                 {search.trim().length < 2 && (
                   <div className="text-xs text-muted-foreground">
-                    Digite ao menos 2 letras para buscar.
+                    {t("profileTopGames.searchHint")}
                   </div>
                 )}
                 {search.trim().length >= 2 && searchLoading && (
-                  <div className="text-xs text-muted-foreground">Buscando jogos...</div>
+                  <div className="text-xs text-muted-foreground">
+                    {t("profileTopGames.searching")}
+                  </div>
                 )}
                 {search.trim().length >= 2 && !searchLoading && searchResults.length === 0 && (
-                  <div className="text-xs text-muted-foreground">Nenhum jogo encontrado.</div>
+                  <div className="text-xs text-muted-foreground">
+                    {t("profileTopGames.emptySearch")}
+                  </div>
                 )}
                 {searchResults.map((result) => (
                   <button
@@ -272,10 +284,10 @@ export function ProfileTopGames({
                           {result.title}
                         </p>
                         <p className="text-xs text-muted-foreground line-clamp-1">
-                          {result.genre || "Sem gênero"}
+                          {result.genre || t("profileTopGames.noGenre")}
                         </p>
                       </div>
-                      <span className="text-xs text-primary">Adicionar</span>
+                      <span className="text-xs text-primary">{t("profileTopGames.add")}</span>
                     </div>
                   </button>
                 ))}

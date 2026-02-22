@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { GameData } from "@/types/game";
 import { cn } from "@/lib/utils";
 import steamIcon from "../../assets/steam.png";
+import { useTranslation } from "react-i18next";
 
 interface FeaturedBannerProps {
   game: GameData;
@@ -10,6 +11,7 @@ interface FeaturedBannerProps {
 }
 
 const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
+  const { t } = useTranslation();
   const formatPlayers = (count?: number) => {
     if (!count) return null;
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
@@ -54,7 +56,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
         {/* Badge */}
         <div className="flex items-center gap-2 mb-4 animate-fade-in">
           <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-primary/20 text-primary rounded-full border border-primary/30">
-            Em Destaque
+            {t("featuredBanner.badge")}
           </span>
           {game.genre && (
             <span className="px-3 py-1 text-xs font-medium bg-secondary/80 rounded-full">
@@ -77,7 +79,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
                 <span className="text-foreground font-semibold">
                   {formatPlayers(game.activePlayers)}
                 </span>{" "}
-                jogando
+                {t("gameCard.playing")}
               </span>
             </div>
           )}
@@ -90,7 +92,9 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
                 )}
               />
               <span className={getRatingColor(game.communityRating)}>
-                {game.communityRating}% positivas
+                {t("featuredBanner.ratingPositive", {
+                  value: game.communityRating,
+                })}
               </span>
             </div>
           )}
@@ -111,7 +115,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
             onClick={handleOpenSteam}
           >
             <img src={steamIcon} alt="Steam" className="w-4 h-4" />
-            Ver na Steam
+            {t("gameModal.viewOnSteam")}
           </Button>
           <Button
             size="lg"
@@ -120,7 +124,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
             onClick={onExplore}
           >
             <Info className="w-4 h-4" />
-            Mais Detalhes
+            {t("featuredBanner.moreDetails")}
           </Button>
         </div>
       </div>

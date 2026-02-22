@@ -12,7 +12,7 @@ export interface PriceAlert {
   created_at: string;
 }
 
-// Hook para listar e gerenciar alertas de preÃ§o do usuÃ¡rio.
+// Hook para listar e gerenciar alertas de preço do usuário.
 export function usePriceAlerts(gameId?: number) {
   const { user } = useAuth();
   const queryClient = useQueryClient();

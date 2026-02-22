@@ -2,6 +2,7 @@ import { GamepadIcon, CheckCircle2, XCircle } from "lucide-react";
 import { GameLibrary } from "@/components/profile/GameLibrary";
 import { UserGame } from "@/hooks/useUserGames";
 import { GameData } from "@/types/game";
+import { useTranslation } from "react-i18next";
 
 interface ProfileLibrarySectionsProps {
   games: UserGame[];
@@ -16,6 +17,7 @@ export function ProfileLibrarySections({
   readOnly = false,
   onGameSelect,
 }: ProfileLibrarySectionsProps) {
+  const { t } = useTranslation();
   const completedGames = games.filter((g) => g.status === "completed");
   const droppedGames = games.filter((g) => g.status === "dropped");
   const activeGames = games.filter(
@@ -30,14 +32,18 @@ export function ProfileLibrarySections({
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
           <div>
-            <h3 className="text-base font-semibold">Completados</h3>
-            <p className="text-xs text-muted-foreground">Jogos que você finalizou</p>
+            <h3 className="text-base font-semibold">
+              {t("profileLibrarySections.completed.title")}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {t("profileLibrarySections.completed.subtitle")}
+            </p>
           </div>
         </div>
         <GameLibrary
           games={completedGames}
           isLoading={isLoading}
-          emptyMessage="Nenhum jogo completado ainda."
+          emptyMessage={t("profileLibrarySections.completed.empty")}
           readOnly={readOnly}
           highlightPlatinum
           cardTone="completed"
@@ -51,14 +57,18 @@ export function ProfileLibrarySections({
             <XCircle className="w-4 h-4 text-rose-500" />
           </div>
           <div>
-            <h3 className="text-base font-semibold">Abandonados</h3>
-            <p className="text-xs text-muted-foreground">Jogos que você deixou de lado</p>
+            <h3 className="text-base font-semibold">
+              {t("profileLibrarySections.dropped.title")}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {t("profileLibrarySections.dropped.subtitle")}
+            </p>
           </div>
         </div>
         <GameLibrary
           games={droppedGames}
           isLoading={isLoading}
-          emptyMessage="Nenhum jogo abandonado."
+          emptyMessage={t("profileLibrarySections.dropped.empty")}
           readOnly={readOnly}
           cardTone="dropped"
           onGameSelect={onGameSelect}
@@ -71,14 +81,18 @@ export function ProfileLibrarySections({
             <GamepadIcon className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <h3 className="text-base font-semibold">Em progresso</h3>
-            <p className="text-xs text-muted-foreground">Jogando agora ou na lista de desejos</p>
+            <h3 className="text-base font-semibold">
+              {t("profileLibrarySections.active.title")}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {t("profileLibrarySections.active.subtitle")}
+            </p>
           </div>
         </div>
         <GameLibrary
           games={activeGames}
           isLoading={isLoading}
-          emptyMessage="Nada por aqui no momento."
+          emptyMessage={t("profileLibrarySections.active.empty")}
           readOnly={readOnly}
           highlightPlatinum
           onGameSelect={onGameSelect}

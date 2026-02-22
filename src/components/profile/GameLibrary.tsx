@@ -13,6 +13,7 @@ import { useGamesByIds } from "@/hooks/useGames";
 import { GameData } from "@/types/game";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 interface GameLibraryProps {
   games: UserGame[];
@@ -23,13 +24,6 @@ interface GameLibraryProps {
   cardTone?: "default" | "completed" | "dropped";
   onGameSelect?: (game: GameData) => void;
 }
-
-const statusLabels: Record<string, { label: string; color: string }> = {
-  wishlist: { label: "Lista de Desejos", color: "bg-blue-500/10 text-blue-500" },
-  playing: { label: "Jogando", color: "bg-emerald-500/10 text-emerald-500" },
-  completed: { label: "Completado", color: "bg-purple-500/10 text-purple-500" },
-  dropped: { label: "Abandonado", color: "bg-rose-500/10 text-rose-500" },
-};
 
 const cardToneStyles: Record<NonNullable<GameLibraryProps["cardTone"]>, string> = {
   default: "border-white/5 bg-card/40",
@@ -55,6 +49,14 @@ export function GameLibrary({
     () => new Map(catalogGames.map((game) => [game.app_id, game])),
     [catalogGames]
   );
+  const { t } = useTranslation();
+
+  const statusLabels: Record<string, { label: string; color: string }> = {
+    wishlist: { label: t("library.statusWishlist"), color: "bg-blue-500/10 text-blue-500" },
+    playing: { label: t("library.statusPlaying"), color: "bg-emerald-500/10 text-emerald-500" },
+    completed: { label: t("library.statusCompleted"), color: "bg-purple-500/10 text-purple-500" },
+    dropped: { label: t("library.statusDropped"), color: "bg-rose-500/10 text-rose-500" },
+  };
 
   const handleToggleFavorite = async (game: UserGame) => {
     try {
@@ -63,10 +65,10 @@ export function GameLibrary({
         updates: { is_favorite: !game.is_favorite },
       });
       toast({
-        title: game.is_favorite ? "Removido dos favoritos" : "Adicionado aos favoritos",
+        title: game.is_favorite ? t("library.favoriteRemoved") : t("library.favoriteAdded"),
       });
     } catch (error) {
-      toast({ title: "Erro ao atualizar", variant: "destructive" });
+      toast({ title: t("library.updateError"), variant: "destructive" });
     }
   };
 
@@ -77,10 +79,10 @@ export function GameLibrary({
         updates: { is_platinumed: !game.is_platinumed },
       });
       toast({
-        title: game.is_platinumed ? "Platina removida" : "Platina conquistada! 🏆",
+        title: game.is_platinumed ? t("library.platinumRemoved") : t("library.platinumAdded"),
       });
     } catch (error) {
-      toast({ title: "Erro ao atualizar", variant: "destructive" });
+      toast({ title: t("library.updateError"), variant: "destructive" });
     }
   };
 
@@ -90,18 +92,18 @@ export function GameLibrary({
         id: game.id,
         updates: { status },
       });
-      toast({ title: `Status alterado para "${statusLabels[status].label}"` });
+      toast({ title: t("library.statusChanged", { status: statusLabels[status].label }) });
     } catch (error) {
-      toast({ title: "Erro ao atualizar", variant: "destructive" });
+      toast({ title: t("library.updateError"), variant: "destructive" });
     }
   };
 
   const handleRemove = async (game: UserGame) => {
     try {
       await removeGame.mutateAsync(game.id);
-      toast({ title: "Jogo removido da biblioteca" });
+      toast({ title: t("library.removeSuccess") });
     } catch (error) {
-      toast({ title: "Erro ao remover", variant: "destructive" });
+      toast({ title: t("library.removeError"), variant: "destructive" });
     }
   };
 
@@ -109,10 +111,10 @@ export function GameLibrary({
     if (hours === null || hours === undefined || hours <= 0) return "";
     if (hours < 1) {
       const minutes = Math.max(1, Math.round(hours * 60));
-      return `${minutes} min`;
+      return t("library.playtimeMinute", { count: minutes });
     }
-    if (hours === 1) return "1 hora";
-    return `${Math.round(hours)} horas`;
+    if (hours === 1) return t("library.playtimeHour");
+    return t("library.playtimeHours", { count: Math.round(hours) });
   };
 
   const getPortraitImage = (appId: number, fallback: string) =>
@@ -171,7 +173,6 @@ export function GameLibrary({
                 : undefined
             }
           >
-            {/* Image */}
             <div className="aspect-[2/3] relative">
               <img
                 src={portraitImage}
@@ -187,7 +188,6 @@ export function GameLibrary({
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-              {/* Badges */}
               <div className="absolute top-2 left-2 flex items-center gap-2">
                 {playtimeLabel && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-black/70 text-white text-[11px] px-2 py-0.5">
@@ -198,7 +198,7 @@ export function GameLibrary({
               </div>
               {highlightPlatinum && userGame.is_platinumed && (
                 <div className="absolute bottom-2 left-2 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-400 text-black rounded-full shadow">
-                  Platina
+                  {t("library.platinumBadge")}
                 </div>
               )}
               <div className="absolute bottom-12 right-2 flex items-center gap-1">
@@ -214,7 +214,6 @@ export function GameLibrary({
                 )}
               </div>
 
-              {/* Actions Menu */}
               {!readOnly && (
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <DropdownMenu>
@@ -241,7 +240,9 @@ export function GameLibrary({
                             userGame.is_favorite && "fill-current text-rose-500"
                           )}
                         />
-                        {userGame.is_favorite ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
+                        {userGame.is_favorite
+                          ? t("library.favoriteRemove")
+                          : t("library.favoriteAdd")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={(event) => {
@@ -255,7 +256,9 @@ export function GameLibrary({
                             userGame.is_platinumed && "text-amber-500"
                           )}
                         />
-                        {userGame.is_platinumed ? "Remover Platina" : "Marcar como Platinado"}
+                        {userGame.is_platinumed
+                          ? t("library.platinumRemove")
+                          : t("library.platinumAdd")}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -264,7 +267,7 @@ export function GameLibrary({
                           handleChangeStatus(userGame, "wishlist");
                         }}
                       >
-                        Lista de Desejos
+                        {t("library.statusWishlist")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={(event) => {
@@ -272,7 +275,7 @@ export function GameLibrary({
                           handleChangeStatus(userGame, "playing");
                         }}
                       >
-                        Jogando
+                        {t("library.statusPlaying")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={(event) => {
@@ -280,7 +283,7 @@ export function GameLibrary({
                           handleChangeStatus(userGame, "completed");
                         }}
                       >
-                        Completado
+                        {t("library.statusCompleted")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={(event) => {
@@ -288,7 +291,7 @@ export function GameLibrary({
                           handleChangeStatus(userGame, "dropped");
                         }}
                       >
-                        Abandonado
+                        {t("library.statusDropped")}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -299,7 +302,7 @@ export function GameLibrary({
                         className="text-destructive"
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
-                        Remover da Biblioteca
+                        {t("library.removeFromLibrary")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -307,7 +310,6 @@ export function GameLibrary({
               )}
             </div>
 
-            {/* Info */}
             <div className="absolute inset-x-0 bottom-0 p-3">
               <div className="flex items-end justify-between gap-2">
                 <div className="min-w-0">

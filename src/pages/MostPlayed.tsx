@@ -8,6 +8,8 @@ import GameModal from "@/components/GameModal";
 import { GameData } from "@/types/game";
 import { useMostPlayedGames } from "@/hooks/useMostPlayedGames";
 import { useLayoutPreference } from "@/hooks/useLayoutPreference";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function MostPlayed() {
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
@@ -16,6 +18,9 @@ export default function MostPlayed() {
     "spotlight.layoutMode.mostPlayed",
     "standard"
   );
+  const { t } = useTranslation();
+  const { locale } = useLanguage();
+  const numberFormatter = new Intl.NumberFormat(locale);
   const { data: games = [], isLoading, isFetching } = useMostPlayedGames(50);
 
   const handleOpenGame = (game: GameData) => {
@@ -35,8 +40,8 @@ export default function MostPlayed() {
       <main className="pt-24 md:pt-28 pb-12">
         <div className="container mx-auto px-4">
           <SectionHeader
-            title="Mais jogados da Steam"
-            subtitle="Ranking pelos jogadores ativos (atualiza a cada 6 horas)"
+            title={t("mostPlayed.title")}
+            subtitle={t("mostPlayed.subtitle")}
             icon={Flame}
             actions={<LayoutToggle value={layoutMode} onChange={setLayoutMode} />}
           />
@@ -44,7 +49,7 @@ export default function MostPlayed() {
           {isFetching && (
             <div className="mb-6 text-xs text-muted-foreground inline-flex items-center gap-1">
               <Loader2 className="w-3 h-3 animate-spin" />
-              Atualizando
+              {t("common.status.updating")}
             </div>
           )}
 
@@ -59,7 +64,7 @@ export default function MostPlayed() {
             </div>
           ) : games.length === 0 ? (
             <div className="rounded-xl border border-border/40 bg-card/50 p-8 text-center text-muted-foreground">
-              Nenhum jogo encontrado.
+              {t("common.status.noneFound")}
             </div>
           ) : layoutMode === "compact" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -87,20 +92,16 @@ export default function MostPlayed() {
                     <div className="w-10 text-center">
                       <span className="text-lg font-bold text-primary">#{index + 1}</span>
                     </div>
-                    <img
-                      src={game.image}
-                      alt={game.title}
-                      className="w-24 h-14 rounded object-cover"
-                    />
+                    <img src={game.image} alt={game.title} className="w-24 h-14 rounded object-cover" />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold truncate">{game.title}</p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {game.genre || "Sem gênero"}
+                        {game.genre || t("common.status.noneFound")}
                       </p>
                     </div>
                     <div className="text-right min-w-[160px]">
                       <p className="text-xs text-muted-foreground">
-                        {(game.activePlayers || 0).toLocaleString("pt-BR")} jogando
+                        {numberFormatter.format(game.activePlayers || 0)} {t("mostPlayed.playingSuffix")}
                       </p>
                     </div>
                   </div>

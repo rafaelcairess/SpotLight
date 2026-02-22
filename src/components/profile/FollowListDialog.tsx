@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/profile/UserAvatar";
+import { useTranslation } from "react-i18next";
 
 export interface ProfileSummary {
   user_id: string;
@@ -31,6 +32,7 @@ export function FollowListDialog({
   isLoading,
   emptyMessage,
 }: FollowListDialogProps) {
+  const { t } = useTranslation();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -39,7 +41,9 @@ export function FollowListDialog({
         </DialogHeader>
 
         {isLoading ? (
-          <div className="py-6 text-sm text-muted-foreground">Carregando...</div>
+          <div className="py-6 text-sm text-muted-foreground">
+            {t("common.actions.loading")}
+          </div>
         ) : profiles.length === 0 ? (
           <div className="py-6 text-sm text-muted-foreground">{emptyMessage}</div>
         ) : (

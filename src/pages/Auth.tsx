@@ -1,49 +1,51 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Orbit } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoginForm } from '@/components/auth/LoginForm';
-import { SignupForm } from '@/components/auth/SignupForm';
-import { PasswordResetRequestForm } from '@/components/auth/PasswordResetRequestForm';
-import { PasswordResetForm } from '@/components/auth/PasswordResetForm';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Orbit } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { SignupForm } from "@/components/auth/SignupForm";
+import { PasswordResetRequestForm } from "@/components/auth/PasswordResetRequestForm";
+import { PasswordResetForm } from "@/components/auth/PasswordResetForm";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const Auth = () => {
-  const [mode, setMode] = useState<'login' | 'signup' | 'reset' | 'recover'>('login');
+  const [mode, setMode] = useState<"login" | "signup" | "reset" | "recover">("login");
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const maybeExchange = async () => {
       const url = new URL(window.location.href);
-      if (url.searchParams.get('code')) {
+      if (url.searchParams.get("code")) {
         const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
         if (error) {
-          toast.error('Erro ao validar login', {
+          toast.error(t("auth.verifyError"), {
             description: error.message,
           });
         }
-        window.history.replaceState({}, '', '/auth?mode=login');
+        window.history.replaceState({}, "", "/auth?mode=login");
       }
     };
 
     maybeExchange();
 
     const params = new URLSearchParams(window.location.search);
-    const queryMode = params.get('mode');
-    if (queryMode === 'signup') setMode('signup');
-    if (queryMode === 'reset') setMode('recover');
+    const queryMode = params.get("mode");
+    if (queryMode === "signup") setMode("signup");
+    if (queryMode === "reset") setMode("recover");
 
-    if (window.location.hash.includes('type=recovery')) {
-      setMode('recover');
+    if (window.location.hash.includes("type=recovery")) {
+      setMode("recover");
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
-    if (!loading && user && mode !== 'recover') {
-      navigate('/');
+    if (!loading && user && mode !== "recover") {
+      navigate("/");
     }
   }, [user, loading, navigate, mode]);
 
@@ -60,48 +62,36 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
           <div className="relative">
             <Orbit className="w-10 h-10 text-primary" />
             <div className="absolute inset-0 blur-lg bg-primary/30" />
           </div>
-          <span className="text-3xl font-bold text-gradient-primary">
-            SpotLight
-          </span>
+          <span className="text-3xl font-bold text-gradient-primary">SpotLight</span>
         </div>
 
         <Card className="glass border-border/30">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">
-              {mode === 'login' && 'Bem-vindo de volta!'}
-              {mode === 'signup' && 'Crie sua conta'}
-              {mode === 'reset' && 'Recuperar senha'}
-              {mode === 'recover' && 'Definir nova senha'}
+              {mode === "login" && t("auth.loginTitle")}
+              {mode === "signup" && t("auth.signupTitle")}
+              {mode === "reset" && t("auth.resetTitle")}
+              {mode === "recover" && t("auth.recoverTitle")}
             </CardTitle>
             <CardDescription>
-              {mode === 'login' && 'Entre para acessar sua biblioteca de jogos'}
-              {mode === 'signup' && 'Junte-se à comunidade SpotLight'}
-              {mode === 'reset' && 'Enviaremos um link de recuperação para seu email'}
-              {mode === 'recover' && 'Crie uma nova senha para sua conta'}
+              {mode === "login" && t("auth.loginDescription")}
+              {mode === "signup" && t("auth.signupDescription")}
+              {mode === "reset" && t("auth.resetDescription")}
+              {mode === "recover" && t("auth.recoverDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {mode === 'login' && (
-              <LoginForm
-                onSwitchToSignup={() => setMode('signup')}
-                onForgotPassword={() => setMode('reset')}
-              />
+            {mode === "login" && (
+              <LoginForm onSwitchToSignup={() => setMode("signup")} onForgotPassword={() => setMode("reset")} />
             )}
-            {mode === 'signup' && (
-              <SignupForm onSwitchToLogin={() => setMode('login')} />
-            )}
-            {mode === 'reset' && (
-              <PasswordResetRequestForm onBackToLogin={() => setMode('login')} />
-            )}
-            {mode === 'recover' && (
-              <PasswordResetForm onBackToLogin={() => setMode('login')} />
-            )}
+            {mode === "signup" && <SignupForm onSwitchToLogin={() => setMode("login")} />}
+            {mode === "reset" && <PasswordResetRequestForm onBackToLogin={() => setMode("login")} />}
+            {mode === "recover" && <PasswordResetForm onBackToLogin={() => setMode("login")} />}
           </CardContent>
         </Card>
       </div>

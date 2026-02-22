@@ -182,6 +182,36 @@ export type Database = {
         }
         Relationships: []
       }
+      game_localizations: {
+        Row: {
+          app_id: number
+          genre: string | null
+          locale: string
+          short_description: string | null
+          tags: string[] | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          app_id: number
+          genre?: string | null
+          locale: string
+          short_description?: string | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          app_id?: number
+          genre?: string | null
+          locale?: string
+          short_description?: string | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_featured: {
         Row: {
           app_id: number

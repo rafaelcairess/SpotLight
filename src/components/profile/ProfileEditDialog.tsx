@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Loader2, Upload } from "lucide-react";
 import {
   Dialog,
@@ -15,25 +15,16 @@ import { UserAvatar } from "./UserAvatar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { Switch } from "@/components/ui/switch";
+import { useMaturePreference } from "@/hooks/useMaturePreference";
 
 interface ProfileEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   profile: Profile | null | undefined;
 }
-
-const VISIBILITY_OPTIONS = [
-  {
-    value: "public",
-    label: "Público",
-    description: "Qualquer pessoa pode ver.",
-  },
-  {
-    value: "private",
-    label: "Privado",
-    description: "Apenas você pode ver.",
-  },
-];
 
 const normalizeVisibility = (value?: string) => {
   if (!value || value === "friends") return "public";
@@ -76,6 +67,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
   const { toast } = useToast();
   const updateProfile = useUpdateProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
 
   const [displayName, setDisplayName] = useState(profile?.display_name || "");
   const [username, setUsername] = useState(profile?.username || "");
@@ -85,6 +77,23 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
   const [reviewsVisibility, setReviewsVisibility] = useState(normalizeVisibility(profile?.reviews_visibility));
   const [libraryVisibility, setLibraryVisibility] = useState(normalizeVisibility(profile?.library_visibility));
   const [isUploading, setIsUploading] = useState(false);
+  const [matureEnabled, setMatureEnabled] = useMaturePreference();
+
+  const visibilityOptions = useMemo(
+    () => [
+      {
+        value: "public",
+        label: t("profileEdit.publicLabel"),
+        description: t("profileEdit.publicDesc"),
+      },
+      {
+        value: "private",
+        label: t("profileEdit.privateLabel"),
+        description: t("profileEdit.privateDesc"),
+      },
+    ],
+    [t]
+  );
 
   useEffect(() => {
     if (profile) {
@@ -103,11 +112,11 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
     if (!file || !user?.id) return;
 
     if (!file.type.startsWith("image/")) {
-      toast({ title: "Por favor, selecione uma imagem", variant: "destructive" });
+      toast({ title: t("profileEdit.imageInvalid"), variant: "destructive" });
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      toast({ title: "A imagem deve ter no máximo 2MB", variant: "destructive" });
+      toast({ title: t("profileEdit.imageTooLarge"), variant: "destructive" });
       return;
     }
 
@@ -127,10 +136,10 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
         .getPublicUrl(fileName);
 
       setAvatarUrl(publicUrl);
-      toast({ title: "Foto atualizada!" });
+      toast({ title: t("profileEdit.photoUpdated") });
     } catch (error) {
       console.error("Upload error:", error);
-      toast({ title: "Erro ao fazer upload", variant: "destructive" });
+      toast({ title: t("profileEdit.uploadError"), variant: "destructive" });
     } finally {
       setIsUploading(false);
     }
@@ -140,17 +149,17 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
     e.preventDefault();
 
     if (username.length < 3) {
-      toast({ title: "O username deve ter pelo menos 3 caracteres", variant: "destructive" });
+      toast({ title: t("profileEdit.usernameTooShort"), variant: "destructive" });
       return;
     }
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      toast({ title: "O username deve conter apenas letras, números e _", variant: "destructive" });
+      toast({ title: t("profileEdit.usernameInvalid"), variant: "destructive" });
       return;
     }
 
     const valuesToCheck = [displayName, username, bio].filter(Boolean);
     if (valuesToCheck.some((value) => containsBannedWords(value))) {
-      toast({ title: "Remova palavras inapropriadas do perfil", variant: "destructive" });
+      toast({ title: t("profileEdit.profileBanned"), variant: "destructive" });
       return;
     }
 
@@ -164,13 +173,13 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
         reviews_visibility: reviewsVisibility,
         library_visibility: libraryVisibility,
       });
-      toast({ title: "Perfil atualizado com sucesso!" });
+      toast({ title: t("profileEdit.saveSuccess") });
       onOpenChange(false);
     } catch (error: any) {
       if (error.message?.includes("duplicate")) {
-        toast({ title: "Este username já está em uso", variant: "destructive" });
+        toast({ title: t("profileEdit.usernameTaken"), variant: "destructive" });
       } else {
-        toast({ title: "Erro ao salvar perfil", variant: "destructive" });
+        toast({ title: t("profileEdit.saveError"), variant: "destructive" });
       }
     }
   };
@@ -179,7 +188,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Configurações do Perfil</DialogTitle>
+          <DialogTitle>{t("profileEdit.title")}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -213,25 +222,25 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
               disabled={isUploading}
             >
               <Upload className="w-4 h-4 mr-2" />
-              Alterar Foto
+              {t("profileEdit.changePhoto")}
             </Button>
           </div>
 
           {/* Display Name */}
           <div className="space-y-2">
-            <Label htmlFor="displayName">Nome de Exibição</Label>
+            <Label htmlFor="displayName">{t("profileEdit.displayName")}</Label>
             <Input
               id="displayName"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Como você quer ser chamado"
+              placeholder={t("profileEdit.displayNamePlaceholder")}
               maxLength={50}
             />
           </div>
 
           {/* Username */}
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">{t("profileEdit.username")}</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
               <Input
@@ -243,87 +252,103 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
                 maxLength={20}
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Apenas letras minúsculas, números e _
-            </p>
+            <p className="text-xs text-muted-foreground">{t("profileEdit.usernameHint")}</p>
           </div>
 
           {/* Bio */}
           <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
+            <Label htmlFor="bio">{t("profileEdit.bio")}</Label>
             <Textarea
               id="bio"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="Conte um pouco sobre você..."
+              placeholder={t("profileEdit.bioPlaceholder")}
               rows={3}
               maxLength={200}
             />
-            <p className="text-xs text-muted-foreground text-right">
-              {bio.length}/200
-            </p>
+            <p className="text-xs text-muted-foreground text-right">{bio.length}/200</p>
+          </div>
+
+          {/* Language */}
+          <div className="space-y-2">
+            <Label>{t("profileEdit.languageLabel")}</Label>
+            <div className="flex items-center justify-between rounded-lg border border-border/50 bg-secondary/30 px-3 py-2">
+              <span className="text-xs text-muted-foreground">{t("common.language")}</span>
+              <LanguageSwitcher />
+            </div>
+          </div>
+
+          {/* Mature Content */}
+          <div className="space-y-2">
+            <Label>{t("profileEdit.matureTitle")}</Label>
+            <div className="flex items-center justify-between rounded-lg border border-border/50 bg-secondary/30 px-3 py-2">
+              <span className="text-xs text-muted-foreground">
+                {t("profileEdit.matureDescription")}
+              </span>
+              <Switch checked={matureEnabled} onCheckedChange={setMatureEnabled} />
+            </div>
           </div>
 
           {/* Privacy */}
           <div className="space-y-4 rounded-lg border border-border/50 p-4">
             <div>
-              <h3 className="text-sm font-semibold">Privacidade</h3>
+              <h3 className="text-sm font-semibold">{t("profileEdit.privacyTitle")}</h3>
               <p className="text-xs text-muted-foreground">
-                Controle quem pode ver seu perfil, biblioteca e reviews.
+                {t("profileEdit.privacySubtitle")}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label>Perfil</Label>
+              <Label>{t("profileEdit.profileLabel")}</Label>
               <select
                 value={profileVisibility}
                 onChange={(e) => setProfileVisibility(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
               >
-                {VISIBILITY_OPTIONS.map((option) => (
+                {visibilityOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
               </select>
               <p className="text-xs text-muted-foreground">
-                {VISIBILITY_OPTIONS.find((o) => o.value === profileVisibility)?.description}
+                {visibilityOptions.find((o) => o.value === profileVisibility)?.description}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label>Biblioteca</Label>
+              <Label>{t("profileEdit.libraryLabel")}</Label>
               <select
                 value={libraryVisibility}
                 onChange={(e) => setLibraryVisibility(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
               >
-                {VISIBILITY_OPTIONS.map((option) => (
+                {visibilityOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
               </select>
               <p className="text-xs text-muted-foreground">
-                {VISIBILITY_OPTIONS.find((o) => o.value === libraryVisibility)?.description}
+                {visibilityOptions.find((o) => o.value === libraryVisibility)?.description}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label>Reviews</Label>
+              <Label>{t("profileEdit.reviewsLabel")}</Label>
               <select
                 value={reviewsVisibility}
                 onChange={(e) => setReviewsVisibility(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
               >
-                {VISIBILITY_OPTIONS.map((option) => (
+                {visibilityOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
               </select>
               <p className="text-xs text-muted-foreground">
-                {VISIBILITY_OPTIONS.find((o) => o.value === reviewsVisibility)?.description}
+                {visibilityOptions.find((o) => o.value === reviewsVisibility)?.description}
               </p>
             </div>
           </div>
@@ -331,11 +356,11 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
           {/* Actions */}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
+              {t("common.actions.cancel")}
             </Button>
             <Button type="submit" disabled={updateProfile.isPending}>
               {updateProfile.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Salvar
+              {t("common.actions.save")}
             </Button>
           </div>
         </form>

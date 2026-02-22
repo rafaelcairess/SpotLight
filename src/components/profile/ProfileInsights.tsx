@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Clock3, Gamepad2, CheckCircle2, Flame } from "lucide-react";
 import { UserGame } from "@/hooks/useUserGames";
 import { useGamesByIds } from "@/hooks/useGames";
+import { useTranslation } from "react-i18next";
 
 interface ProfileInsightsProps {
   games: UserGame[];
@@ -11,6 +12,7 @@ interface ProfileInsightsProps {
 const normalizeToken = (value: string) => value.trim().toLowerCase();
 
 export function ProfileInsights({ games, isLoading }: ProfileInsightsProps) {
+  const { t } = useTranslation();
   const appIds = games.map((game) => game.app_id);
   const { data: catalogGames = [], isLoading: catalogLoading } = useGamesByIds(appIds);
 
@@ -56,7 +58,8 @@ export function ProfileInsights({ games, isLoading }: ProfileInsightsProps) {
     }
 
     const favoriteGenre =
-      [...genreCounter.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "Sem dados";
+      [...genreCounter.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ||
+      t("profileInsights.noData");
 
     return {
       totalHours: Math.round(totalHours),
@@ -64,7 +67,7 @@ export function ProfileInsights({ games, isLoading }: ProfileInsightsProps) {
       topPlayed,
       favoriteGenre,
     };
-  }, [games, gameMap]);
+  }, [games, gameMap, t]);
 
   if (isLoading || catalogLoading) {
     return (
@@ -81,13 +84,13 @@ export function ProfileInsights({ games, isLoading }: ProfileInsightsProps) {
 
   return (
     <div className="rounded-xl border border-border/50 bg-card p-4 space-y-4">
-      <h3 className="text-sm font-semibold">Resumo do perfil</h3>
+      <h3 className="text-sm font-semibold">{t("profileInsights.title")}</h3>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="rounded-lg border border-border/40 bg-secondary/20 p-3">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
             <Clock3 className="w-3.5 h-3.5" />
-            Total de horas
+            {t("profileInsights.totalHours")}
           </div>
           <p className="text-lg font-semibold">{metrics.totalHours}h</p>
         </div>
@@ -95,7 +98,7 @@ export function ProfileInsights({ games, isLoading }: ProfileInsightsProps) {
         <div className="rounded-lg border border-border/40 bg-secondary/20 p-3">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            % concluidos
+            {t("profileInsights.completed")}
           </div>
           <p className="text-lg font-semibold">{metrics.completionRate}%</p>
         </div>
@@ -103,10 +106,10 @@ export function ProfileInsights({ games, isLoading }: ProfileInsightsProps) {
         <div className="rounded-lg border border-border/40 bg-secondary/20 p-3">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
             <Gamepad2 className="w-3.5 h-3.5" />
-            Mais jogados
+            {t("profileInsights.topPlayed")}
           </div>
           {metrics.topPlayed.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sem horas registradas</p>
+            <p className="text-sm text-muted-foreground">{t("profileInsights.noHours")}</p>
           ) : (
             <div className="space-y-1">
               {metrics.topPlayed.map((entry) => (
@@ -121,7 +124,7 @@ export function ProfileInsights({ games, isLoading }: ProfileInsightsProps) {
         <div className="rounded-lg border border-border/40 bg-secondary/20 p-3">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
             <Flame className="w-3.5 h-3.5" />
-            Genero favorito
+            {t("profileInsights.favoriteGenre")}
           </div>
           <p className="text-sm font-semibold capitalize truncate">{metrics.favoriteGenre}</p>
         </div>

@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GameData } from "@/types/game";
+import { useLanguage } from "@/contexts/LanguageContext";
+import type { SupportedLocale } from "@/i18n/utils";
 
 type GameRow = {
   app_id: number;
@@ -20,6 +22,16 @@ type GameRow = {
   platforms: string[] | null;
   steam_url: string | null;
   last_synced: string;
+};
+
+type GameLocalizationRow = {
+  app_id: number;
+  locale: string;
+  title: string | null;
+  short_description: string | null;
+  genre: string | null;
+  tags: string[] | null;
+  updated_at: string;
 };
 
 const mapGameRow = (row: GameRow): GameData => ({
@@ -52,9 +64,40 @@ export type CatalogGame = GameData & { hasDetails: boolean };
 const getPosterImage = (appId: number) =>
   `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`;
 
+const applyLocalization = (game: GameData, localization?: GameLocalizationRow | null): GameData => {
+  if (!localization) return game;
+  return {
+    ...game,
+    title: localization.title || game.title,
+    short_description: localization.short_description || game.short_description,
+    genre: localization.genre || game.genre,
+    tags: localization.tags || game.tags,
+  };
+};
+
+const fetchLocalizations = async (appIds: number[], locale: SupportedLocale) => {
+  if (!appIds.length) return [] as GameLocalizationRow[];
+  const { data, error } = await supabase
+    .from("game_localizations")
+    .select("app_id, locale, title, short_description, genre, tags, updated_at")
+    .eq("locale", locale)
+    .in("app_id", appIds);
+
+  if (error) throw error;
+  return (data ?? []) as GameLocalizationRow[];
+};
+
+const mergeLocalizations = (games: GameData[], localizations: GameLocalizationRow[]) => {
+  if (!localizations.length) return games;
+  const map = new Map(localizations.map((row) => [row.app_id, row]));
+  return games.map((game) => applyLocalization(game, map.get(game.app_id)));
+};
+
 export function usePopularGames(limit = 10) {
+  const { locale } = useLanguage();
+
   return useQuery({
-    queryKey: ["games", "popular", limit],
+    queryKey: ["games", "popular", locale, limit],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("games")
@@ -63,7 +106,9 @@ export function usePopularGames(limit = 10) {
         .limit(limit);
 
       if (error) throw error;
-      return (data as GameRow[]).map(mapGameRow);
+      const games = (data as GameRow[]).map(mapGameRow);
+      const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
+      return mergeLocalizations(games, localizations);
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -71,8 +116,10 @@ export function usePopularGames(limit = 10) {
 }
 
 export function useTopRatedGames(limit = 12) {
+  const { locale } = useLanguage();
+
   return useQuery({
-    queryKey: ["games", "top-rated", limit],
+    queryKey: ["games", "top-rated", locale, limit],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("games")
@@ -81,7 +128,9 @@ export function useTopRatedGames(limit = 12) {
         .limit(limit);
 
       if (error) throw error;
-      return (data as GameRow[]).map(mapGameRow);
+      const games = (data as GameRow[]).map(mapGameRow);
+      const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
+      return mergeLocalizations(games, localizations);
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -89,8 +138,10 @@ export function useTopRatedGames(limit = 12) {
 }
 
 export function useAllGames(limit = 200) {
+  const { locale } = useLanguage();
+
   return useQuery({
-    queryKey: ["games", "all", limit],
+    queryKey: ["games", "all", locale, limit],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("games")
@@ -99,7 +150,9 @@ export function useAllGames(limit = 200) {
         .limit(limit);
 
       if (error) throw error;
-      return (data as GameRow[]).map(mapGameRow);
+      const games = (data as GameRow[]).map(mapGameRow);
+      const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
+      return mergeLocalizations(games, localizations);
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -107,8 +160,10 @@ export function useAllGames(limit = 200) {
 }
 
 export function useDiscountedGames(limit = 30) {
+  const { locale } = useLanguage();
+
   return useQuery({
-    queryKey: ["games", "discounted", limit],
+    queryKey: ["games", "discounted", locale, limit],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("games")
@@ -118,7 +173,9 @@ export function useDiscountedGames(limit = 30) {
         .limit(limit);
 
       if (error) throw error;
-      return (data as GameRow[]).map(mapGameRow);
+      const games = (data as GameRow[]).map(mapGameRow);
+      const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
+      return mergeLocalizations(games, localizations);
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -126,8 +183,10 @@ export function useDiscountedGames(limit = 30) {
 }
 
 export function useDiscountedGamesPaged(limit = 30, page = 1) {
+  const { locale } = useLanguage();
+
   return useQuery({
-    queryKey: ["games", "discounted", "paged", limit, page],
+    queryKey: ["games", "discounted", "paged", locale, limit, page],
     queryFn: async () => {
       const from = (page - 1) * limit;
       const to = from + limit - 1;
@@ -140,8 +199,10 @@ export function useDiscountedGamesPaged(limit = 30, page = 1) {
         .range(from, to);
 
       if (error) throw error;
+      const games = (data as GameRow[]).map(mapGameRow);
+      const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
       return {
-        games: (data as GameRow[]).map(mapGameRow),
+        games: mergeLocalizations(games, localizations),
         count: count ?? 0,
       };
     },
@@ -151,10 +212,11 @@ export function useDiscountedGamesPaged(limit = 30, page = 1) {
 }
 
 export function useGamesByIds(appIds: number[]) {
+  const { locale } = useLanguage();
   const uniqueIds = Array.from(new Set(appIds.filter((id) => Number.isFinite(id))));
 
   return useQuery({
-    queryKey: ["games", "by-ids", uniqueIds],
+    queryKey: ["games", "by-ids", locale, uniqueIds],
     queryFn: async () => {
       if (uniqueIds.length === 0) return [];
 
@@ -164,7 +226,9 @@ export function useGamesByIds(appIds: number[]) {
         .in("app_id", uniqueIds);
 
       if (error) throw error;
-      return (data as GameRow[]).map(mapGameRow);
+      const games = (data as GameRow[]).map(mapGameRow);
+      const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
+      return mergeLocalizations(games, localizations);
     },
     enabled: uniqueIds.length > 0,
     staleTime: 24 * 60 * 60 * 1000,
@@ -181,10 +245,11 @@ export function useSearchGames(query: string, limit = 20) {
 }
 
 export function useSearchCatalog(query: string, limit = 20) {
+  const { locale } = useLanguage();
   const normalized = query.trim();
 
   return useQuery<CatalogGame[]>({
-    queryKey: ["games", "catalog-search", normalized, limit],
+    queryKey: ["games", "catalog-search", normalized, locale, limit],
     queryFn: async () => {
       if (normalized.length < 2) return [];
 
@@ -210,26 +275,31 @@ export function useSearchCatalog(query: string, limit = 20) {
 
       if (!appsFailed && list.length > 0) {
         const appIds = list.map((app) => app.app_id);
-        const { data: gameRows, error: gamesError } = await supabase
-          .from("games")
-          .select("*")
-          .in("app_id", appIds);
+        const [gamesResponse, localizations] = await Promise.all([
+          supabase.from("games").select("*").in("app_id", appIds),
+          fetchLocalizations(appIds, locale),
+        ]);
 
-        if (gamesError) throw gamesError;
+        if (gamesResponse.error) throw gamesResponse.error;
 
         const gameMap = new Map(
-          (gameRows as GameRow[]).map((row) => [row.app_id, mapGameRow(row)])
+          (gamesResponse.data as GameRow[]).map((row) => [row.app_id, mapGameRow(row)])
         );
+        const localizationMap = new Map(localizations.map((row) => [row.app_id, row]));
 
         return list.map((app) => {
           const fullGame = gameMap.get(app.app_id);
           if (fullGame) {
-            return { ...fullGame, hasDetails: true };
+            return { ...applyLocalization(fullGame, localizationMap.get(app.app_id)), hasDetails: true };
           }
+          const localized = localizationMap.get(app.app_id);
           return {
             app_id: app.app_id,
-            title: app.name,
+            title: localized?.title || app.name,
             image: getPosterImage(app.app_id),
+            short_description: localized?.short_description || undefined,
+            genre: localized?.genre || undefined,
+            tags: localized?.tags || undefined,
             hasDetails: false,
           };
         });
@@ -245,15 +315,17 @@ export function useSearchCatalog(query: string, limit = 20) {
         .limit(limit);
 
       if (!gamesFallbackError && (gamesFallback?.length ?? 0) > 0) {
-        return (gamesFallback as GameRow[]).map((row) => ({
-          ...mapGameRow(row),
+        const games = (gamesFallback as GameRow[]).map(mapGameRow);
+        const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
+        return mergeLocalizations(games, localizations).map((game) => ({
+          ...game,
           hasDetails: true,
         }));
       }
 
       const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke(
         "search-steam",
-        { body: { query: normalized, limit } }
+        { body: { query: normalized, limit, language: locale } },
       );
 
       if (fallbackError) {
@@ -269,24 +341,29 @@ export function useSearchCatalog(query: string, limit = 20) {
       if (items.length === 0) return [];
 
       const fallbackIds = items.map((item) => item.app_id);
-      const { data: gameRows } = await supabase
-        .from("games")
-        .select("*")
-        .in("app_id", fallbackIds);
+      const [gameRowsResponse, localizations] = await Promise.all([
+        supabase.from("games").select("*").in("app_id", fallbackIds),
+        fetchLocalizations(fallbackIds, locale),
+      ]);
 
       const gameMap = new Map(
-        ((gameRows ?? []) as GameRow[]).map((row) => [row.app_id, mapGameRow(row)])
+        ((gameRowsResponse.data ?? []) as GameRow[]).map((row) => [row.app_id, mapGameRow(row)])
       );
+      const localizationMap = new Map(localizations.map((row) => [row.app_id, row]));
 
       return items.map((item) => {
         const fullGame = gameMap.get(item.app_id);
         if (fullGame) {
-          return { ...fullGame, hasDetails: true };
+          return { ...applyLocalization(fullGame, localizationMap.get(item.app_id)), hasDetails: true };
         }
+        const localized = localizationMap.get(item.app_id);
         return {
           app_id: item.app_id,
-          title: item.title,
+          title: localized?.title || item.title,
           image: item.image || getPosterImage(item.app_id),
+          short_description: localized?.short_description || undefined,
+          genre: localized?.genre || undefined,
+          tags: localized?.tags || undefined,
           hasDetails: false,
         };
       });
@@ -297,11 +374,37 @@ export function useSearchCatalog(query: string, limit = 20) {
   });
 }
 
-export function useGameById(appId?: number) {
+export function useGameLocalization(appId?: number) {
+  const { locale } = useLanguage();
   const validId = Number.isFinite(appId) && (appId ?? 0) > 0;
 
   return useQuery({
-    queryKey: ["games", "by-id", appId],
+    queryKey: ["games", "localization", locale, appId],
+    queryFn: async () => {
+      if (!validId) return null;
+
+      const { data, error } = await supabase
+        .from("game_localizations")
+        .select("app_id, locale, title, short_description, genre, tags, updated_at")
+        .eq("locale", locale)
+        .eq("app_id", appId as number)
+        .maybeSingle();
+
+      if (error) throw error;
+      return (data ?? null) as GameLocalizationRow | null;
+    },
+    enabled: validId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+}
+
+export function useGameById(appId?: number) {
+  const { locale } = useLanguage();
+  const validId = Number.isFinite(appId) && (appId ?? 0) > 0;
+
+  return useQuery({
+    queryKey: ["games", "by-id", locale, appId],
     queryFn: async () => {
       if (!validId) return null;
 
@@ -312,7 +415,11 @@ export function useGameById(appId?: number) {
         .maybeSingle();
 
       if (error) throw error;
-      return data ? mapGameRow(data as GameRow) : null;
+      const game = data ? mapGameRow(data as GameRow) : null;
+      if (!game) return null;
+
+      const localizations = await fetchLocalizations([game.app_id], locale);
+      return applyLocalization(game, localizations[0]);
     },
     enabled: validId,
     staleTime: 10 * 60 * 1000,
@@ -321,12 +428,13 @@ export function useGameById(appId?: number) {
 }
 
 export function useEnsureGameDetails() {
+  const { locale } = useLanguage();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (appId: number) => {
       const { data, error } = await supabase.functions.invoke("fetch-steam-details", {
-        body: { app_id: appId },
+        body: { app_id: appId, language: locale },
       });
       if (error) throw error;
       return data as { status: string; app_id: number };
@@ -335,13 +443,16 @@ export function useEnsureGameDetails() {
       queryClient.invalidateQueries({ queryKey: ["games", "by-id", appId] });
       queryClient.invalidateQueries({ queryKey: ["games", "by-ids"] });
       queryClient.invalidateQueries({ queryKey: ["games", "catalog-search"] });
+      queryClient.invalidateQueries({ queryKey: ["games", "localization"] });
     },
   });
 }
 
 export function useDailyFeaturedGame() {
+  const { locale } = useLanguage();
+
   return useQuery({
-    queryKey: ["games", "featured", "daily"],
+    queryKey: ["games", "featured", "daily", locale],
     queryFn: async () => {
       const { data: featured, error: featuredError } = await supabase
         .from("daily_featured")
@@ -360,7 +471,9 @@ export function useDailyFeaturedGame() {
         .single();
 
       if (gameError) throw gameError;
-      return mapGameRow(game as GameRow);
+      const mapped = mapGameRow(game as GameRow);
+      const localizations = await fetchLocalizations([mapped.app_id], locale);
+      return applyLocalization(mapped, localizations[0]);
     },
     staleTime: 60 * 60 * 1000,
     gcTime: 24 * 60 * 60 * 1000,

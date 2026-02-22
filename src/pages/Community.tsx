@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Search, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -9,17 +9,17 @@ import { UserAvatar } from "@/components/profile/UserAvatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunityProfiles, useSearchProfiles } from "@/hooks/useProfile";
 import { useFollowUser, useFollowingIds, useUnfollowUser } from "@/hooks/useFollows";
+import { useTranslation } from "react-i18next";
 
 const Community = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const hasSearch = searchTerm.trim().length >= 2;
-  const { data: searchResults = [], isLoading: searchLoading } =
-    useSearchProfiles(searchTerm.trim());
-  const { data: communityProfiles = [], isLoading: communityLoading } =
-    useCommunityProfiles(24);
+  const { data: searchResults = [], isLoading: searchLoading } = useSearchProfiles(searchTerm.trim());
+  const { data: communityProfiles = [], isLoading: communityLoading } = useCommunityProfiles(24);
 
   const profiles = hasSearch ? searchResults : communityProfiles;
   const filteredProfiles = profiles.filter((profile) => profile.user_id !== user?.id);
@@ -30,10 +30,7 @@ const Community = () => {
   );
 
   const { data: followingIds = [] } = useFollowingIds(profileIds);
-  const followingSet = useMemo(
-    () => new Set(followingIds),
-    [followingIds]
-  );
+  const followingSet = useMemo(() => new Set(followingIds), [followingIds]);
 
   const followUser = useFollowUser();
   const unfollowUser = useUnfollowUser();
@@ -63,8 +60,8 @@ const Community = () => {
       <main className="pt-24 md:pt-28 pb-12">
         <div className="container mx-auto px-4">
           <SectionHeader
-            title="Comunidade"
-            subtitle="Encontre jogadores e siga perfis interessantes"
+            title={t("community.title")}
+            subtitle={t("community.subtitle")}
             icon={Users}
           />
 
@@ -73,21 +70,17 @@ const Community = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Digite um username"
+                placeholder={t("community.searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-secondary/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 placeholder:text-muted-foreground/60"
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              A busca procura por username e nome de exibição.
-            </p>
+            <p className="text-xs text-muted-foreground mt-2">{t("community.searchHint")}</p>
           </div>
 
           {searchTerm.trim().length > 0 && !hasSearch && (
-            <div className="text-sm text-muted-foreground py-6">
-              Digite pelo menos 2 caracteres para buscar.
-            </div>
+            <div className="text-sm text-muted-foreground py-6">{t("community.minSearch")}</div>
           )}
 
           {isLoading ? (
@@ -101,7 +94,7 @@ const Community = () => {
             </div>
           ) : filteredProfiles.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              {hasSearch ? "Nenhum usuário encontrado :(" : "Nenhum perfil encontrado ainda."}
+              {hasSearch ? t("community.noProfiles") : t("community.noProfiles")}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -130,16 +123,10 @@ const Community = () => {
                         size="md"
                       />
                       <div className="min-w-0">
-                        <p className="font-medium truncate">
-                          {profile.display_name || profile.username}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          @{profile.username}
-                        </p>
+                        <p className="font-medium truncate">{profile.display_name || profile.username}</p>
+                        <p className="text-xs text-muted-foreground truncate">@{profile.username}</p>
                         {profile.bio && (
-                          <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
-                            {profile.bio}
-                          </p>
+                          <p className="text-xs text-muted-foreground line-clamp-1 mt-1">{profile.bio}</p>
                         )}
                       </div>
                     </div>
@@ -147,7 +134,7 @@ const Community = () => {
                     <div className="flex-shrink-0">
                       {isSelf ? (
                         <Button variant="secondary" size="sm" disabled>
-                          Você
+                          {t("community.you")}
                         </Button>
                       ) : (
                         <Button
@@ -159,7 +146,7 @@ const Community = () => {
                           }}
                           disabled={followUser.isPending || unfollowUser.isPending}
                         >
-                          {isFollowing ? "Seguindo" : "Seguir"}
+                          {isFollowing ? t("community.following") : t("community.follow")}
                         </Button>
                       )}
                     </div>

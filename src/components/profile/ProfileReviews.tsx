@@ -7,9 +7,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ReviewForm from "@/components/game/ReviewForm";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getDateLocale } from "@/i18n/utils";
 
 interface ProfileReviewsProps {
   reviews: Review[];
@@ -22,6 +24,9 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
   const deleteReview = useDeleteReview();
   const [editingAppId, setEditingAppId] = useState<number | null>(null);
   const [editingTitle, setEditingTitle] = useState<string>("");
+  const { t } = useTranslation();
+  const { locale } = useLanguage();
+  const dateLocale = getDateLocale(locale);
 
   const appIds = reviews.map((review) => review.app_id);
   const { data: catalogGames = [], isLoading: catalogLoading } = useGamesByIds(appIds);
@@ -47,7 +52,7 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
   if (reviews.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Você ainda não escreveu nenhuma review.</p>
+        <p className="text-muted-foreground">{t("profile.emptyReviews")}</p>
       </div>
     );
   }
@@ -59,17 +64,10 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
         const isMine = user?.id === review.user_id;
 
         return (
-          <div
-            key={review.id}
-            className="bg-card rounded-lg border border-border/50 overflow-hidden"
-          >
+          <div key={review.id} className="bg-card rounded-lg border border-border/50 overflow-hidden">
             <div className="flex items-center gap-3 p-4 border-b border-border/50 bg-secondary/30">
               {gameInfo && (
-                <img
-                  src={gameInfo.image}
-                  alt={gameInfo.title}
-                  className="w-16 h-10 object-cover rounded"
-                />
+                <img src={gameInfo.image} alt={gameInfo.title} className="w-16 h-10 object-cover rounded" />
               )}
               <div className="flex-1">
                 <h3 className="font-semibold">{gameInfo?.title || `App ID: ${review.app_id}`}</h3>
@@ -77,13 +75,13 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
                   <span>
                     {formatDistanceToNow(new Date(review.created_at), {
                       addSuffix: true,
-                      locale: ptBR,
+                      locale: dateLocale,
                     })}
                   </span>
                   {review.hours_at_review !== null && review.hours_at_review > 0 && (
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {review.hours_at_review}h jogadas
+                      {review.hours_at_review}h
                     </span>
                   )}
                 </div>
@@ -100,12 +98,12 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
                   {review.is_positive ? (
                     <>
                       <ThumbsUp className="w-4 h-4" />
-                      Recomendado
+                      {t("gameModal.recommended")}
                     </>
                   ) : (
                     <>
                       <ThumbsDown className="w-4 h-4" />
-                      Não recomendado
+                      {t("gameModal.notRecommended")}
                     </>
                   )}
                 </div>
@@ -125,7 +123,7 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
                         setEditingAppId(review.app_id);
                         setEditingTitle(gameInfo?.title || `App ID: ${review.app_id}`);
                       }}
-                      aria-label="Editar review"
+                      aria-label={t("gameModal.editReview")}
                     >
                       <Pencil className="w-4 h-4" />
                     </Button>
@@ -136,18 +134,16 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
                       className="h-8 w-8 text-muted-foreground hover:text-destructive"
                       disabled={deleteReview.isPending}
                       onClick={async () => {
-                        const confirmed = window.confirm(
-                          "Tem certeza que deseja apagar sua review?"
-                        );
+                        const confirmed = window.confirm(t("gameModal.deleteReviewConfirm"));
                         if (!confirmed) return;
                         try {
                           await deleteReview.mutateAsync(review.id);
-                          toast({ title: "Review apagada!" });
+                          toast({ title: t("gameModal.reviewDeleted") });
                         } catch (error) {
-                          toast({ title: "Erro ao apagar review", variant: "destructive" });
+                          toast({ title: t("gameModal.reviewDeleteError"), variant: "destructive" });
                         }
                       }}
-                      aria-label="Apagar review"
+                      aria-label={t("gameModal.deleteReview")}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -174,8 +170,8 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
       >
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Editar review</DialogTitle>
-            <DialogDescription>Atualize sua opinião sobre {editingTitle}.</DialogDescription>
+            <DialogTitle>{t("gameModal.editReviewTitle")}</DialogTitle>
+            <DialogDescription>{t("gameModal.editReviewDescription", { title: editingTitle })}</DialogDescription>
           </DialogHeader>
           {editingAppId !== null && (
             <ReviewForm

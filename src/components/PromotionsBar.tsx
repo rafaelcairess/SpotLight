@@ -9,6 +9,7 @@ import { useLayoutPreference } from "@/hooks/useLayoutPreference";
 import { useDiscountedGamesPaged } from "@/hooks/useGames";
 import { GameData } from "@/types/game";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 const PromotionsBar = () => {
   const PAGE_SIZE = 30;
@@ -22,6 +23,7 @@ const PromotionsBar = () => {
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [layoutMode, setLayoutMode] = useLayoutPreference();
+  const { t } = useTranslation();
 
   const handleGameClick = (game: GameData) => {
     setSelectedGame(game);
@@ -48,8 +50,8 @@ const PromotionsBar = () => {
   return (
     <section className="container mx-auto px-4 mb-12 md:mb-16">
       <SectionHeader
-        title="Promoções"
-        subtitle="Os jogos populares com desconto agora"
+        title={t("promotions.title")}
+        subtitle={t("promotions.subtitle")}
         icon={DollarSign}
         actions={<LayoutToggle value={layoutMode} onChange={setLayoutMode} />}
       />
@@ -58,7 +60,7 @@ const PromotionsBar = () => {
         <LoadingSkeleton variant="card" count={6} />
       ) : games.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
-          Sem promoções no momento.
+          {t("promotions.empty")}
         </div>
       ) : (
         <>
@@ -80,27 +82,23 @@ const PromotionsBar = () => {
               disabled={page <= 1 || isFetching || cooldown}
               onClick={() => handlePageChange(Math.max(1, page - 1))}
             >
-              Anterior
+              {t("common.actions.previous")}
             </Button>
             <span className="text-sm text-muted-foreground">
-              Página {page} de {totalPages}
+              {t("common.pagination.pageOf", { page, total: totalPages })}
             </span>
             <Button
               variant="outline"
               disabled={page >= totalPages || isFetching || cooldown}
               onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
             >
-              Próxima
+              {t("common.actions.next")}
             </Button>
           </div>
         </>
       )}
 
-      <GameModal
-        game={selectedGame}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
+      <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />
     </section>
   );
 };

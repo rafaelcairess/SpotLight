@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { CategoryData } from "@/types/game";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface CategoryCardProps {
   category: CategoryData;
@@ -58,7 +59,12 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 const CategoryCard = ({ category, index = 0 }: CategoryCardProps) => {
+  const { t } = useTranslation();
   const Icon = iconMap[category.icon] || Sparkles;
+  const title = t(`categories.${category.id}.name`, { defaultValue: category.name });
+  const description = t(`categories.${category.id}.description`, {
+    defaultValue: category.description,
+  });
 
   return (
     <Link
@@ -90,12 +96,12 @@ const CategoryCard = ({ category, index = 0 }: CategoryCardProps) => {
 
         {/* Title */}
         <h3 className="text-lg md:text-xl font-bold mb-2 group-hover:text-primary transition-colors">
-          {category.name}
+          {title}
         </h3>
 
         {/* Description */}
         <p className="text-xs md:text-sm text-muted-foreground max-w-[200px]">
-          {category.description}
+          {description}
         </p>
       </div>
 

@@ -19,25 +19,26 @@ import ReadyListsSection from "@/components/ready-lists/ReadyListsSection";
 import { Button } from "@/components/ui/button";
 import { useLayoutPreference } from "@/hooks/useLayoutPreference";
 import { GameData, CATEGORIES, CategoryData } from "@/types/game";
-import { useDailyFeaturedGame, usePopularGames, useTopRatedGames } from "@/hooks/useGames";
+import { useAllGames, useDailyFeaturedGame, usePopularGames } from "@/hooks/useGames";
+import { useMaturePreference } from "@/hooks/useMaturePreference";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const Index = () => {
-  // PaginaÃ§Ã£o de "Descubra Novos Jogos".
   const PAGE_SIZE = 24;
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // Top 10 do ranking "Mais Vendidos".
-  const { data: popularGames = [], isLoading: popularLoading } = usePopularGames(10);
   const [discoverLimit, setDiscoverLimit] = useState(PAGE_SIZE);
+  const popularLimit = Math.max(10, discoverLimit);
   const {
-    data: topRatedGames = [],
-    isLoading: topRatedLoading,
-    isFetching: topRatedFetching,
-  } = useTopRatedGames(discoverLimit);
-  // RecomendaÃ§Ãµes personalizadas (somente logado).
+    data: popularGames = [],
+    isLoading: popularLoading,
+    isFetching: popularFetching,
+  } = usePopularGames(popularLimit);
+  const { data: allGames = [], isLoading: allGamesLoading } = useAllGames(300);
   const { data: recommendedGames = [], isLoading: recommendationsLoading } = useRecommendations(12);
   const [layoutMode, setLayoutMode] = useLayoutPreference(
     "spotlight.layoutMode.explore",
@@ -46,12 +47,38 @@ const Index = () => {
   const categoriesScrollRef = useRef<HTMLDivElement | null>(null);
   const [scrollLocked, setScrollLocked] = useState(false);
 
-  // O banner usa o jogo do dia (server-side) e cai para populares/top rated.
   const { data: dailyFeaturedGame, isLoading: dailyFeaturedLoading } = useDailyFeaturedGame();
-  const featuredGame = dailyFeaturedGame || popularGames[0] || topRatedGames[0] || null;
+  const featuredGame = dailyFeaturedGame || popularGames[0] || null;
+  const [showMature] = useMaturePreference();
+
+  const matureGames = useMemo(() => {
+    const keywords = [
+      "nudity",
+      "nudez",
+      "conteúdo sexual",
+      "conteudo sexual",
+      "sexual content",
+      "sexual",
+      "hentai",
+      "adult",
+      "adulto",
+      "mature",
+      "erótico",
+      "erotico",
+    ];
+
+    const matchesMature = (game: GameData) => {
+      const values = [game.genre ?? "", ...(game.tags ?? [])].join(" ").toLowerCase();
+      return keywords.some((keyword) => values.includes(keyword));
+    };
+
+    return [...allGames]
+      .filter(matchesMature)
+      .sort((a, b) => (b.activePlayers ?? 0) - (a.activePlayers ?? 0))
+      .slice(0, 12);
+  }, [allGames]);
 
   const exploreCategories = useMemo(() => {
-    // Mistura categorias em destaque para nÃ£o ficarem em bloco.
     const featured = CATEGORIES.filter((category) => category.featured);
     const others = CATEGORIES.filter((category) => !category.featured);
     const shuffled = [...others];
@@ -76,7 +103,6 @@ const Index = () => {
     return result.map((category) => ({ ...category, featured: false }));
   }, []);
 
-  // Helpers do modal.
   const handleGameClick = (game: GameData) => {
     setSelectedGame(game);
     setIsModalOpen(true);
@@ -87,7 +113,6 @@ const Index = () => {
     setSelectedGame(null);
   };
 
-  // Scroll suave do carrossel de categorias (apenas desktop).
   const handleCategoryScroll = (direction: "left" | "right") => {
     const container = categoriesScrollRef.current;
     if (!container || scrollLocked) return;
@@ -100,7 +125,6 @@ const Index = () => {
     setTimeout(() => setScrollLocked(false), 600);
   };
 
-  // Classes da grade alternam entre pÃ´ster compacto e card padrÃ£o.
   const discoverGridClass =
     layoutMode === "compact"
       ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"
@@ -111,27 +135,22 @@ const Index = () => {
       <Header />
 
       <main className="pt-20 md:pt-24">
-        {/* Destaque principal */}
         <section className="container mx-auto px-4 mb-12 md:mb-16">
           {featuredGame ? (
-            <FeaturedBanner
-              game={featuredGame}
-              onExplore={() => handleGameClick(featuredGame)}
-            />
-          ) : dailyFeaturedLoading || popularLoading || topRatedLoading ? (
+            <FeaturedBanner game={featuredGame} onExplore={() => handleGameClick(featuredGame)} />
+          ) : dailyFeaturedLoading || popularLoading ? (
             <LoadingSkeleton variant="banner" />
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              Nenhum jogo encontrado. Rode o sync da Steam para popular o catálogo.
+              {t("home.featuredEmpty")}
             </div>
           )}
         </section>
 
-        {/* Ranking de populares */}
         <section className="container mx-auto px-4 mb-12 md:mb-16">
           <SectionHeader
-            title="Mais Vendidos"
-            subtitle="Os jogos mais populares na Steam agora (atualiza a cada 6 horas)"
+            title={t("home.popularTitle")}
+            subtitle={t("home.popularSubtitle")}
             icon={TrendingUp}
           />
 
@@ -139,11 +158,10 @@ const Index = () => {
             <LoadingSkeleton variant="ranking" count={10} />
           ) : popularGames.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              Nenhum jogo encontrado. Rode o sync da Steam para popular o catálogo.
+              {t("home.featuredEmpty")}
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Top 5 - Left Column */}
               <div className="space-y-2">
                 {popularGames.slice(0, 5).map((game, idx) => (
                   <GameCard
@@ -157,7 +175,6 @@ const Index = () => {
                 ))}
               </div>
 
-              {/* 6-10 - Right Column */}
               <div className="space-y-2">
                 {popularGames.slice(5, 10).map((game, idx) => (
                   <GameCard
@@ -174,13 +191,12 @@ const Index = () => {
           )}
         </section>
 
-        {/* Explorar coleções (carrossel horizontal) */}
         <section className="container mx-auto px-4 mb-12 md:mb-16">
           <SectionHeader
-            title="Explorar Coleções"
-            subtitle="Descubra jogos por categoria"
+            title={t("home.exploreCollectionsTitle")}
+            subtitle={t("home.exploreCollectionsSubtitle")}
             icon={Sparkles}
-            actionLabel="Ver Todas"
+            actionLabel={t("home.viewAll")}
             actionHref="/collections"
           />
 
@@ -192,7 +208,7 @@ const Index = () => {
               onClick={() => handleCategoryScroll("left")}
               disabled={scrollLocked}
               className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-sm border border-border/40 bg-background/80 backdrop-blur hover:bg-background"
-              aria-label="Voltar categorias"
+              aria-label={t("home.prevCategories")}
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
@@ -203,7 +219,7 @@ const Index = () => {
               onClick={() => handleCategoryScroll("right")}
               disabled={scrollLocked}
               className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-sm border border-border/40 bg-background/80 backdrop-blur hover:bg-background"
-              aria-label="Avançar categorias"
+              aria-label={t("home.nextCategories")}
             >
               <ChevronRight className="w-5 h-5" />
             </Button>
@@ -224,24 +240,22 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Descubra novos jogos (lista principal) */}
-        <section className="container mx-auto px-4 pb-12 md:pb-16">
-          <SectionHeader
-            title="Descubra Novos Jogos"
-            subtitle="Recomendações para você"
-            actions={<LayoutToggle value={layoutMode} onChange={setLayoutMode} />}
-          />
+        {showMature && (
+          <section className="container mx-auto px-4 mb-12 md:mb-16">
+            <SectionHeader
+              title={t("home.matureTitle")}
+              subtitle={t("home.matureSubtitle")}
+            />
 
-          {topRatedLoading ? (
-            <LoadingSkeleton variant="card" count={6} />
-          ) : topRatedGames.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Nenhum jogo encontrado. Rode o sync da Steam para popular o catálogo.
-            </div>
-          ) : (
-            <>
+            {allGamesLoading ? (
+              <LoadingSkeleton variant="card" count={6} />
+            ) : matureGames.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {t("home.matureEmpty")}
+              </div>
+            ) : (
               <div className={discoverGridClass}>
-                {topRatedGames.map((game, idx) => (
+                {matureGames.map((game, idx) => (
                   <GameCard
                     key={game.app_id}
                     game={game}
@@ -251,21 +265,51 @@ const Index = () => {
                   />
                 ))}
               </div>
-              {topRatedGames.length >= discoverLimit && (
+            )}
+          </section>
+        )}
+
+        <section className="container mx-auto px-4 pb-12 md:pb-16">
+          <SectionHeader
+            title={t("home.discoverTitle")}
+            subtitle={t("home.discoverSubtitle")}
+            actions={<LayoutToggle value={layoutMode} onChange={setLayoutMode} />}
+          />
+
+          {popularLoading ? (
+            <LoadingSkeleton variant="card" count={6} />
+          ) : popularGames.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {t("home.featuredEmpty")}
+            </div>
+          ) : (
+            <>
+              <div className={discoverGridClass}>
+                {popularGames.slice(0, discoverLimit).map((game, idx) => (
+                  <GameCard
+                    key={game.app_id}
+                    game={game}
+                    index={idx}
+                    variant={layoutMode === "compact" ? "poster" : "default"}
+                    onClick={() => handleGameClick(game)}
+                  />
+                ))}
+              </div>
+              {popularGames.length >= discoverLimit && (
                 <div className="flex justify-center mt-8">
                   <Button
                     variant="outline"
                     onClick={() => setDiscoverLimit((prev) => prev + PAGE_SIZE)}
-                    disabled={topRatedFetching}
+                    disabled={popularFetching}
                     className="w-full sm:min-w-[200px]"
                   >
-                    {topRatedFetching ? (
+                    {popularFetching ? (
                       <span className="inline-flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Carregando...
+                        {t("common.actions.loading")}
                       </span>
                     ) : (
-                      "Carregar mais"
+                      t("common.actions.loadMore")
                     )}
                   </Button>
                 </div>
@@ -273,12 +317,12 @@ const Index = () => {
             </>
           )}
         </section>
-        {/* Recomendações pessoais (apenas logado) */}
+
         {user && (
           <section className="container mx-auto px-4 pb-12 md:pb-16">
             <SectionHeader
-              title="Recomendações pessoais"
-              subtitle="Baseado no que você joga e avalia"
+              title={t("home.recommendationsTitle")}
+              subtitle={t("home.recommendationsSubtitle")}
               icon={Sparkles}
             />
 
@@ -286,7 +330,7 @@ const Index = () => {
               <LoadingSkeleton variant="card" count={6} />
             ) : recommendedGames.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                Jogue e avalie alguns títulos para destravar recomendações personalizadas.
+                {t("home.recommendationsEmpty")}
               </div>
             ) : (
               <div className={discoverGridClass}>
@@ -307,28 +351,19 @@ const Index = () => {
         <ReadyListsSection onGameClick={handleGameClick} />
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-border/30 py-8">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Orbit className="w-5 h-5 text-primary" />
             <span className="font-bold text-gradient-primary">SpotLight</span>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Descubra os melhores jogos de PC
-          </p>
+          <p className="text-sm text-muted-foreground">{t("home.footerTagline")}</p>
         </div>
       </footer>
 
-      {/* Game Details Modal */}
-      <GameModal
-        game={selectedGame}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
+      <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />
     </div>
   );
 };
 
 export default Index;
-

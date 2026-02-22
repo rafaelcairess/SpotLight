@@ -3,6 +3,7 @@ import { Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useGamesByIds } from "@/hooks/useGames";
 import { UserGame } from "@/hooks/useUserGames";
+import { useTranslation } from "react-i18next";
 
 interface TrophyShowcaseProps {
   games: UserGame[];
@@ -10,6 +11,7 @@ interface TrophyShowcaseProps {
 }
 
 export function TrophyShowcase({ games, isLoading }: TrophyShowcaseProps) {
+  const { t } = useTranslation();
   const appIds = games.map((game) => game.app_id);
   const { data: catalogGames = [], isLoading: catalogLoading } = useGamesByIds(appIds);
   const gameMap = useMemo(
@@ -38,18 +40,18 @@ export function TrophyShowcase({ games, isLoading }: TrophyShowcaseProps) {
             <Trophy className="w-4 h-4 text-amber-500" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold">Vitrine de Platinas</h3>
-            <p className="text-xs text-muted-foreground">Seus troféus mais raros</p>
+            <h3 className="text-sm font-semibold">{t("trophyShowcase.title")}</h3>
+            <p className="text-xs text-muted-foreground">{t("trophyShowcase.subtitle")}</p>
           </div>
         </div>
         <Badge variant="secondary" className="text-amber-500">
-          {games.length} Platinas
+          {t("trophyShowcase.count", { count: games.length })}
         </Badge>
       </div>
 
       {games.length === 0 ? (
         <p className="text-sm text-muted-foreground mt-4">
-          Ainda sem platinas. Complete seu primeiro jogo e ganhe um troféu!
+          {t("trophyShowcase.empty")}
         </p>
       ) : (
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">

@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Database } from '@/integrations/supabase/types';
 
 type GameStatus = Database['public']['Enums']['game_status'];
 
-// Entrada da biblioteca do usuÃ¡rio (uma linha por jogo).
+// Entrada da biblioteca do usuário (uma linha por jogo).
 export interface UserGame {
   id: string;
   user_id: string;
@@ -18,7 +19,7 @@ export interface UserGame {
   updated_at: string;
 }
 
-// Busca a biblioteca de um usuÃ¡rio (prÃ³prio ou pÃºblico).
+// Busca a biblioteca de um usuário (próprio ou público).
 export function useUserGames(userId?: string, useAuthFallback = true) {
   const { user } = useAuth();
   const targetUserId = userId ?? (useAuthFallback ? user?.id : undefined);
@@ -43,7 +44,7 @@ export function useUserGames(userId?: string, useAuthFallback = true) {
   });
 }
 
-// Busca a entrada do usuÃ¡rio logado para um jogo.
+// Busca a entrada do usuário logado para um jogo.
 export function useUserGameByAppId(appId: number) {
   const { user } = useAuth();
 
@@ -68,7 +69,7 @@ export function useUserGameByAppId(appId: number) {
   });
 }
 
-// Adiciona um jogo na biblioteca do usuÃ¡rio.
+// Adiciona um jogo na biblioteca do usuário.
 export function useAddGame() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -97,7 +98,7 @@ export function useAddGame() {
       return data as UserGame;
     },
     onSuccess: () => {
-      // Atualiza a lista da biblioteca apÃ³s adicionar.
+      // Atualiza a lista da biblioteca após adicionar.
       queryClient.invalidateQueries({ queryKey: ['user_games'] });
     },
   });
@@ -107,6 +108,7 @@ export function useAddGame() {
 export function useEnsureFavoriteGame() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { locale } = useLanguage();
 
   return useMutation({
     mutationFn: async (appId: number) => {
@@ -114,7 +116,7 @@ export function useEnsureFavoriteGame() {
 
       try {
         await supabase.functions.invoke("fetch-steam-details", {
-          body: { app_id: appId },
+          body: { app_id: appId, language: locale },
         });
       } catch {
         // Melhor esforço: se falhar, ainda salva favorito.
@@ -185,13 +187,13 @@ export function useUpdateGame() {
       return data as UserGame;
     },
     onSuccess: () => {
-      // Atualiza a lista da biblioteca apÃ³s editar.
+      // Atualiza a lista da biblioteca após editar.
       queryClient.invalidateQueries({ queryKey: ['user_games'] });
     },
   });
 }
 
-// Remove um jogo da biblioteca do usuÃ¡rio.
+// Remove um jogo da biblioteca do usuário.
 export function useRemoveGame() {
   const queryClient = useQueryClient();
 
@@ -205,7 +207,7 @@ export function useRemoveGame() {
       if (error) throw error;
     },
     onSuccess: () => {
-      // Atualiza a lista da biblioteca apÃ³s remover.
+      // Atualiza a lista da biblioteca após remover.
       queryClient.invalidateQueries({ queryKey: ['user_games'] });
     },
   });

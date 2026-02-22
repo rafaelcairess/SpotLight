@@ -24,7 +24,7 @@ export interface ReviewWithProfile extends Review {
   };
 }
 
-// Busca reviews de um jogo e enriquece com dados de perfil para exibiÃ§Ã£o.
+// Busca reviews de um jogo e enriquece com dados de perfil para exibição.
 export function useReviewsByGame(appId: number) {
   const validAppId = Number.isFinite(appId) && appId > 0;
   return useQuery({
@@ -41,7 +41,7 @@ export function useReviewsByGame(appId: number) {
       if (reviewsError) throw reviewsError;
       if (!reviews || reviews.length === 0) return [];
 
-      // 2) UsuÃ¡rios Ãºnicos para buscar perfis em uma consulta
+      // 2) Usuários únicos para buscar perfis em uma consulta
       const userIds = [...new Set(reviews.map(r => r.user_id))];
       
       // 3) Perfis para nome e avatar
@@ -70,7 +70,7 @@ export function useReviewsByGame(appId: number) {
   });
 }
 
-// Busca todas as reviews de um usuÃ¡rio (perfil prÃ³prio ou pÃºblico).
+// Busca todas as reviews de um usuário (perfil próprio ou público).
 export function useReviewsByUser(userId?: string, useAuthFallback = true) {
   const { user } = useAuth();
   const targetUserId = userId ?? (useAuthFallback ? user?.id : undefined);
@@ -95,7 +95,7 @@ export function useReviewsByUser(userId?: string, useAuthFallback = true) {
   });
 }
 
-// Busca a review do usuÃ¡rio logado para um jogo especÃ­fico.
+// Busca a review do usuário logado para um jogo específico.
 export function useUserReviewForGame(appId: number) {
   const { user } = useAuth();
 
@@ -178,7 +178,7 @@ export function useUpdateReview() {
     }) => {
       const nextUpdates = { ...updates };
       if (typeof nextUpdates.score === "number") {
-        // MantÃ©m a nota entre 0..5 e sincroniza is_positive.
+        // Mantém a nota entre 0..5 e sincroniza is_positive.
         const normalizedScore = Math.max(0, Math.min(5, Math.round(nextUpdates.score)));
         nextUpdates.score = normalizedScore;
         nextUpdates.is_positive = normalizedScore >= 3;
@@ -201,7 +201,7 @@ export function useUpdateReview() {
   });
 }
 
-// Exclui uma review por id (RLS garante que sÃ³ o dono pode excluir).
+// Exclui uma review por id (RLS garante que só o dono pode excluir).
 export function useDeleteReview() {
   const queryClient = useQueryClient();
 

@@ -28,6 +28,7 @@ import { ProfileInsights } from "@/components/profile/ProfileInsights";
 import { ProfileTopGames } from "@/components/profile/ProfileTopGames";
 import GameModal from "@/components/GameModal";
 import { GameData } from "@/types/game";
+import { useTranslation } from "react-i18next";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -43,8 +44,8 @@ const Profile = () => {
   const [isFollowingOpen, setIsFollowingOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { t } = useTranslation();
 
-  // Redirect to auth if not logged in
   if (!authLoading && !user) {
     navigate("/auth");
     return null;
@@ -87,7 +88,6 @@ const Profile = () => {
       <Header />
 
       <main className="pt-24 pb-12 container mx-auto px-4">
-        {/* Profile Header */}
         <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
           <div className="relative">
             <UserAvatar
@@ -102,22 +102,16 @@ const Profile = () => {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">
-                  {profile?.display_name || "Gamer"}
+                  {profile?.display_name || t("profile.defaultName")}
                 </h1>
                 <p className="text-muted-foreground">@{profile?.username}</p>
-                {profile?.bio && (
-                  <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>
-                )}
+                {profile?.bio && <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => navigate("/alerts")}
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/alerts")}
                 >
                   <Bell className="w-4 h-4" />
-                  Alertas
+                  {t("profile.alerts")}
                 </Button>
                 <Button
                   variant="outline"
@@ -126,13 +120,11 @@ const Profile = () => {
                   onClick={() => setIsEditOpen(true)}
                 >
                   <Settings className="w-4 h-4" />
-                  Configurações
+                  {t("profile.settings")}
                 </Button>
               </div>
-
             </div>
 
-            {/* Stats */}
             <ProfileStats
               totalGames={userGames.length}
               favorites={favoriteGames.length}
@@ -153,14 +145,9 @@ const Profile = () => {
           <ProfileInsights games={userGames} isLoading={gamesLoading} />
         </div>
         <div className="mb-8">
-          <ProfileTopGames
-            games={userGames}
-            isLoading={gamesLoading}
-            onGameSelect={handleOpenGame}
-          />
+          <ProfileTopGames games={userGames} isLoading={gamesLoading} onGameSelect={handleOpenGame} />
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="library" className="w-full">
           <TabsList className="w-full justify-start border-b border-border/50 rounded-none bg-transparent h-auto p-0 mb-6 overflow-x-auto flex-nowrap">
             <TabsTrigger
@@ -168,44 +155,40 @@ const Profile = () => {
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <GamepadIcon className="w-4 h-4" />
-              Biblioteca ({userGames.length})
+              {t("profile.library")} ({userGames.length})
             </TabsTrigger>
             <TabsTrigger
               value="favorites"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <Heart className="w-4 h-4" />
-              Favoritos ({favoriteGames.length})
+              {t("profile.favorites")} ({favoriteGames.length})
             </TabsTrigger>
             <TabsTrigger
               value="platinum"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <Trophy className="w-4 h-4" />
-              Platinados ({platinumGames.length})
+              {t("profile.platinums")} ({platinumGames.length})
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <BookOpen className="w-4 h-4" />
-              Reviews ({reviews.length})
+              {t("profile.reviews")} ({reviews.length})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="library">
-            <ProfileLibrarySections
-              games={userGames}
-              isLoading={gamesLoading}
-              onGameSelect={handleOpenGame}
-            />
+            <ProfileLibrarySections games={userGames} isLoading={gamesLoading} onGameSelect={handleOpenGame} />
           </TabsContent>
 
           <TabsContent value="favorites">
             <GameLibrary
               games={favoriteGames}
               isLoading={gamesLoading}
-              emptyMessage="Você ainda não tem jogos favoritos."
+              emptyMessage={t("profile.emptyFavorites")}
               highlightPlatinum
               onGameSelect={handleOpenGame}
             />
@@ -215,7 +198,7 @@ const Profile = () => {
             <GameLibrary
               games={platinumGames}
               isLoading={gamesLoading}
-              emptyMessage="Você ainda não platinou nenhum jogo."
+              emptyMessage={t("profile.emptyPlatinums")}
               highlightPlatinum
               cardTone="completed"
               onGameSelect={handleOpenGame}
@@ -228,33 +211,25 @@ const Profile = () => {
         </Tabs>
       </main>
 
-      <ProfileEditDialog
-        open={isEditOpen}
-        onOpenChange={setIsEditOpen}
-        profile={profile}
-      />
+      <ProfileEditDialog open={isEditOpen} onOpenChange={setIsEditOpen} profile={profile} />
 
       <FollowListDialog
         open={isFollowersOpen}
         onOpenChange={setIsFollowersOpen}
-        title="Seguidores"
+        title={t("profile.followers")}
         profiles={followersList}
         isLoading={followersLoading}
-        emptyMessage="Ainda sem seguidores."
+        emptyMessage={t("profile.emptyFollowers")}
       />
       <FollowListDialog
         open={isFollowingOpen}
         onOpenChange={setIsFollowingOpen}
-        title="Seguindo"
+        title={t("profile.following")}
         profiles={followingList}
         isLoading={followingLoading}
-        emptyMessage="Ainda não está seguindo ninguém."
+        emptyMessage={t("profile.emptyFollowing")}
       />
-      <GameModal
-        game={selectedGame}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
+      <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />
     </div>
   );
 };

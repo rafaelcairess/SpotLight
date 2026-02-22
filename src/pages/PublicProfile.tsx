@@ -33,12 +33,14 @@ import { ProfileInsights } from "@/components/profile/ProfileInsights";
 import { ProfileTopGames } from "@/components/profile/ProfileTopGames";
 import GameModal from "@/components/GameModal";
 import { GameData } from "@/types/game";
+import { useTranslation } from "react-i18next";
 import NotFound from "./NotFound";
 
 const PublicProfile = () => {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { data: profile, isLoading: profileLoading, error } = useProfileByUsername(username);
 
   const userId = profile?.user_id;
@@ -109,10 +111,8 @@ const PublicProfile = () => {
         <Header />
         <main className="pt-24 container mx-auto px-4">
           <div className="max-w-lg mx-auto text-center py-20">
-            <h1 className="text-2xl font-bold mb-2">Perfil privado</h1>
-            <p className="text-muted-foreground">
-              Este usuário restringiu o acesso ao perfil.
-            </p>
+            <h1 className="text-2xl font-bold mb-2">{t("profile.privateTitle")}</h1>
+            <p className="text-muted-foreground">{t("profile.privateDescription")}</p>
           </div>
         </main>
       </div>
@@ -127,10 +127,8 @@ const PublicProfile = () => {
         <Header />
         <main className="pt-24 container mx-auto px-4">
           <div className="max-w-lg mx-auto text-center py-20">
-            <h1 className="text-2xl font-bold mb-2">Perfil privado</h1>
-            <p className="text-muted-foreground">
-              Este usuário restringiu o acesso ao perfil.
-            </p>
+            <h1 className="text-2xl font-bold mb-2">{t("profile.privateTitle")}</h1>
+            <p className="text-muted-foreground">{t("profile.privateDescription")}</p>
           </div>
         </main>
       </div>
@@ -180,7 +178,7 @@ const PublicProfile = () => {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">
-                  {profile.display_name || "Gamer"}
+                  {profile.display_name || t("profile.defaultName")}
                 </h1>
                 <p className="text-muted-foreground">@{profile.username}</p>
                 {profile.bio && (
@@ -197,7 +195,7 @@ const PublicProfile = () => {
                     disabled={followUser.isPending || unfollowUser.isPending}
                   >
                     <UserPlus className="w-4 h-4" />
-                    {isFollowing ? "Seguindo" : "Seguir"}
+                    {isFollowing ? t("community.following") : t("community.follow")}
                   </Button>
 
 
@@ -238,7 +236,7 @@ const PublicProfile = () => {
             />
           ) : (
             <div className="rounded-xl border border-border/50 bg-card p-4 text-sm text-muted-foreground">
-              Top 5 privado.
+              {t("profile.privateTop")}
             </div>
           )}
         </div>
@@ -251,28 +249,28 @@ const PublicProfile = () => {
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <GamepadIcon className="w-4 h-4" />
-              Biblioteca ({userGames.length})
+              {t("profile.library")} ({userGames.length})
             </TabsTrigger>
             <TabsTrigger
               value="favorites"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <Heart className="w-4 h-4" />
-              Favoritos ({favoriteGames.length})
+              {t("profile.favorites")} ({favoriteGames.length})
             </TabsTrigger>
             <TabsTrigger
               value="platinum"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <Trophy className="w-4 h-4" />
-              Platinados ({platinumGames.length})
+              {t("profile.platinums")} ({platinumGames.length})
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <BookOpen className="w-4 h-4" />
-              Reviews ({reviews.length})
+              {t("profile.reviews")} ({reviews.length})
             </TabsTrigger>
           </TabsList>
 
@@ -286,7 +284,7 @@ const PublicProfile = () => {
               />
             ) : (
               <div className="text-center py-12 text-muted-foreground">
-                Biblioteca privada.
+                {t("profile.privateLibrary")}
               </div>
             )}
           </TabsContent>
@@ -296,14 +294,14 @@ const PublicProfile = () => {
               <GameLibrary
                 games={favoriteGames}
                 isLoading={gamesLoading}
-                emptyMessage="Este usuário ainda não tem favoritos."
+                emptyMessage={t("profile.publicFavoritesEmpty")}
                 readOnly
                 highlightPlatinum
                 onGameSelect={handleOpenGame}
               />
             ) : (
               <div className="text-center py-12 text-muted-foreground">
-                Favoritos privados.
+                {t("profile.privateFavorites")}
               </div>
             )}
           </TabsContent>
@@ -313,7 +311,7 @@ const PublicProfile = () => {
               <GameLibrary
                 games={platinumGames}
                 isLoading={gamesLoading}
-                emptyMessage="Este usuário ainda não tem jogos platinados."
+                emptyMessage={t("profile.publicPlatinumsEmpty")}
                 readOnly
                 highlightPlatinum
                 cardTone="completed"
@@ -321,7 +319,7 @@ const PublicProfile = () => {
               />
             ) : (
               <div className="text-center py-12 text-muted-foreground">
-                Platinas privadas.
+                {t("profile.privatePlatinums")}
               </div>
             )}
           </TabsContent>
@@ -331,7 +329,7 @@ const PublicProfile = () => {
               <ProfileReviews reviews={reviews} isLoading={reviewsLoading} />
             ) : (
               <div className="text-center py-12 text-muted-foreground">
-                Reviews privadas.
+                {t("profile.privateReviews")}
               </div>
             )}
           </TabsContent>
@@ -341,18 +339,18 @@ const PublicProfile = () => {
       <FollowListDialog
         open={isFollowersOpen}
         onOpenChange={setIsFollowersOpen}
-        title="Seguidores"
+        title={t("profile.followers")}
         profiles={followersList}
         isLoading={followersLoading}
-        emptyMessage="Ainda sem seguidores."
+        emptyMessage={t("profile.emptyFollowers")}
       />
       <FollowListDialog
         open={isFollowingOpen}
         onOpenChange={setIsFollowingOpen}
-        title="Seguindo"
+        title={t("profile.following")}
         profiles={followingList}
         isLoading={followingLoading}
-        emptyMessage="Ainda não está seguindo ninguém."
+        emptyMessage={t("profile.emptyFollowing")}
       />
 
       <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />

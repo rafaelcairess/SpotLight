@@ -1,22 +1,28 @@
-import { createRoot } from "react-dom/client";
-import { SpeedInsights } from "@vercel/speed-insights/react";
-import App from "./App.tsx";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
 import "./index.css";
-import { initSentry, Sentry } from "./lib/sentry";
+import i18n from "@/i18n";
+import { I18nextProvider } from "react-i18next";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { initSentry, Sentry } from "@/lib/sentry";
 
 initSentry();
 
-createRoot(document.getElementById("root")!).render(
-  <>
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
     <Sentry.ErrorBoundary
       fallback={
-        <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">
-          Algo deu errado. Tente recarregar a página.
+        <div className="min-h-screen bg-background flex items-center justify-center text-sm text-muted-foreground">
+          {i18n.t("common.status.error", { defaultValue: "Algo deu errado." })}
         </div>
       }
     >
-      <App />
+      <I18nextProvider i18n={i18n}>
+        <LanguageProvider>
+          <App />
+        </LanguageProvider>
+      </I18nextProvider>
     </Sentry.ErrorBoundary>
-    <SpeedInsights />
-  </>
+  </React.StrictMode>
 );

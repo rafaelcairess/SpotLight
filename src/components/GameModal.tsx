@@ -1,6 +1,19 @@
-﻿import { useEffect, useState } from "react";
-
-import { X, Users, Star, Calendar, Building, ThumbsUp, ThumbsDown, Clock, Trash2, Pencil, Bell, Smile, BadgeCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  X,
+  Users,
+  Star,
+  Calendar,
+  Building,
+  ThumbsUp,
+  ThumbsDown,
+  Clock,
+  Trash2,
+  Pencil,
+  Bell,
+  Smile,
+  BadgeCheck,
+} from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,25 +30,19 @@ import { usePriceAlerts } from "@/hooks/usePriceAlerts";
 import { useAddReviewReaction, useRemoveReviewReaction, useReviewReactions, type ReviewReactionType } from "@/hooks/useReviewReactions";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getDateLocale } from "@/i18n/utils";
 import steamIcon from "../../assets/steam.png";
 
-
 interface GameModalProps {
-
   game: GameData | null;
-
   isOpen: boolean;
-
   onClose: () => void;
-
 }
 
-
-
 const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
-  // Estado local da UI (editor de review + controles da lista).
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [editingReviewAppId, setEditingReviewAppId] = useState<number | null>(null);
@@ -43,6 +50,9 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
   const [targetPriceInput, setTargetPriceInput] = useState("");
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const { locale } = useLanguage();
+  const dateLocale = getDateLocale(locale);
   const navigate = useNavigate();
   const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByGame(
     Number(game?.app_id)
@@ -79,51 +89,24 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
 
   if (!game) return null;
 
-
-  // Helpers de UI para formataÃ§Ã£o de nota e jogadores.
   const getRatingColor = (rating?: number) => {
     if (!rating) return "text-muted-foreground";
-
     if (rating >= 80) return "rating-positive";
-
     if (rating >= 50) return "rating-mixed";
-
     return "rating-negative";
-
   };
-
-
 
   const formatPlayers = (count?: number) => {
     if (!count) return null;
-
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
-
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
-
     return count.toString();
-
   };
 
-
-
-  // CTA externo (Steam).
   const handleOpenSteam = () => {
-    window.open(
-
-      `https://store.steampowered.com/app/${game.app_id}`,
-
-      "_blank",
-
-      "noopener,noreferrer"
-
-    );
-
+    window.open(`https://store.steampowered.com/app/${game.app_id}`, "_blank", "noopener,noreferrer");
   };
 
-
-
-  // AÃ§Ãµes para criar/editar/excluir reviews.
   const handleWriteReview = () => {
     if (!user) {
       navigate("/auth");
@@ -153,8 +136,8 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
     const normalized = raw === "" ? null : Number(raw.replace(",", "."));
     if (normalized !== null && (Number.isNaN(normalized) || normalized < 0)) {
       toast({
-        title: "PreÃ§o invÃ¡lido",
-        description: "Informe um valor válido ou deixe vazio para qualquer promoção.",
+        title: t("gameModal.invalidPrice"),
+        description: t("gameModal.invalidPriceDesc"),
         variant: "destructive",
       });
       return;
@@ -165,10 +148,10 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
         gameId: Number(game.app_id),
         targetPrice: normalized,
       });
-      toast({ title: "Alerta de promoção ativado!" });
+      toast({ title: t("gameModal.alertSaved") });
       setIsAlertOpen(false);
     } catch (error) {
-      toast({ title: "NÃ£o foi possÃ­vel salvar o alerta", variant: "destructive" });
+      toast({ title: t("gameModal.alertSaveError"), variant: "destructive" });
     }
   };
 
@@ -177,25 +160,24 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
     if (!currentAlert) return;
     try {
       await removeAlert.mutateAsync(currentAlert.id);
-      toast({ title: "Alerta removido." });
+      toast({ title: t("gameModal.alertRemoved") });
       setIsAlertOpen(false);
     } catch (error) {
-      toast({ title: "NÃ£o foi possÃ­vel remover o alerta", variant: "destructive" });
+      toast({ title: t("gameModal.alertRemoveError"), variant: "destructive" });
     }
   };
 
   const handleDeleteReview = async (reviewId: string) => {
-    const confirmed = window.confirm("Tem certeza que deseja apagar sua review?");
+    const confirmed = window.confirm(t("gameModal.deleteReviewConfirm"));
     if (!confirmed) return;
     try {
       await deleteReview.mutateAsync(reviewId);
-      toast({ title: "Review apagada!" });
+      toast({ title: t("gameModal.reviewDeleted") });
     } catch (error) {
-      toast({ title: "Erro ao apagar review", variant: "destructive" });
+      toast({ title: t("gameModal.reviewDeleteError"), variant: "destructive" });
     }
   };
 
-  // Mostra sÃ³ as reviews mais recentes por padrÃ£o (expandir sob demanda).
   const visibleReviews = showAllReviews ? reviews : reviews.slice(0, 3);
   const activeAlert = priceAlerts[0] ?? null;
   const isAlertBusy = addAlert.isPending || removeAlert.isPending;
@@ -207,10 +189,10 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
     icon: typeof ThumbsUp;
     showLabel?: boolean;
   }> = [
-    { type: "like", label: "Curtir", icon: ThumbsUp, showLabel: false },
-    { type: "dislike", label: "Não curti", icon: ThumbsDown, showLabel: false },
-    { type: "funny", label: "Engraçada", icon: Smile, showLabel: true },
-    { type: "useful", label: "Útil", icon: BadgeCheck, showLabel: true },
+    { type: "like", label: t("gameModal.reactionLike"), icon: ThumbsUp, showLabel: false },
+    { type: "dislike", label: t("gameModal.reactionDislike"), icon: ThumbsDown, showLabel: false },
+    { type: "funny", label: t("gameModal.reactionFunny"), icon: Smile, showLabel: true },
+    { type: "useful", label: t("gameModal.reactionUseful"), icon: BadgeCheck, showLabel: true },
   ];
 
   const handleToggleReaction = async (
@@ -238,15 +220,12 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
         await addReaction.mutateAsync({ reviewId, reaction });
       }
     } catch (error) {
-      toast({ title: "Não foi possível atualizar a reação", variant: "destructive" });
+      toast({ title: t("gameModal.reactionError"), variant: "destructive" });
     }
   };
 
-
   return (
-
     <Dialog open={isOpen} onOpenChange={onClose}>
-
       <DialogContent className="max-w-3xl p-0 bg-card border-border/50 gap-0 max-h-[90vh] overflow-hidden grid-rows-[auto_1fr]">
         {/* Compact Header */}
         <div className="border-b border-border/50 bg-gradient-to-br from-background via-background/95 to-background p-4 sm:p-6">
@@ -279,181 +258,87 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
         {/* Content */}
         <div className="p-6 space-y-6 overflow-y-auto min-h-0">
           {/* Stats Row */}
-
           <div className="flex flex-wrap items-center gap-6">
-
             {game.activePlayers && (
-
               <div className="flex items-center gap-2">
-
                 <div className="p-2 rounded-lg bg-primary/10">
-
                   <Users className="w-4 h-4 text-primary" />
-
                 </div>
-
                 <div>
-
-                  <p className="text-xs text-muted-foreground">Jogando Agora</p>
-
-                  <p className="font-semibold">
-
-                    {formatPlayers(game.activePlayers)}
-
-                  </p>
-
+                  <p className="text-xs text-muted-foreground">{t("gameModal.playingNow")}</p>
+                  <p className="font-semibold">{formatPlayers(game.activePlayers)}</p>
                 </div>
-
               </div>
-
             )}
-
-
 
             {game.communityRating && (
-
               <div className="flex items-center gap-2">
-
                 <div
-
                   className={cn(
-
                     "p-2 rounded-lg",
-
                     game.communityRating >= 80
-
                       ? "bg-emerald-500/10"
-
                       : game.communityRating >= 50
-
                       ? "bg-amber-500/10"
-
                       : "bg-red-500/10"
-
                   )}
-
                 >
-
                   <Star
-
                     className={cn(
-
                       "w-4 h-4 fill-current",
-
                       getRatingColor(game.communityRating)
-
                     )}
-
                   />
-
                 </div>
-
                 <div>
-
-                  <p className="text-xs text-muted-foreground">Avaliação</p>
-
-                  <p
-
-                    className={cn("font-semibold", getRatingColor(game.communityRating))}
-
-                  >
-
+                  <p className="text-xs text-muted-foreground">{t("gameModal.rating")}</p>
+                  <p className={cn("font-semibold", getRatingColor(game.communityRating))}>
                     {game.communityRating}%
-
                   </p>
-
                 </div>
-
               </div>
-
             )}
-
-
 
             {game.releaseDate && (
-
               <div className="flex items-center gap-2">
-
                 <div className="p-2 rounded-lg bg-secondary">
-
                   <Calendar className="w-4 h-4 text-muted-foreground" />
-
                 </div>
-
                 <div>
-
-                  <p className="text-xs text-muted-foreground">Lançamento</p>
-
+                  <p className="text-xs text-muted-foreground">{t("gameModal.release")}</p>
                   <p className="font-semibold">{game.releaseDate}</p>
-
                 </div>
-
               </div>
-
             )}
-
-
 
             {game.developer && (
-
               <div className="flex items-center gap-2">
-
                 <div className="p-2 rounded-lg bg-secondary">
-
                   <Building className="w-4 h-4 text-muted-foreground" />
-
                 </div>
-
                 <div>
-
-                  <p className="text-xs text-muted-foreground">Desenvolvedor</p>
-
+                  <p className="text-xs text-muted-foreground">{t("gameModal.developer")}</p>
                   <p className="font-semibold">{game.developer}</p>
-
                 </div>
-
               </div>
-
             )}
-
           </div>
 
-
-
           {/* Description */}
-
           {game.short_description && (
-
             <div>
-
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">
-
-                Sobre o Jogo
-
-              </h3>
-
-              <p className="text-foreground/90 leading-relaxed">
-
-                {game.short_description}
-
-              </p>
-
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">{t("gameModal.about")}</h3>
+              <p className="text-foreground/90 leading-relaxed">{game.short_description}</p>
             </div>
-
           )}
-
-
 
           {/* Library Actions */}
           <div className="pt-4 border-t border-border/50 space-y-4">
             <GameLibraryActions appId={Number(game.app_id)} onWriteReview={handleWriteReview} />
             {isReviewOpen && (
               <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 space-y-3">
-                <h3 className="text-sm font-medium text-foreground">Escrever Review</h3>
-                <ReviewForm
-                  appId={Number(game.app_id)}
-                  onClose={() => setIsReviewOpen(false)}
-                />
+                <h3 className="text-sm font-medium text-foreground">{t("gameModal.writeReview")}</h3>
+                <ReviewForm appId={Number(game.app_id)} onClose={() => setIsReviewOpen(false)} />
               </div>
             )}
           </div>
@@ -461,9 +346,11 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
           {/* Community Reviews */}
           <div className="pt-4 border-t border-border/50 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-foreground">Reviews da comunidade</h3>
+              <h3 className="text-sm font-medium text-foreground">{t("gameModal.communityReviews")}</h3>
               <span className="text-xs text-muted-foreground">
-                {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
+                {reviews.length === 1
+                  ? t("gameModal.reviewsCountOne", { count: reviews.length })
+                  : t("gameModal.reviewsCountMany", { count: reviews.length })}
               </span>
             </div>
 
@@ -478,16 +365,14 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                 ))}
               </div>
             ) : reviews.length === 0 ? (
-              <div className="text-sm text-muted-foreground">
-                Nenhuma review ainda. Seja o primeiro a comentar.
-              </div>
+              <div className="text-sm text-muted-foreground">{t("gameModal.reviewsEmpty")}</div>
             ) : (
               <div className="space-y-3">
                 {visibleReviews.map((review) => {
                   const author =
                     review.profiles?.display_name ||
                     review.profiles?.username ||
-                    "Jogador";
+                    t("profile.reviews");
                   const isMine = !!user && review.user_id === user.id;
 
                   return (
@@ -512,7 +397,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                               <span className="text-xs text-muted-foreground">
                                 {formatDistanceToNow(new Date(review.created_at), {
                                   addSuffix: true,
-                                  locale: ptBR,
+                                  locale: dateLocale,
                                 })}
                               </span>
                             </div>
@@ -524,7 +409,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                                   size="icon"
                                   className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                   onClick={handleEditReview}
-                                  aria-label="Editar review"
+                                  aria-label={t("gameModal.editReview")}
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </Button>
@@ -535,7 +420,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                   onClick={() => handleDeleteReview(review.id)}
                                   disabled={deleteReview.isPending}
-                                  aria-label="Apagar review"
+                                  aria-label={t("gameModal.deleteReview")}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -554,12 +439,12 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                               {review.is_positive ? (
                                 <>
                                   <ThumbsUp className="w-3.5 h-3.5" />
-                                  Recomendado
+                                  {t("gameModal.recommended")}
                                 </>
                               ) : (
                                 <>
                                   <ThumbsDown className="w-3.5 h-3.5" />
-                                  Não recomendado
+                                  {t("gameModal.notRecommended")}
                                 </>
                               )}
                             </span>
@@ -568,19 +453,16 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                                 {review.score}/5
                               </span>
                             )}
-                            {review.hours_at_review !== null &&
-                              review.hours_at_review > 0 && (
-                                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  {review.hours_at_review}h
-                                </span>
-                              )}
+                            {review.hours_at_review !== null && review.hours_at_review > 0 && (
+                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                <Clock className="w-3.5 h-3.5" />
+                                {review.hours_at_review}h
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
-                      <p className="text-sm text-foreground/90 whitespace-pre-wrap">
-                        {review.content}
-                      </p>
+                      <p className="text-sm text-foreground/90 whitespace-pre-wrap">{review.content}</p>
                       <div className="flex flex-wrap items-center gap-2 pt-1">
                         {reactionItems.map((item) => {
                           const counts =
@@ -625,13 +507,12 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                     className="w-full"
                     onClick={() => setShowAllReviews(true)}
                   >
-                    Ver todas as reviews
+                    {t("gameModal.seeAllReviews")}
                   </Button>
                 )}
               </div>
             )}
           </div>
-
 
           <Dialog
             open={editingReviewAppId !== null}
@@ -641,9 +522,9 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
           >
             <DialogContent className="max-w-xl">
               <DialogHeader>
-                <DialogTitle>Editar review</DialogTitle>
+                <DialogTitle>{t("gameModal.editReviewTitle")}</DialogTitle>
                 <DialogDescription>
-                  Atualize sua opinião sobre {game.title}.
+                  {t("gameModal.editReviewDescription", { title: game.title })}
                 </DialogDescription>
               </DialogHeader>
               {editingReviewAppId !== null && (
@@ -658,20 +539,18 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
           <Dialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Alerta de promoção</DialogTitle>
-                <DialogDescription>
-                  Defina um preço alvo ou deixe vazio para ser avisado em qualquer desconto.
-                </DialogDescription>
+                <DialogTitle>{t("gameModal.alertTitle")}</DialogTitle>
+                <DialogDescription>{t("gameModal.alertDescription")}</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSaveAlert} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="alert-target-price">Preço alvo (opcional)</Label>
+                  <Label htmlFor="alert-target-price">{t("gameModal.alertTarget")}</Label>
                   <Input
                     id="alert-target-price"
                     type="number"
                     step="0.01"
                     inputMode="decimal"
-                    placeholder="Ex: 49.90"
+                    placeholder={t("gameModal.alertPlaceholder")}
                     value={targetPriceInput}
                     onChange={(event) => setTargetPriceInput(event.target.value)}
                   />
@@ -679,7 +558,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
 
                 {activeAlert && (
                   <div className="rounded-lg border border-border/50 bg-secondary/30 p-3 text-xs text-muted-foreground">
-                    Alerta ativo {activeAlert.target_price ? "com preço alvo" : "para qualquer promoção"}.
+                    {activeAlert.target_price ? t("gameModal.alertActiveTarget") : t("gameModal.alertActiveAny")}
                   </div>
                 )}
 
@@ -692,11 +571,11 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                       onClick={handleRemoveAlert}
                       disabled={isAlertBusy}
                     >
-                      Remover alerta
+                      {t("gameModal.removeAlert")}
                     </Button>
                   )}
                   <Button type="submit" disabled={isAlertBusy}>
-                    {isAlertBusy ? "Salvando..." : "Salvar alerta"}
+                    {isAlertBusy ? t("gameModal.savingAlert") : t("gameModal.saveAlert")}
                   </Button>
                 </div>
               </form>
@@ -708,11 +587,9 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
             <div className="space-y-2">
               {game.price && (
                 <div>
-                  <p className="text-xs text-muted-foreground">Preço</p>
+                  <p className="text-xs text-muted-foreground">{t("gameModal.price")}</p>
                   <p className="text-xl font-bold text-primary">
-                    {game.price === "Free" || game.price === "0"
-                      ? "Grátis"
-                      : game.price}
+                    {game.price === "Free" || game.price === "0" ? t("gameModal.free") : game.price}
                   </p>
                 </div>
               )}
@@ -728,35 +605,26 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
                 >
                   <Bell className="w-4 h-4" />
                   {alertsLoading
-                    ? "Carregando alerta..."
+                    ? t("gameModal.loadingAlert")
                     : activeAlert
-                    ? "Editar alerta de promoção"
-                    : "Receber alerta de promoção"}
+                    ? t("gameModal.editAlert")
+                    : t("gameModal.receiveAlert")}
                 </Button>
                 {activeAlert && (
-                  <span className="text-xs text-muted-foreground">
-                    Alerta ativo
-                  </span>
+                  <span className="text-xs text-muted-foreground">{t("gameModal.activeAlert")}</span>
                 )}
               </div>
             </div>
 
             <Button onClick={handleOpenSteam} variant="outline" className="gap-2">
               <img src={steamIcon} alt="Steam" className="w-4 h-4" />
-              Ver na Steam
+              {t("gameModal.viewOnSteam")}
             </Button>
           </div>
         </div>
-
       </DialogContent>
-
     </Dialog>
-
   );
-
 };
 
-
-
 export default GameModal;
-

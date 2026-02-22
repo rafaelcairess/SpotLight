@@ -1,4 +1,3 @@
-// @ts-expect-error Deno resolves remote modules at runtime
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
 const corsHeaders = {
@@ -11,6 +10,22 @@ const json = (status: number, body: Record<string, unknown>) =>
     status,
     headers: { "Content-Type": "application/json", ...corsHeaders },
   });
+
+type SupportedLocale = "pt" | "en" | "es";
+
+const resolveLanguage = (value?: string | null): { locale: SupportedLocale; steam: string } => {
+  const raw = (value || "").toLowerCase();
+  if (raw.startsWith("en") || raw === "english") {
+    return { locale: "en", steam: "english" };
+  }
+  if (raw.startsWith("es") || raw === "spanish") {
+    return { locale: "es", steam: "spanish" };
+  }
+  if (raw.startsWith("pt") || raw === "brazilian") {
+    return { locale: "pt", steam: "brazilian" };
+  }
+  return { locale: "pt", steam: "brazilian" };
+};
 
 const decodeHtml = (value: string) =>
   value
@@ -68,7 +83,7 @@ const fetchJson = async (url: string) => {
   return res.json();
 };
 
-serve(async (req: Request) => {
+serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -97,8 +112,7 @@ serve(async (req: Request) => {
 
   const limit = Math.min(50, Math.max(1, Number(payload.limit ?? 30)));
   const cc = (payload.cc || "br").trim();
-  const denoEnv = (globalThis as { Deno?: { env?: { get: (key: string) => string | undefined } } }).Deno?.env;
-  const language = (payload.language || denoEnv?.get("STEAM_STORE_LANGUAGE") || "brazilian").trim();
+  const { steam } = resolveLanguage(payload.language || Deno.env.get("STEAM_STORE_LANGUAGE") || "brazilian");
 
   const items: SearchItem[] = [];
   const seen = new Set<number>();
@@ -115,7 +129,7 @@ serve(async (req: Request) => {
         "&category1=998" +
         "&infinite=1" +
         `&cc=${encodeURIComponent(cc)}` +
-        `&l=${encodeURIComponent(language)}`;
+        `&l=${encodeURIComponent(steam)}`;
 
       const data = await fetchJson(url);
       const html = data?.results_html || "";
@@ -140,7 +154,6 @@ serve(async (req: Request) => {
 
     return json(200, { items });
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return json(500, { error: "search_failed", details: message });
+    return json(500, { error: "search_failed", details: `${error?.message ?? error}` });
   }
 });

@@ -1,4 +1,4 @@
-﻿import { Search, Menu, X, LogOut, DollarSign, Users, Bell, Trophy, Flame, MessageSquare } from "lucide-react";
+import { Search, Menu, X, LogOut, DollarSign, Users, Bell, Trophy, Flame, MessageSquare } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getDateLocale } from "@/i18n/utils";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import logoSpotlight from "../../assets/logospotlight.png";
 
 const Header = () => {
@@ -29,6 +32,9 @@ const Header = () => {
   const { data: notifications = [], isLoading: notificationsLoading } = useNotifications();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
+  const { t } = useTranslation();
+  const { locale } = useLanguage();
+  const dateLocale = getDateLocale(locale);
 
   const handleSignOut = async () => {
     await signOut();
@@ -44,12 +50,12 @@ const Header = () => {
   };
 
   const navLinks = [
-    { href: "/", label: "Explorar" },
-    { href: "/collections", label: "Coleções" },
-    { href: "/promocoes", label: "Promoções", icon: DollarSign },
-    { href: "/comunidade", label: "Comunidade", icon: Users },
-    { href: "/top", label: "Top Games", icon: Trophy },
-    { href: "/mais-jogados", label: "Mais jogados", icon: Flame },
+    { href: "/", label: t("header.nav.explore") },
+    { href: "/collections", label: t("header.nav.collections") },
+    { href: "/promocoes", label: t("header.nav.promotions"), icon: DollarSign },
+    { href: "/comunidade", label: t("header.nav.community"), icon: Users },
+    { href: "/top", label: t("header.nav.topGames"), icon: Trophy },
+    { href: "/mais-jogados", label: t("header.nav.mostPlayed"), icon: Flame },
   ];
 
   const unreadCount = notifications.filter((notification) => !notification.read_at).length;
@@ -107,7 +113,7 @@ const Header = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Buscar jogos..."
+                placeholder={t("header.searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-secondary/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 placeholder:text-muted-foreground/60"
@@ -121,104 +127,101 @@ const Header = () => {
               user ? (
                 <div className="flex items-center">
                   <div className="flex items-center gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="relative">
-                        <Bell className="w-5 h-5" />
-                        {unreadCount > 0 && (
-                          <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground px-1">
-                            {unreadCount > 9 ? "9+" : unreadCount}
-                          </span>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-80">
-                      <div className="flex items-center justify-between px-2 py-1">
-                        <span className="text-sm font-semibold">Notificações</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs"
-                          onClick={() => markAllRead.mutate()}
-                          disabled={markAllRead.isPending || unreadCount === 0}
-                        >
-                          Marcar tudo
+                    <LanguageSwitcher />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="relative">
+                          <Bell className="w-5 h-5" />
+                          {unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground px-1">
+                              {unreadCount > 9 ? "9+" : unreadCount}
+                            </span>
+                          )}
                         </Button>
-                      </div>
-                      <DropdownMenuSeparator />
-                      {notificationsLoading ? (
-                        <div className="px-3 py-6 text-sm text-muted-foreground">
-                          Carregando...
-                        </div>
-                      ) : notifications.length === 0 ? (
-                        <div className="px-3 py-6 text-sm text-muted-foreground">
-                          Sem notificações por enquanto.
-                        </div>
-                      ) : (
-                        notifications.map((notification) => (
-                          <DropdownMenuItem
-                            key={notification.id}
-                            onClick={() => handleNotificationClick(notification.id, notification.link)}
-                            className={cn(
-                              "flex flex-col items-start gap-1 whitespace-normal",
-                              !notification.read_at && "bg-primary/5"
-                            )}
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-80">
+                        <div className="flex items-center justify-between px-2 py-1">
+                          <span className="text-sm font-semibold">{t("header.notifications")}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs"
+                            onClick={() => markAllRead.mutate()}
+                            disabled={markAllRead.isPending || unreadCount === 0}
                           >
-                            <span className="text-sm font-medium">
-                              {notification.message}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(notification.created_at), {
-                                addSuffix: true,
-                                locale: ptBR,
-                              })}
-                            </span>
-                          </DropdownMenuItem>
-                        ))
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                            {t("header.markAll")}
+                          </Button>
+                        </div>
+                        <DropdownMenuSeparator />
+                        {notificationsLoading ? (
+                          <div className="px-3 py-6 text-sm text-muted-foreground">
+                            {t("header.notificationsLoading")}
+                          </div>
+                        ) : notifications.length === 0 ? (
+                          <div className="px-3 py-6 text-sm text-muted-foreground">
+                            {t("header.notificationsEmpty")}
+                          </div>
+                        ) : (
+                          notifications.map((notification) => (
+                            <DropdownMenuItem
+                              key={notification.id}
+                              onClick={() => handleNotificationClick(notification.id, notification.link)}
+                              className={cn(
+                                "flex flex-col items-start gap-1 whitespace-normal",
+                                !notification.read_at && "bg-primary/5"
+                              )}
+                            >
+                              <span className="text-sm font-medium">{notification.message}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(new Date(notification.created_at), {
+                                  addSuffix: true,
+                                  locale: dateLocale,
+                                })}
+                              </span>
+                            </DropdownMenuItem>
+                          ))
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
 
-                  <Link
-                    to="/profile"
-                    className="relative h-10 w-10 rounded-full"
-                  >
-                    <UserAvatar
-                      src={profile?.avatar_url}
-                      displayName={profile?.display_name}
-                      username={profile?.username}
-                      size="md"
-                    />
-                  </Link>
+                    <Link to="/profile" className="relative h-10 w-10 rounded-full">
+                      <UserAvatar
+                        src={profile?.avatar_url}
+                        displayName={profile?.display_name}
+                        username={profile?.username}
+                        size="md"
+                      />
+                    </Link>
                   </div>
                   <div className="flex items-center gap-3 ml-5">
-                  <button
-                    onClick={handleSignOut}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-destructive hover:text-destructive/90 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Sair
-                  </button>
-                  <Link
-                    to="/feedback"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    Feedback
-                  </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="inline-flex items-center gap-2 text-sm font-medium text-destructive hover:text-destructive/90 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {t("header.signOut")}
+                    </button>
+                    <Link
+                      to="/feedback"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      {t("header.feedback")}
+                    </Link>
                   </div>
                 </div>
               ) : (
                 <div className="flex items-center gap-4">
+                  <LanguageSwitcher />
                   <Link
                     to="/feedback"
                     className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                   >
                     <MessageSquare className="w-4 h-4" />
-                    Feedback
+                    {t("header.feedback")}
                   </Link>
                   <Button variant="glow" size="sm" asChild>
-                    <Link to="/auth">Entrar</Link>
+                    <Link to="/auth">{t("header.signIn")}</Link>
                   </Button>
                 </div>
               )
@@ -249,7 +252,7 @@ const Header = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Buscar jogos..."
+                  placeholder={t("header.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 bg-secondary/50 border-border/50"
@@ -280,14 +283,18 @@ const Header = () => {
             </nav>
 
             {/* Mobile Auth */}
-            <div className="mt-4 pt-4 border-t border-border/30">
+            <div className="mt-4 pt-4 border-t border-border/30 space-y-2">
+              <div className="flex items-center justify-between px-3">
+                <span className="text-xs text-muted-foreground">{t("common.language")}</span>
+                <LanguageSwitcher />
+              </div>
               <Link
                 to="/feedback"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="flex items-center gap-2 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary"
               >
                 <MessageSquare className="w-4 h-4" />
-                Feedback
+                {t("header.feedback")}
               </Link>
               {!authLoading && (
                 user ? (
@@ -303,7 +310,7 @@ const Header = () => {
                         username={profile?.username}
                         size="sm"
                       />
-                      <span>{profile?.display_name || "Meu Perfil"}</span>
+                      <span>{profile?.display_name || t("header.myProfile")}</span>
                     </Link>
                     <button
                       onClick={() => {
@@ -313,7 +320,7 @@ const Header = () => {
                       className="flex items-center gap-2 px-3 py-3 w-full rounded-lg text-base font-medium text-destructive hover:bg-destructive/10"
                     >
                       <LogOut className="w-4 h-4" />
-                      Sair
+                      {t("header.signOut")}
                     </button>
                   </div>
                 ) : (
@@ -323,7 +330,7 @@ const Header = () => {
                     className="block"
                   >
                     <Button variant="glow" className="w-full">
-                      Entrar
+                      {t("header.signIn")}
                     </Button>
                   </Link>
                 )
@@ -337,11 +344,3 @@ const Header = () => {
 };
 
 export default Header;
-
-
-
-
-
-
-
-

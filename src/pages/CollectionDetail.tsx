@@ -8,8 +8,9 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { Button } from "@/components/ui/button";
 import { GameData, CATEGORIES } from "@/types/game";
 import { useGamesByIds } from "@/hooks/useGames";
+import { useTranslation } from "react-i18next";
 
-// UtilitÃ¡rio para evitar IDs duplicados nas listas.
+// Utilitário para evitar IDs duplicados nas listas.
 const uniqueIds = (ids: number[]) => Array.from(new Set(ids));
 
 // Curadoria manual apenas (sem auto-fill). Mantenha a ordem desejada.
@@ -167,6 +168,7 @@ const CATEGORY_GAME_IDS: Record<string, number[]> = {
 
 const CollectionDetail = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
+  const { t } = useTranslation();
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   // Lista de IDs curados para a categoria ativa.
@@ -175,13 +177,13 @@ const CollectionDetail = () => {
 
   const category = CATEGORIES.find((c) => c.id === categoryId);
 
-  // Preserva a ordem manual apÃ³s o fetch.
+  // Preserva a ordem manual após o fetch.
   const manualOrder = new Map((manualIds || []).map((id, idx) => [id, idx]));
   const manualSorted = [...manualGames].sort(
     (a, b) => (manualOrder.get(a.app_id) ?? 0) - (manualOrder.get(b.app_id) ?? 0)
   );
 
-  // Lista final da pÃ¡gina (apenas manual).
+  // Lista final da página (apenas manual).
   const games = manualSorted;
   const isPageLoading = isLoading;
 
@@ -199,9 +201,9 @@ const CollectionDetail = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Categoria n\u00e3o encontrada</h1>
+          <h1 className="text-2xl font-bold mb-4">{t("collections.notFoundTitle")}</h1>
           <Link to="/collections">
-            <Button>{"Voltar \u00e0s Cole\u00e7\u00f5es"}</Button>
+            <Button>{t("collectionDetail.back")}</Button>
           </Link>
         </div>
       </div>
@@ -220,7 +222,7 @@ const CollectionDetail = () => {
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
-            {"Voltar \u00e0s Cole\u00e7\u00f5es"}
+            {t("collectionDetail.back")}
           </Link>
 
           {/* Category Header */}
@@ -230,10 +232,10 @@ const CollectionDetail = () => {
             <div className="absolute inset-0 hero-gradient opacity-30" />
             <div className="relative p-8 md:p-12">
               <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                {category.name}
+                {t(`categories.${category.id}.name`, { defaultValue: category.name })}
               </h1>
               <p className="text-muted-foreground max-w-lg">
-                {category.description}
+                {t(`categories.${category.id}.description`, { defaultValue: category.description })}
               </p>
             </div>
           </div>
@@ -244,7 +246,7 @@ const CollectionDetail = () => {
           ) : games.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
-                Nenhum jogo encontrado nesta categoria.
+                {t("collectionDetail.empty")}
               </p>
             </div>
           ) : (

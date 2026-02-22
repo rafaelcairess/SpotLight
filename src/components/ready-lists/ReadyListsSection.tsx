@@ -6,6 +6,7 @@ import GameCard from "@/components/GameCard";
 import SectionHeader from "@/components/SectionHeader";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { GameData } from "@/types/game";
+import { useTranslation } from "react-i18next";
 
 interface ReadyListsSectionProps {
   onGameClick: (game: GameData) => void;
@@ -23,6 +24,7 @@ const gameTokens = (game: GameData) => {
 };
 
 export default function ReadyListsSection({ onGameClick }: ReadyListsSectionProps) {
+  const { t } = useTranslation();
   const allManualIds = useMemo(
     () => Array.from(new Set(READY_LISTS.flatMap((list) => list.appIds))),
     []
@@ -71,8 +73,8 @@ export default function ReadyListsSection({ onGameClick }: ReadyListsSectionProp
     return (
       <section className="container mx-auto px-4 pb-12 md:pb-16">
         <SectionHeader
-          title="Listas prontas"
-          subtitle="Listas para decidir rápido"
+          title={t("readyLists.sectionTitle")}
+          subtitle={t("readyLists.sectionSubtitle")}
           icon={Sparkles}
         />
         <LoadingSkeleton variant="card" count={6} />
@@ -83,8 +85,8 @@ export default function ReadyListsSection({ onGameClick }: ReadyListsSectionProp
   return (
     <section className="container mx-auto px-4 pb-12 md:pb-16">
       <SectionHeader
-        title="Listas prontas"
-        subtitle="Listas para decidir rápido"
+        title={t("readyLists.sectionTitle")}
+        subtitle={t("readyLists.sectionSubtitle")}
         icon={Sparkles}
       />
 
@@ -92,13 +94,15 @@ export default function ReadyListsSection({ onGameClick }: ReadyListsSectionProp
         {lists.map((list) => (
           <div key={list.id} className="space-y-3">
             <div>
-              <h3 className="text-lg font-semibold">{list.title}</h3>
-              <p className="text-sm text-muted-foreground">{list.subtitle}</p>
+              <h3 className="text-lg font-semibold">{t(`readyLists.${list.id}.title`)}</h3>
+              <p className="text-sm text-muted-foreground">
+                {t(`readyLists.${list.id}.subtitle`)}
+              </p>
             </div>
 
             {list.games.length === 0 ? (
               <div className="rounded-lg border border-border/50 bg-card/40 p-4 text-sm text-muted-foreground">
-                Sem jogos suficientes nesta lista por enquanto.
+                {t("common.status.noneFound")}
               </div>
             ) : (
               <div className="flex gap-4 overflow-x-auto pb-2">

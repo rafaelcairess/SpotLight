@@ -12,6 +12,22 @@ const json = (status: number, body: Record<string, unknown>) =>
     headers: { "Content-Type": "application/json", ...corsHeaders },
   });
 
+type SupportedLocale = "pt" | "en" | "es";
+
+const resolveLanguage = (value?: string | null): { locale: SupportedLocale; steam: string } => {
+  const raw = (value || "").toLowerCase();
+  if (raw.startsWith("en") || raw === "english") {
+    return { locale: "en", steam: "english" };
+  }
+  if (raw.startsWith("es") || raw === "spanish") {
+    return { locale: "es", steam: "spanish" };
+  }
+  if (raw.startsWith("pt") || raw === "brazilian") {
+    return { locale: "pt", steam: "brazilian" };
+  }
+  return { locale: "pt", steam: "brazilian" };
+};
+
 const normalizePlatforms = (platforms: Record<string, boolean> | null | undefined) => {
   if (!platforms || typeof platforms !== "object") return null;
   return Object.entries(platforms)
@@ -44,7 +60,7 @@ const normalizeTags = (genres: unknown, categories: unknown) => {
 
 const normalizePriceInfo = (details: any) => {
   if (details?.is_free) {
-    return { price: "GrÃ¡tis", priceOriginal: null, discountPercent: null };
+    return { price: "Grátis", priceOriginal: null, discountPercent: null };
   }
 
   const priceOverview = details?.price_overview;
@@ -84,13 +100,12 @@ serve(async (req) => {
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   const STEAM_API_KEY = Deno.env.get("STEAM_API_KEY") || "";
-  const STEAM_STORE_LANGUAGE = Deno.env.get("STEAM_STORE_LANGUAGE") || "brazilian";
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     return json(500, { error: "server_not_configured" });
   }
 
-  let payload: { app_id?: number };
+  let payload: { app_id?: number; language?: string };
   try {
     payload = await req.json();
   } catch {
@@ -102,12 +117,16 @@ serve(async (req) => {
     return json(400, { error: "invalid_app_id" });
   }
 
+  const { locale, steam } = resolveLanguage(
+    payload.language || Deno.env.get("STEAM_STORE_LANGUAGE") || "brazilian",
+  );
+
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
   });
 
   try {
-    const detailsUrl = `https://store.steampowered.com/api/appdetails?appids=${appId}&cc=br&l=${STEAM_STORE_LANGUAGE}`;
+    const detailsUrl = `https://store.steampowered.com/api/appdetails?appids=${appId}&cc=br&l=${steam}`;
     const detailsResponse = await fetchJson(detailsUrl);
     const entry = detailsResponse?.[appId];
     if (!entry?.success) {
@@ -151,14 +170,48 @@ serve(async (req) => {
     const priceInfo = normalizePriceInfo(details);
     const tags = normalizeTags(details.genres, details.categories);
     const genres = normalizeGenres(details.genres);
+    const now = new Date().toISOString();
+
+    await supabase
+      .from("game_localizations")
+      .upsert(
+        {
+          app_id: appId,
+          locale,
+          title: details.name ?? null,
+          short_description: details.short_description ?? null,
+          genre: genres[0] ?? null,
+          tags: tags.length ? tags : null,
+          updated_at: now,
+        },
+        { onConflict: "app_id,locale" },
+      );
+
+    const { data: existingGame } = await supabase
+      .from("games")
+      .select("title, short_description, genre, tags, image")
+      .eq("app_id", appId)
+      .maybeSingle();
+
+    const shouldUpdateText = locale === "pt" || !existingGame;
+    const baseTitle = shouldUpdateText ? details.name : existingGame?.title ?? details.name;
+    const baseDescription = shouldUpdateText
+      ? details.short_description ?? null
+      : existingGame?.short_description ?? details.short_description ?? null;
+    const baseGenre = shouldUpdateText ? genres[0] ?? null : existingGame?.genre ?? genres[0] ?? null;
+    const baseTags = shouldUpdateText
+      ? tags.length
+        ? tags
+        : null
+      : existingGame?.tags ?? (tags.length ? tags : null);
 
     const row = {
       app_id: appId,
-      title: details.name,
-      image: details.header_image ?? null,
-      short_description: details.short_description ?? null,
-      genre: genres[0] ?? null,
-      tags: tags.length ? tags : null,
+      title: baseTitle,
+      image: details.header_image ?? existingGame?.image ?? null,
+      short_description: baseDescription,
+      genre: baseGenre,
+      tags: baseTags,
       active_players: activePlayers,
       community_rating: communityRating,
       price: priceInfo.price,
@@ -169,7 +222,7 @@ serve(async (req) => {
       publisher: Array.isArray(details.publishers) ? details.publishers[0] ?? null : null,
       platforms: normalizePlatforms(details.platforms),
       steam_url: `https://store.steampowered.com/app/${appId}`,
-      last_synced: new Date().toISOString(),
+      last_synced: now,
     };
 
     const { error: upsertError } = await supabase
@@ -184,12 +237,12 @@ serve(async (req) => {
           app_id: appId,
           name: details.name,
           is_game: true,
-          last_seen: new Date().toISOString(),
+          last_seen: now,
         },
         { onConflict: "app_id" },
       );
 
-    return json(200, { status: "ok", app_id: appId });
+    return json(200, { status: "ok", app_id: appId, locale });
   } catch (error) {
     return json(500, { error: "fetch_failed", details: `${error?.message ?? error}` });
   }

@@ -11,6 +11,7 @@ import {
   useUserReviewForGame,
 } from "@/hooks/useReviews";
 import { useAddGame, useUserGameByAppId } from "@/hooks/useUserGames";
+import { useTranslation } from "react-i18next";
 
 interface ReviewFormProps {
   appId: number;
@@ -20,6 +21,7 @@ interface ReviewFormProps {
 const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { data: existingReview } = useUserReviewForGame(appId);
   const { data: userGame } = useUserGameByAppId(appId);
   const addGame = useAddGame();
@@ -81,24 +83,24 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
     e.preventDefault();
 
     if (!user) {
-      toast({ title: "Você precisa estar logado para escrever uma review", variant: "destructive" });
+      toast({ title: t("reviewForm.loginRequired"), variant: "destructive" });
       return;
     }
 
     if (!content.trim()) {
-      toast({ title: "Escreva sua review antes de salvar", variant: "destructive" });
+      toast({ title: t("reviewForm.emptyContent"), variant: "destructive" });
       return;
     }
 
     const hoursValue = hoursAtReview === "" ? undefined : Number(hoursAtReview);
     if (hoursValue !== undefined && (!Number.isFinite(hoursValue) || !Number.isInteger(hoursValue))) {
-      toast({ title: "Horas jogadas inválidas", variant: "destructive" });
+      toast({ title: t("reviewForm.invalidHours"), variant: "destructive" });
       return;
     }
 
     const scoreValue = score === "" ? NaN : Number(score);
     if (!Number.isFinite(scoreValue) || scoreValue < 0 || scoreValue > 5) {
-      toast({ title: "A nota precisa estar entre 0 e 5", variant: "destructive" });
+      toast({ title: t("reviewForm.invalidScore"), variant: "destructive" });
       return;
     }
     const normalizedScore = Math.round(scoreValue);
@@ -106,7 +108,10 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
 
     if (cooldownRemaining > 0) {
       const seconds = Math.ceil(cooldownRemaining / 1000);
-      toast({ title: `Aguarde ${seconds}s para enviar outra review`, variant: "destructive" });
+      toast({
+        title: t("reviewForm.cooldownWait", { seconds }),
+        variant: "destructive",
+      });
       return;
     }
 
@@ -129,7 +134,7 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
             hours_at_review: hoursValue ?? 0,
           },
         });
-        toast({ title: "Review atualizada!" });
+        toast({ title: t("reviewForm.updated") });
       } else {
         await createReview.mutateAsync({
           appId,
@@ -137,7 +142,7 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
           score: normalizedScore,
           hoursAtReview: hoursValue ?? 0,
         });
-        toast({ title: "Review publicada!" });
+        toast({ title: t("reviewForm.published") });
       }
 
       onClose?.();
@@ -148,14 +153,14 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       if (message.includes("RATE_LIMIT:60")) {
-        toast({ title: "Aguarde 60s para enviar outra review", variant: "destructive" });
+        toast({ title: t("reviewForm.rateLimit"), variant: "destructive" });
         return;
       }
       if (message.includes("DAILY_LIMIT:20")) {
-        toast({ title: "Você atingiu o limite diário de 20 reviews", variant: "destructive" });
+        toast({ title: t("reviewForm.dailyLimit"), variant: "destructive" });
         return;
       }
-      toast({ title: "Erro ao salvar review", variant: "destructive" });
+      toast({ title: t("reviewForm.saveError"), variant: "destructive" });
     }
   };
 
@@ -177,7 +182,7 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
             if (score === "" || score < 3) setScore(4);
           }}
         >
-          Recomendado
+          {t("gameModal.recommended")}
         </Button>
         <Button
           type="button"
@@ -187,12 +192,12 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
             if (score === "" || score >= 3) setScore(2);
           }}
         >
-          Não recomendado
+          {t("gameModal.notRecommended")}
         </Button>
       </div>
 
       <div>
-        <label className="text-sm text-muted-foreground">Nota (0 a 5)</label>
+        <label className="text-sm text-muted-foreground">{t("reviewForm.scoreLabel")}</label>
         <Input
           type="number"
           min="0"
@@ -216,13 +221,13 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
             setScore(bounded);
             setIsPositive(bounded >= 3);
           }}
-          placeholder="Ex: 4"
+          placeholder={t("reviewForm.scorePlaceholder")}
           required
         />
       </div>
 
       <Textarea
-        placeholder="Conte sua experiência com o jogo..."
+        placeholder={t("reviewForm.contentPlaceholder")}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={5}
@@ -230,7 +235,7 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
       />
 
       <div>
-        <label className="text-sm text-muted-foreground">Horas jogadas (opcional)</label>
+        <label className="text-sm text-muted-foreground">{t("reviewForm.hoursLabel")}</label>
         <Input
           type="number"
           min="0"
@@ -251,18 +256,18 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
             }
             setHoursAtReview(parsed);
           }}
-          placeholder="Ex: 12"
+          placeholder={t("reviewForm.hoursPlaceholder")}
         />
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Limite: 1 review por minuto e 20 por dia.
+        {t("reviewForm.limitHint")}
       </p>
 
       <div className="flex justify-end gap-2">
         {onClose && (
           <Button type="button" variant="outline" onClick={onClose}>
-            Cancelar
+            {t("common.actions.cancel")}
           </Button>
         )}
         {existingReview && (
@@ -272,26 +277,26 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
             className="border-destructive/40 text-destructive hover:bg-destructive/10"
             disabled={isSaving}
             onClick={async () => {
-              const confirmed = window.confirm("Tem certeza que deseja apagar sua review?");
+              const confirmed = window.confirm(t("reviewForm.deleteConfirm"));
               if (!confirmed) return;
               try {
                 await deleteReview.mutateAsync(existingReview.id);
-                toast({ title: "Review apagada!" });
+                toast({ title: t("reviewForm.deleteSuccess") });
                 onClose?.();
               } catch (error) {
-                toast({ title: "Erro ao apagar review", variant: "destructive" });
+                toast({ title: t("reviewForm.deleteError"), variant: "destructive" });
               }
             }}
           >
-            Apagar Review
+            {t("reviewForm.deleteAction")}
           </Button>
         )}
         <Button type="submit" disabled={isSaving || isCooldownActive}>
           {isSaving
-            ? "Salvando..."
+            ? t("reviewForm.saving")
             : isCooldownActive
-            ? `Aguarde ${Math.ceil(cooldownRemaining / 1000)}s`
-            : "Salvar Review"}
+            ? t("reviewForm.wait", { seconds: Math.ceil(cooldownRemaining / 1000) })
+            : t("reviewForm.saveAction")}
         </Button>
       </div>
     </form>
