@@ -144,6 +144,10 @@ for (const appId of appIds) {
       failCount += 1;
       continue;
     }
+    if (details.type && details.type !== "game") {
+      console.warn(`Skipping app ${appId}: type ${details.type}.`);
+      continue;
+    }
 
     const [activePlayers, reviewPercent] = await Promise.all([
       getCurrentPlayers(appId),

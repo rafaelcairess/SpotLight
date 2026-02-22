@@ -61,6 +61,62 @@ type SteamAppRow = {
 
 export type CatalogGame = GameData & { hasDetails: boolean };
 
+const normalizeText = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const NON_GAME_TITLE_PATTERNS = [
+  /\bdlc\b/i,
+  /\bsoundtrack\b/i,
+  /\bost\b/i,
+  /\bdemo\b/i,
+  /\bbeta\b/i,
+  /\bprologue\b/i,
+  /\bdedicated server\b/i,
+  /\bserver\b/i,
+  /\btool\b/i,
+  /\beditor\b/i,
+  /\bsdk\b/i,
+  /\bmod\b/i,
+  /\bartbook\b/i,
+  /\bseason pass\b/i,
+  /\bexpansion\b/i,
+  /\badd-?on\b/i,
+  /\bpack\b/i,
+  /\bskin\b/i,
+  /\bcosmetic\b/i,
+  /\btrilha sonora\b/i,
+  /\bpacote\b/i,
+  /\bpasse\b/i,
+  /\bexpansao\b/i,
+  /\bexpansão\b/i,
+];
+
+const NON_GAME_TAG_MARKERS = [
+  "dlc",
+  "soundtrack",
+  "demo",
+  "expansion",
+  "season pass",
+  "artbook",
+];
+
+const isLikelyGame = (game: { title?: string; tags?: string[]; genre?: string }) => {
+  const title = normalizeText(game.title ?? "");
+  if (NON_GAME_TITLE_PATTERNS.some((pattern) => pattern.test(title))) {
+    return false;
+  }
+
+  const tagBlob = normalizeText([game.genre ?? "", ...(game.tags ?? [])].join(" "));
+  if (NON_GAME_TAG_MARKERS.some((marker) => tagBlob.includes(marker))) {
+    return false;
+  }
+
+  return true;
+};
+
 const getPosterImage = (appId: number) =>
   `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`;
 
@@ -106,7 +162,7 @@ export function usePopularGames(limit = 10) {
         .limit(limit);
 
       if (error) throw error;
-      const games = (data as GameRow[]).map(mapGameRow);
+      const games = (data as GameRow[]).map(mapGameRow).filter(isLikelyGame);
       const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
       return mergeLocalizations(games, localizations);
     },
@@ -128,7 +184,7 @@ export function useTopRatedGames(limit = 12) {
         .limit(limit);
 
       if (error) throw error;
-      const games = (data as GameRow[]).map(mapGameRow);
+      const games = (data as GameRow[]).map(mapGameRow).filter(isLikelyGame);
       const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
       return mergeLocalizations(games, localizations);
     },
@@ -150,7 +206,7 @@ export function useAllGames(limit = 200) {
         .limit(limit);
 
       if (error) throw error;
-      const games = (data as GameRow[]).map(mapGameRow);
+      const games = (data as GameRow[]).map(mapGameRow).filter(isLikelyGame);
       const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
       return mergeLocalizations(games, localizations);
     },
@@ -173,7 +229,7 @@ export function useDiscountedGames(limit = 30) {
         .limit(limit);
 
       if (error) throw error;
-      const games = (data as GameRow[]).map(mapGameRow);
+      const games = (data as GameRow[]).map(mapGameRow).filter(isLikelyGame);
       const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
       return mergeLocalizations(games, localizations);
     },
@@ -199,7 +255,7 @@ export function useDiscountedGamesPaged(limit = 30, page = 1) {
         .range(from, to);
 
       if (error) throw error;
-      const games = (data as GameRow[]).map(mapGameRow);
+      const games = (data as GameRow[]).map(mapGameRow).filter(isLikelyGame);
       const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
       return {
         games: mergeLocalizations(games, localizations),
@@ -226,7 +282,7 @@ export function useGamesByIds(appIds: number[]) {
         .in("app_id", uniqueIds);
 
       if (error) throw error;
-      const games = (data as GameRow[]).map(mapGameRow);
+      const games = (data as GameRow[]).map(mapGameRow).filter(isLikelyGame);
       const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
       return mergeLocalizations(games, localizations);
     },
@@ -274,7 +330,10 @@ export function useSearchCatalog(query: string, limit = 20) {
       }
 
       if (!appsFailed && list.length > 0) {
-        const appIds = list.map((app) => app.app_id);
+        const filteredList = list.filter((app) =>
+          isLikelyGame({ title: app.name, tags: [], genre: undefined })
+        );
+        const appIds = filteredList.map((app) => app.app_id);
         const [gamesResponse, localizations] = await Promise.all([
           supabase.from("games").select("*").in("app_id", appIds),
           fetchLocalizations(appIds, locale),
@@ -287,7 +346,7 @@ export function useSearchCatalog(query: string, limit = 20) {
         );
         const localizationMap = new Map(localizations.map((row) => [row.app_id, row]));
 
-        return list.map((app) => {
+        const merged = filteredList.map((app) => {
           const fullGame = gameMap.get(app.app_id);
           if (fullGame) {
             return { ...applyLocalization(fullGame, localizationMap.get(app.app_id)), hasDetails: true };
@@ -303,6 +362,14 @@ export function useSearchCatalog(query: string, limit = 20) {
             hasDetails: false,
           };
         });
+
+        return merged.sort((a, b) => {
+          const playersDiff = (b.activePlayers ?? 0) - (a.activePlayers ?? 0);
+          if (playersDiff !== 0) return playersDiff;
+          const ratingDiff = (b.communityRating ?? 0) - (a.communityRating ?? 0);
+          if (ratingDiff !== 0) return ratingDiff;
+          return a.title.localeCompare(b.title);
+        });
       }
 
       // Fallback 1: if the catalog is empty, try searching the existing games table
@@ -315,12 +382,19 @@ export function useSearchCatalog(query: string, limit = 20) {
         .limit(limit);
 
       if (!gamesFallbackError && (gamesFallback?.length ?? 0) > 0) {
-        const games = (gamesFallback as GameRow[]).map(mapGameRow);
+        const games = (gamesFallback as GameRow[]).map(mapGameRow).filter(isLikelyGame);
         const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
-        return mergeLocalizations(games, localizations).map((game) => ({
+        const merged = mergeLocalizations(games, localizations).map((game) => ({
           ...game,
           hasDetails: true,
         }));
+        return merged.sort((a, b) => {
+          const playersDiff = (b.activePlayers ?? 0) - (a.activePlayers ?? 0);
+          if (playersDiff !== 0) return playersDiff;
+          const ratingDiff = (b.communityRating ?? 0) - (a.communityRating ?? 0);
+          if (ratingDiff !== 0) return ratingDiff;
+          return a.title.localeCompare(b.title);
+        });
       }
 
       const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke(
@@ -338,9 +412,13 @@ export function useSearchCatalog(query: string, limit = 20) {
         image?: string;
       }>;
 
-      if (items.length === 0) return [];
+      const filteredItems = items.filter((item) =>
+        isLikelyGame({ title: item.title, tags: [], genre: undefined })
+      );
 
-      const fallbackIds = items.map((item) => item.app_id);
+      if (filteredItems.length === 0) return [];
+
+      const fallbackIds = filteredItems.map((item) => item.app_id);
       const [gameRowsResponse, localizations] = await Promise.all([
         supabase.from("games").select("*").in("app_id", fallbackIds),
         fetchLocalizations(fallbackIds, locale),
@@ -351,7 +429,7 @@ export function useSearchCatalog(query: string, limit = 20) {
       );
       const localizationMap = new Map(localizations.map((row) => [row.app_id, row]));
 
-      return items.map((item) => {
+      const merged = filteredItems.map((item) => {
         const fullGame = gameMap.get(item.app_id);
         if (fullGame) {
           return { ...applyLocalization(fullGame, localizationMap.get(item.app_id)), hasDetails: true };
@@ -366,6 +444,14 @@ export function useSearchCatalog(query: string, limit = 20) {
           tags: localized?.tags || undefined,
           hasDetails: false,
         };
+      });
+
+      return merged.sort((a, b) => {
+        const playersDiff = (b.activePlayers ?? 0) - (a.activePlayers ?? 0);
+        if (playersDiff !== 0) return playersDiff;
+        const ratingDiff = (b.communityRating ?? 0) - (a.communityRating ?? 0);
+        if (ratingDiff !== 0) return ratingDiff;
+        return a.title.localeCompare(b.title);
       });
     },
     enabled: normalized.length >= 2,
