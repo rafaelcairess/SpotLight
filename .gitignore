@@ -11,13 +11,13 @@ node_modules
 dist
 dist-ssr
 *.local
-.lovable/
 .env
 .env.local
 .env.*.local
 
-# Supabase migrations (keep private)
-supabase/migrations/*.sql
+# SQL (keep private)
+*.sql
+supabase/migrations/
 
 # Editor directories and files
 .vscode/*
