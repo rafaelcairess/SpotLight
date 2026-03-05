@@ -1,22 +1,14 @@
-import { useEffect, useState } from "react";
+import { useLocalStorageState } from "@/hooks/useLocalStorageState";
+import { STORAGE_KEYS } from "@/config/storageKeys";
 
-export const useMaturePreference = (
-  storageKey = "spotlight.matureContent",
-  defaultValue = false
-) => {
-  const [enabled, setEnabled] = useState(defaultValue);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(storageKey);
-    if (stored === "true") setEnabled(true);
-    if (stored === "false") setEnabled(false);
-  }, [storageKey]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(storageKey, String(enabled));
-  }, [enabled, storageKey]);
-
-  return [enabled, setEnabled] as const;
-};
+export const useMaturePreference = () =>
+  useLocalStorageState<boolean>(
+    STORAGE_KEYS.matureContent,
+    false,
+    (raw) => {
+      if (raw === "true") return true;
+      if (raw === "false") return false;
+      return null;
+    },
+    (value) => String(value)
+  );

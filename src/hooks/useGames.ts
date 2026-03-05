@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { GameData } from "@/types/game";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { SupportedLocale } from "@/i18n/utils";
+import { getPosterImage } from "@/lib/steam";
+import { isLikelyGame } from "@/lib/gameFilters";
+import { sortByPopularity } from "@/lib/sort";
 
 type GameRow = {
   app_id: number;
@@ -60,65 +63,7 @@ type SteamAppRow = {
 };
 
 export type CatalogGame = GameData & { hasDetails: boolean };
-
-const normalizeText = (value: string) =>
-  value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-
-const NON_GAME_TITLE_PATTERNS = [
-  /\bdlc\b/i,
-  /\bsoundtrack\b/i,
-  /\bost\b/i,
-  /\bdemo\b/i,
-  /\bbeta\b/i,
-  /\bprologue\b/i,
-  /\bdedicated server\b/i,
-  /\bserver\b/i,
-  /\btool\b/i,
-  /\beditor\b/i,
-  /\bsdk\b/i,
-  /\bmod\b/i,
-  /\bartbook\b/i,
-  /\bseason pass\b/i,
-  /\bexpansion\b/i,
-  /\badd-?on\b/i,
-  /\bpack\b/i,
-  /\bskin\b/i,
-  /\bcosmetic\b/i,
-  /\btrilha sonora\b/i,
-  /\bpacote\b/i,
-  /\bpasse\b/i,
-  /\bexpansao\b/i,
-  /\bexpansão\b/i,
-];
-
-const NON_GAME_TAG_MARKERS = [
-  "dlc",
-  "soundtrack",
-  "demo",
-  "expansion",
-  "season pass",
-  "artbook",
-];
-
-const isLikelyGame = (game: { title?: string; tags?: string[]; genre?: string }) => {
-  const title = normalizeText(game.title ?? "");
-  if (NON_GAME_TITLE_PATTERNS.some((pattern) => pattern.test(title))) {
-    return false;
-  }
-
-  const tagBlob = normalizeText([game.genre ?? "", ...(game.tags ?? [])].join(" "));
-  if (NON_GAME_TAG_MARKERS.some((marker) => tagBlob.includes(marker))) {
-    return false;
-  }
-
-  return true;
-};
-
-const getPosterImage = (appId: number) =>
-  `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`;
+type CatalogItem = { app_id: number; title: string; image?: string };
 
 const applyLocalization = (game: GameData, localization?: GameLocalizationRow | null): GameData => {
   if (!localization) return game;
@@ -149,22 +94,81 @@ const mergeLocalizations = (games: GameData[], localizations: GameLocalizationRo
   return games.map((game) => applyLocalization(game, map.get(game.app_id)));
 };
 
+// Converte linhas do banco para o formato da UI + filtra nao-jogos.
+const mapRowsToGames = (rows?: GameRow[]) =>
+  (rows ?? []).map(mapGameRow).filter(isLikelyGame);
+
+// Aplica localizacoes para o idioma atual.
+const localizeGames = async (games: GameData[], locale: SupportedLocale) => {
+  if (!games.length) return [];
+  const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
+  return mergeLocalizations(games, localizations);
+};
+
+// Helper padrao para consultas de jogos com localizacoes.
+const fetchGamesWithLocalization = async (
+  fetcher: () => Promise<{ data: GameRow[] | null; error: unknown }>,
+  locale: SupportedLocale
+) => {
+  const { data, error } = await fetcher();
+  if (error) throw error;
+  const games = mapRowsToGames(data as GameRow[]);
+  return localizeGames(games, locale);
+};
+
+// Merge de itens do catalogo com detalhes/localizacao quando existirem.
+const mergeCatalogItems = async (items: CatalogItem[], locale: SupportedLocale) => {
+  if (!items.length) return [] as CatalogGame[];
+
+  const appIds = items.map((item) => item.app_id);
+  const [gamesResponse, localizations] = await Promise.all([
+    supabase.from("games").select("*").in("app_id", appIds),
+    fetchLocalizations(appIds, locale),
+  ]);
+
+  if (gamesResponse.error) throw gamesResponse.error;
+
+  const gameMap = new Map(
+    (gamesResponse.data as GameRow[]).map((row) => [row.app_id, mapGameRow(row)])
+  );
+  const localizationMap = new Map(localizations.map((row) => [row.app_id, row]));
+
+  return items.map((item) => {
+    const fullGame = gameMap.get(item.app_id);
+    if (fullGame) {
+      return {
+        ...applyLocalization(fullGame, localizationMap.get(item.app_id)),
+        hasDetails: true,
+      };
+    }
+    const localized = localizationMap.get(item.app_id);
+    return {
+      app_id: item.app_id,
+      title: localized?.title || item.title,
+      image: item.image || getPosterImage(item.app_id),
+      short_description: localized?.short_description || undefined,
+      genre: localized?.genre || undefined,
+      tags: localized?.tags || undefined,
+      hasDetails: false,
+    };
+  });
+};
+
 export function usePopularGames(limit = 10) {
   const { locale } = useLanguage();
 
   return useQuery({
     queryKey: ["games", "popular", locale, limit],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("games")
-        .select("*")
-        .order("active_players", { ascending: false })
-        .limit(limit);
-
-      if (error) throw error;
-      const games = (data as GameRow[]).map(mapGameRow).filter(isLikelyGame);
-      const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
-      return mergeLocalizations(games, localizations);
+      return fetchGamesWithLocalization(
+        () =>
+          supabase
+            .from("games")
+            .select("*")
+            .order("active_players", { ascending: false })
+            .limit(limit),
+        locale
+      );
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -177,16 +181,15 @@ export function useTopRatedGames(limit = 12) {
   return useQuery({
     queryKey: ["games", "top-rated", locale, limit],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("games")
-        .select("*")
-        .order("community_rating", { ascending: false })
-        .limit(limit);
-
-      if (error) throw error;
-      const games = (data as GameRow[]).map(mapGameRow).filter(isLikelyGame);
-      const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
-      return mergeLocalizations(games, localizations);
+      return fetchGamesWithLocalization(
+        () =>
+          supabase
+            .from("games")
+            .select("*")
+            .order("community_rating", { ascending: false })
+            .limit(limit),
+        locale
+      );
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -199,16 +202,15 @@ export function useAllGames(limit = 200) {
   return useQuery({
     queryKey: ["games", "all", locale, limit],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("games")
-        .select("*")
-        .order("last_synced", { ascending: false })
-        .limit(limit);
-
-      if (error) throw error;
-      const games = (data as GameRow[]).map(mapGameRow).filter(isLikelyGame);
-      const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
-      return mergeLocalizations(games, localizations);
+      return fetchGamesWithLocalization(
+        () =>
+          supabase
+            .from("games")
+            .select("*")
+            .order("last_synced", { ascending: false })
+            .limit(limit),
+        locale
+      );
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -221,17 +223,16 @@ export function useDiscountedGames(limit = 30) {
   return useQuery({
     queryKey: ["games", "discounted", locale, limit],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("games")
-        .select("*")
-        .gt("discount_percent", 0)
-        .order("active_players", { ascending: false })
-        .limit(limit);
-
-      if (error) throw error;
-      const games = (data as GameRow[]).map(mapGameRow).filter(isLikelyGame);
-      const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
-      return mergeLocalizations(games, localizations);
+      return fetchGamesWithLocalization(
+        () =>
+          supabase
+            .from("games")
+            .select("*")
+            .gt("discount_percent", 0)
+            .order("active_players", { ascending: false })
+            .limit(limit),
+        locale
+      );
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -255,10 +256,10 @@ export function useDiscountedGamesPaged(limit = 30, page = 1) {
         .range(from, to);
 
       if (error) throw error;
-      const games = (data as GameRow[]).map(mapGameRow).filter(isLikelyGame);
-      const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
+      const games = mapRowsToGames(data as GameRow[]);
+      const localized = await localizeGames(games, locale);
       return {
-        games: mergeLocalizations(games, localizations),
+        games: localized,
         count: count ?? 0,
       };
     },
@@ -276,15 +277,10 @@ export function useGamesByIds(appIds: number[]) {
     queryFn: async () => {
       if (uniqueIds.length === 0) return [];
 
-      const { data, error } = await supabase
-        .from("games")
-        .select("*")
-        .in("app_id", uniqueIds);
-
-      if (error) throw error;
-      const games = (data as GameRow[]).map(mapGameRow).filter(isLikelyGame);
-      const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
-      return mergeLocalizations(games, localizations);
+      return fetchGamesWithLocalization(
+        () => supabase.from("games").select("*").in("app_id", uniqueIds),
+        locale
+      );
     },
     enabled: uniqueIds.length > 0,
     staleTime: 24 * 60 * 60 * 1000,
@@ -334,46 +330,14 @@ export function useSearchCatalog(query: string, limit = 20) {
           isLikelyGame({ title: app.name, tags: [], genre: undefined })
         );
         const appIds = filteredList.map((app) => app.app_id);
-        const [gamesResponse, localizations] = await Promise.all([
-          supabase.from("games").select("*").in("app_id", appIds),
-          fetchLocalizations(appIds, locale),
-        ]);
-
-        if (gamesResponse.error) throw gamesResponse.error;
-
-        const gameMap = new Map(
-          (gamesResponse.data as GameRow[]).map((row) => [row.app_id, mapGameRow(row)])
+        const merged = await mergeCatalogItems(
+          filteredList.map((app) => ({ app_id: app.app_id, title: app.name })),
+          locale
         );
-        const localizationMap = new Map(localizations.map((row) => [row.app_id, row]));
-
-        const merged = filteredList.map((app) => {
-          const fullGame = gameMap.get(app.app_id);
-          if (fullGame) {
-            return { ...applyLocalization(fullGame, localizationMap.get(app.app_id)), hasDetails: true };
-          }
-          const localized = localizationMap.get(app.app_id);
-          return {
-            app_id: app.app_id,
-            title: localized?.title || app.name,
-            image: getPosterImage(app.app_id),
-            short_description: localized?.short_description || undefined,
-            genre: localized?.genre || undefined,
-            tags: localized?.tags || undefined,
-            hasDetails: false,
-          };
-        });
-
-        return merged.sort((a, b) => {
-          const playersDiff = (b.activePlayers ?? 0) - (a.activePlayers ?? 0);
-          if (playersDiff !== 0) return playersDiff;
-          const ratingDiff = (b.communityRating ?? 0) - (a.communityRating ?? 0);
-          if (ratingDiff !== 0) return ratingDiff;
-          return a.title.localeCompare(b.title);
-        });
+        return sortByPopularity(merged);
       }
 
-      // Fallback 1: if the catalog is empty, try searching the existing games table
-      // so we still return something even if the applist job has not run yet.
+      // Fallback 1: consulta direta na tabela games para nao ficar sem resultado.
       const { data: gamesFallback, error: gamesFallbackError } = await supabase
         .from("games")
         .select("*")
@@ -382,19 +346,13 @@ export function useSearchCatalog(query: string, limit = 20) {
         .limit(limit);
 
       if (!gamesFallbackError && (gamesFallback?.length ?? 0) > 0) {
-        const games = (gamesFallback as GameRow[]).map(mapGameRow).filter(isLikelyGame);
-        const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
-        const merged = mergeLocalizations(games, localizations).map((game) => ({
+        const games = mapRowsToGames(gamesFallback as GameRow[]);
+        const localized = await localizeGames(games, locale);
+        const merged = localized.map((game) => ({
           ...game,
           hasDetails: true,
         }));
-        return merged.sort((a, b) => {
-          const playersDiff = (b.activePlayers ?? 0) - (a.activePlayers ?? 0);
-          if (playersDiff !== 0) return playersDiff;
-          const ratingDiff = (b.communityRating ?? 0) - (a.communityRating ?? 0);
-          if (ratingDiff !== 0) return ratingDiff;
-          return a.title.localeCompare(b.title);
-        });
+        return sortByPopularity(merged);
       }
 
       const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke(
@@ -406,11 +364,7 @@ export function useSearchCatalog(query: string, limit = 20) {
         return [];
       }
 
-      const items = (fallbackData?.items ?? []) as Array<{
-        app_id: number;
-        title: string;
-        image?: string;
-      }>;
+      const items = (fallbackData?.items ?? []) as CatalogItem[];
 
       const filteredItems = items.filter((item) =>
         isLikelyGame({ title: item.title, tags: [], genre: undefined })
@@ -418,41 +372,8 @@ export function useSearchCatalog(query: string, limit = 20) {
 
       if (filteredItems.length === 0) return [];
 
-      const fallbackIds = filteredItems.map((item) => item.app_id);
-      const [gameRowsResponse, localizations] = await Promise.all([
-        supabase.from("games").select("*").in("app_id", fallbackIds),
-        fetchLocalizations(fallbackIds, locale),
-      ]);
-
-      const gameMap = new Map(
-        ((gameRowsResponse.data ?? []) as GameRow[]).map((row) => [row.app_id, mapGameRow(row)])
-      );
-      const localizationMap = new Map(localizations.map((row) => [row.app_id, row]));
-
-      const merged = filteredItems.map((item) => {
-        const fullGame = gameMap.get(item.app_id);
-        if (fullGame) {
-          return { ...applyLocalization(fullGame, localizationMap.get(item.app_id)), hasDetails: true };
-        }
-        const localized = localizationMap.get(item.app_id);
-        return {
-          app_id: item.app_id,
-          title: localized?.title || item.title,
-          image: item.image || getPosterImage(item.app_id),
-          short_description: localized?.short_description || undefined,
-          genre: localized?.genre || undefined,
-          tags: localized?.tags || undefined,
-          hasDetails: false,
-        };
-      });
-
-      return merged.sort((a, b) => {
-        const playersDiff = (b.activePlayers ?? 0) - (a.activePlayers ?? 0);
-        if (playersDiff !== 0) return playersDiff;
-        const ratingDiff = (b.communityRating ?? 0) - (a.communityRating ?? 0);
-        if (ratingDiff !== 0) return ratingDiff;
-        return a.title.localeCompare(b.title);
-      });
+      const merged = await mergeCatalogItems(filteredItems, locale);
+      return sortByPopularity(merged);
     },
     enabled: normalized.length >= 2,
     staleTime: 5 * 60 * 1000,
@@ -504,8 +425,8 @@ export function useGameById(appId?: number) {
       const game = data ? mapGameRow(data as GameRow) : null;
       if (!game) return null;
 
-      const localizations = await fetchLocalizations([game.app_id], locale);
-      return applyLocalization(game, localizations[0]);
+      const localized = await localizeGames([game], locale);
+      return localized[0] ?? game;
     },
     enabled: validId,
     staleTime: 10 * 60 * 1000,
@@ -558,8 +479,8 @@ export function useDailyFeaturedGame() {
 
       if (gameError) throw gameError;
       const mapped = mapGameRow(game as GameRow);
-      const localizations = await fetchLocalizations([mapped.app_id], locale);
-      return applyLocalization(mapped, localizations[0]);
+      const localized = await localizeGames([mapped], locale);
+      return localized[0] ?? mapped;
     },
     staleTime: 60 * 60 * 1000,
     gcTime: 24 * 60 * 60 * 1000,

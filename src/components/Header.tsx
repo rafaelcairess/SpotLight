@@ -1,4 +1,4 @@
-import { Search, Menu, X, LogOut, DollarSign, Users, Bell, Trophy, Flame, MessageSquare } from "lucide-react";
+﻿import { Search, Menu, X, LogOut, DollarSign, Users, Bell, Trophy, Flame, MessageSquare } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { UserAvatar } from "@/components/profile/UserAvatar";
+import { UserAvatar } from "@/features/profile/components/UserAvatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getDateLocale } from "@/i18n/utils";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import logoSpotlight from "../../assets/logospotlight.png";
+import logoSpotlight from "@/assets/logospotlight.png";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");

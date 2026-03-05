@@ -1,0 +1,237 @@
+﻿import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  GamepadIcon,
+  Heart,
+  Trophy,
+  BookOpen,
+  Bell,
+  Settings,
+} from "lucide-react";
+import Header from "@/components/Header";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
+import { useUserGames } from "@/hooks/useUserGames";
+import { useReviewsByUser } from "@/hooks/useReviews";
+import { useFollowCounts, useFollowers, useFollowing } from "@/hooks/useFollows";
+import { UserAvatar } from "@/features/profile/components/UserAvatar";
+import { ProfileStats } from "@/features/profile/components/ProfileStats";
+import { FollowListDialog } from "@/features/profile/components/FollowListDialog";
+import { ProfileLibrarySections } from "@/features/profile/components/ProfileLibrarySections";
+import { GameLibrary } from "@/features/profile/components/GameLibrary";
+import { ProfileReviews } from "@/features/profile/components/ProfileReviews";
+import { ProfileEditDialog } from "@/features/profile/components/ProfileEditDialog";
+import { TrophyShowcase } from "@/features/profile/components/TrophyShowcase";
+import { ProfileInsights } from "@/features/profile/components/ProfileInsights";
+import { ProfileTopGames } from "@/features/profile/components/ProfileTopGames";
+import GameModal from "@/features/games/components/GameModal";
+import { GameData } from "@/types/game";
+import { useTranslation } from "react-i18next";
+
+const Profile = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: userGames = [], isLoading: gamesLoading } = useUserGames();
+  const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByUser();
+  const { data: followCounts } = useFollowCounts(profile?.user_id);
+  const { data: followersList = [], isLoading: followersLoading } = useFollowers(profile?.user_id);
+  const { data: followingList = [], isLoading: followingLoading } = useFollowing(profile?.user_id);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isFollowersOpen, setIsFollowersOpen] = useState(false);
+  const [isFollowingOpen, setIsFollowingOpen] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { t } = useTranslation();
+
+  if (!authLoading && !user) {
+    navigate("/auth");
+    return null;
+  }
+
+  if (authLoading || profileLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-24 container mx-auto px-4">
+          <div className="animate-pulse space-y-6">
+            <div className="flex items-center gap-6">
+              <div className="w-24 h-24 rounded-full bg-secondary" />
+              <div className="space-y-2">
+                <div className="h-6 w-48 bg-secondary rounded" />
+                <div className="h-4 w-32 bg-secondary rounded" />
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  const favoriteGames = userGames.filter((g) => g.is_favorite);
+  const platinumGames = userGames.filter((g) => g.is_platinumed);
+
+  const handleOpenGame = (game: GameData) => {
+    setSelectedGame(game);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedGame(null);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+
+      <main className="pt-24 pb-12 container mx-auto px-4">
+        <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
+          <div className="relative">
+            <UserAvatar
+              src={profile?.avatar_url}
+              displayName={profile?.display_name}
+              username={profile?.username}
+              size="xl"
+            />
+          </div>
+
+          <div className="flex-1">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">
+                  {profile?.display_name || t("profile.defaultName")}
+                </h1>
+                <p className="text-muted-foreground">@{profile?.username}</p>
+                {profile?.bio && <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/alerts")}
+                >
+                  <Bell className="w-4 h-4" />
+                  {t("profile.alerts")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setIsEditOpen(true)}
+                >
+                  <Settings className="w-4 h-4" />
+                  {t("profile.settings")}
+                </Button>
+              </div>
+            </div>
+
+            <ProfileStats
+              totalGames={userGames.length}
+              favorites={favoriteGames.length}
+              platinums={platinumGames.length}
+              reviews={reviews.length}
+              followers={followCounts?.followers ?? 0}
+              following={followCounts?.following ?? 0}
+              onFollowersClick={() => setIsFollowersOpen(true)}
+              onFollowingClick={() => setIsFollowingOpen(true)}
+            />
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <TrophyShowcase games={platinumGames} isLoading={gamesLoading} />
+        </div>
+        <div className="mb-8">
+          <ProfileInsights games={userGames} isLoading={gamesLoading} />
+        </div>
+        <div className="mb-8">
+          <ProfileTopGames games={userGames} isLoading={gamesLoading} onGameSelect={handleOpenGame} />
+        </div>
+
+        <Tabs defaultValue="library" className="w-full">
+          <TabsList className="w-full justify-start border-b border-border/50 rounded-none bg-transparent h-auto p-0 mb-6 overflow-x-auto flex-nowrap">
+            <TabsTrigger
+              value="library"
+              className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+            >
+              <GamepadIcon className="w-4 h-4" />
+              {t("profile.library")} ({userGames.length})
+            </TabsTrigger>
+            <TabsTrigger
+              value="favorites"
+              className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+            >
+              <Heart className="w-4 h-4" />
+              {t("profile.favorites")} ({favoriteGames.length})
+            </TabsTrigger>
+            <TabsTrigger
+              value="platinum"
+              className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+            >
+              <Trophy className="w-4 h-4" />
+              {t("profile.platinums")} ({platinumGames.length})
+            </TabsTrigger>
+            <TabsTrigger
+              value="reviews"
+              className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+            >
+              <BookOpen className="w-4 h-4" />
+              {t("profile.reviews")} ({reviews.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="library">
+            <ProfileLibrarySections games={userGames} isLoading={gamesLoading} onGameSelect={handleOpenGame} />
+          </TabsContent>
+
+          <TabsContent value="favorites">
+            <GameLibrary
+              games={favoriteGames}
+              isLoading={gamesLoading}
+              emptyMessage={t("profile.emptyFavorites")}
+              highlightPlatinum
+              onGameSelect={handleOpenGame}
+            />
+          </TabsContent>
+
+          <TabsContent value="platinum">
+            <GameLibrary
+              games={platinumGames}
+              isLoading={gamesLoading}
+              emptyMessage={t("profile.emptyPlatinums")}
+              highlightPlatinum
+              cardTone="completed"
+              onGameSelect={handleOpenGame}
+            />
+          </TabsContent>
+
+          <TabsContent value="reviews">
+            <ProfileReviews reviews={reviews} isLoading={reviewsLoading} />
+          </TabsContent>
+        </Tabs>
+      </main>
+
+      <ProfileEditDialog open={isEditOpen} onOpenChange={setIsEditOpen} profile={profile} />
+
+      <FollowListDialog
+        open={isFollowersOpen}
+        onOpenChange={setIsFollowersOpen}
+        title={t("profile.followers")}
+        profiles={followersList}
+        isLoading={followersLoading}
+        emptyMessage={t("profile.emptyFollowers")}
+      />
+      <FollowListDialog
+        open={isFollowingOpen}
+        onOpenChange={setIsFollowingOpen}
+        title={t("profile.following")}
+        profiles={followingList}
+        isLoading={followingLoading}
+        emptyMessage={t("profile.emptyFollowing")}
+      />
+      <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />
+    </div>
+  );
+};
+
+export default Profile;

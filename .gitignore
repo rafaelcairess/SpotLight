@@ -18,6 +18,7 @@ dist-ssr
 # SQL (keep private)
 *.sql
 supabase/migrations/
+supabase/.temp/
 
 # Editor directories and files
 .vscode/*

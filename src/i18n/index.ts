@@ -2,8 +2,9 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { resources } from "./resources";
+import { STORAGE_KEYS } from "@/config/storageKeys";
 
-const LANGUAGE_KEY = "spotlight.lang";
+const LANGUAGE_KEY = STORAGE_KEYS.language;
 
 i18n
   .use(LanguageDetector)
@@ -22,5 +23,4 @@ i18n
     },
   });
 
-export { LANGUAGE_KEY };
 export default i18n;

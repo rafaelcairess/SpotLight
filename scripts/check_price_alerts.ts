@@ -104,6 +104,19 @@ const formatCurrency = (value: number | null, currency = "BRL") => {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(value);
 };
 
+const maskEmail = (email: string) => {
+  const trimmed = email.trim();
+  const atIndex = trimmed.indexOf("@");
+  if (atIndex <= 1) {
+    return "***";
+  }
+  const name = trimmed.slice(0, atIndex);
+  const domain = trimmed.slice(atIndex + 1);
+  const maskedName = `${name[0]}***`;
+  const maskedDomain = domain.length > 3 ? `***${domain.slice(-3)}` : "***";
+  return `${maskedName}@${maskedDomain}`;
+};
+
 const sendEmail = async ({
   to,
   subject,
@@ -231,7 +244,7 @@ const main = async () => {
       .update({ notified_at: new Date().toISOString() })
       .eq("id", alert.id);
 
-    console.log(`Email enviado para ${email} (${snapshot.title})`);
+    console.log(`Email enviado para ${maskEmail(email)} (${snapshot.title})`);
   }
 };
 

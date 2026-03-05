@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from "react";
-import i18n, { LANGUAGE_KEY } from "@/i18n";
+import { createContext, useContext, useEffect, useMemo, ReactNode } from "react";
+import i18n from "@/i18n";
 import { normalizeLocale, type SupportedLocale } from "@/i18n/utils";
+import { STORAGE_KEYS } from "@/config/storageKeys";
+import { useLocalStorageState } from "@/hooks/useLocalStorageState";
 
 type LanguageContextValue = {
   locale: SupportedLocale;
@@ -9,22 +11,19 @@ type LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
-const readInitialLocale = () => {
-  if (typeof window === "undefined") return normalizeLocale(i18n.language);
-  const stored = window.localStorage.getItem(LANGUAGE_KEY);
-  return normalizeLocale(stored || i18n.language);
-};
-
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [locale, setLocaleState] = useState<SupportedLocale>(readInitialLocale);
+  const defaultLocale = normalizeLocale(i18n.language);
+  const [locale, setLocaleState] = useLocalStorageState<SupportedLocale>(
+    STORAGE_KEYS.language,
+    defaultLocale,
+    (raw) => (raw ? normalizeLocale(raw) : null),
+    (value) => value
+  );
 
   useEffect(() => {
     i18n.changeLanguage(locale);
     if (typeof document !== "undefined") {
       document.documentElement.lang = locale;
-    }
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(LANGUAGE_KEY, locale);
     }
   }, [locale]);
 

@@ -12,8 +12,6 @@ export interface FeedbackItem {
   created_at: string;
 }
 
-const ADMIN_EMAILS = ["rafaelcairespires@gmail.com"];
-
 export function useSendFeedback() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -60,7 +58,7 @@ export function useSendFeedback() {
 
 export function useFeedbackList() {
   const { user } = useAuth();
-  const isAdmin = !!user?.email && ADMIN_EMAILS.includes(user.email);
+  const isAdmin = user?.app_metadata?.role === "admin";
 
   return useQuery({
     queryKey: ["feedback", "list"],
