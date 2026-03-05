@@ -57,12 +57,14 @@ const mapGameRow = (row: GameRow): GameData => ({
   platforms: row.platforms || undefined,
 });
 
+// Cria um placeholder quando nao temos detalhes completos no catalogo.
 const buildPlaceholderGame = (appId: number, title: string): GameData => ({
   app_id: appId,
   title,
   image: getPosterImage(appId),
 });
 
+// Busca um app por nome no cache de apps da Steam.
 const findSteamApp = async (query: string) => {
   const { data, error } = await supabase
     .from("steam_apps")
@@ -79,6 +81,7 @@ const findSteamApp = async (query: string) => {
   return app;
 };
 
+// Aplica filtros de genero/tag considerando normalizacao.
 const matchesGenreAndTag = (game: GameData, genreFilter: string, tagFilter: string) => {
   const normalizedGenreFilter = normalizeText(genreFilter);
   const normalizedTagFilter = normalizeText(tagFilter);
@@ -104,6 +107,7 @@ export function useTopGamesRanking(genreFilter = "", tagFilter = "", limit = 100
   return useQuery({
     queryKey: ["games", "ranking", "curated", genreFilter, tagFilter, limit],
     queryFn: async () => {
+      // Monta termos unicos da curadoria para buscar no catalogo.
       const curatedTerms = Array.from(
         new Set(
           TOP_GAMES_SERIES_CURATED.flatMap((entry) => entry.match)
@@ -116,6 +120,7 @@ export function useTopGamesRanking(genreFilter = "", tagFilter = "", limit = 100
         .map((term) => `title.ilike.%${term}%`)
         .join(",");
 
+      // Busca em paralelo: pool curado + pool popular.
       const [{ data: curatedData, error: curatedError }, { data: popularData, error: popularError }] =
         await Promise.all([
           curatedOr
@@ -135,6 +140,7 @@ export function useTopGamesRanking(genreFilter = "", tagFilter = "", limit = 100
       const popularPool = ((popularData || []) as GameRow[]).map(mapGameRow);
       const takenIds = new Set<number>();
 
+      // Primeiro preenche a lista com a curadoria (por ordem declarada).
       const curated: RankedGame[] = [];
       for (const entry of TOP_GAMES_SERIES_CURATED) {
         const found = curatedPool.find(
@@ -150,6 +156,7 @@ export function useTopGamesRanking(genreFilter = "", tagFilter = "", limit = 100
           continue;
         }
 
+        // Fallback: tenta achar o app direto pelo nome na Steam.
         const fallbackQuery = entry.steamQuery || entry.label;
         const steamApp = await findSteamApp(fallbackQuery);
         if (!steamApp) continue;
@@ -163,6 +170,7 @@ export function useTopGamesRanking(genreFilter = "", tagFilter = "", limit = 100
         curated.push({ ...placeholder, isCurated: true, hasDetails: false });
       }
 
+      // Preenche o restante com populares, respeitando filtros e evitando repeticao.
       const remaining = popularPool
         .filter((game) => !takenIds.has(game.app_id))
         .filter((game) => matchesGenreAndTag(game, genreFilter, tagFilter))

@@ -115,6 +115,7 @@ export function useEnsureFavoriteGame() {
   const { locale } = useLanguage();
 
   return useMutation({
+    // Garante detalhes do jogo (melhor esforco) e marca como favorito.
     mutationFn: async (appId: number) => {
       if (!user?.id) throw new Error("Not authenticated");
 
@@ -126,6 +127,7 @@ export function useEnsureFavoriteGame() {
         // Melhor esforço: se falhar, ainda salva favorito.
       }
 
+      // Verifica se ja existe entrada na biblioteca.
       const { data: existing, error: existingError } = await supabase
         .from("user_games")
         .select("*")
@@ -136,6 +138,7 @@ export function useEnsureFavoriteGame() {
       if (existingError) throw existingError;
 
       if (existing) {
+        // Atualiza somente o favorito se ja existir.
         const { data, error } = await supabase
           .from("user_games")
           .update({ is_favorite: true })
@@ -147,6 +150,7 @@ export function useEnsureFavoriteGame() {
         return data as UserGame;
       }
 
+      // Se nao existir, cria a entrada ja como favorita.
       const { data, error } = await supabase
         .from("user_games")
         .insert({

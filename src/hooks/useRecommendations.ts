@@ -45,8 +45,10 @@ export interface RecommendedGame extends GameData {
   matchedTags: string[];
 }
 
+// Normaliza token para comparacoes simples.
 const normalizeToken = (value: string) => value.trim().toLowerCase();
 
+// Converte genero/tags em tokens unicos para score de recomendacao.
 const gameToTokens = (game: Pick<GameRow, "genre" | "tags">): string[] => {
   const genreTokens = (game.genre || "")
     .split(",")
@@ -56,6 +58,7 @@ const gameToTokens = (game: Pick<GameRow, "genre" | "tags">): string[] => {
   return Array.from(new Set([...genreTokens, ...tagTokens]));
 };
 
+// Mapeia o formato do banco para o formato usado pela UI.
 const mapGameRow = (row: GameRow): GameData => ({
   app_id: row.app_id,
   title: row.title,
@@ -82,6 +85,7 @@ export function useRecommendations(limit = 12) {
     queryFn: async () => {
       if (!user?.id) return [] as RecommendedGame[];
 
+      // Carrega biblioteca e reviews do usuario em paralelo.
       const [{ data: userGames, error: userGamesError }, { data: userReviews, error: reviewsError }] = await Promise.all([
         supabase
           .from("user_games")
@@ -100,6 +104,7 @@ export function useRecommendations(limit = 12) {
       const reviews = (userReviews || []) as ReviewRow[];
       const ownedAppIds = new Set(profileGames.map((game) => game.app_id));
 
+      // Busca metadados de jogos do usuario + candidatos populares.
       const [ownedGamesResult, candidateGamesResult] = await Promise.all([
         profileGames.length
           ? supabase
@@ -121,6 +126,7 @@ export function useRecommendations(limit = 12) {
       const candidateGames = (candidateGamesResult.data || []) as GameRow[];
 
       const ownedGameMap = new Map(ownedGames.map((game) => [game.app_id, game]));
+      // Tabela de pesos por tag/genre com base no historico do usuario.
       const tagWeights = new Map<string, number>();
 
       const addWeight = (token: string, weight: number) => {
@@ -128,6 +134,7 @@ export function useRecommendations(limit = 12) {
         tagWeights.set(token, current + weight);
       };
 
+      // Pesos baseados em biblioteca (favoritos, horas, status, etc).
       for (const game of profileGames) {
         const catalogGame = ownedGameMap.get(game.app_id);
         if (!catalogGame) continue;
@@ -145,6 +152,7 @@ export function useRecommendations(limit = 12) {
         }
       }
 
+      // Ajusta pesos com base nas reviews (positivo x negativo).
       for (const review of reviews) {
         const catalogGame = ownedGameMap.get(review.app_id);
         if (!catalogGame) continue;
@@ -155,6 +163,7 @@ export function useRecommendations(limit = 12) {
         }
       }
 
+      // Scora candidatos que o usuario ainda nao tem.
       const recommendations: RecommendedGame[] = [];
       for (const game of candidateGames) {
         if (ownedAppIds.has(game.app_id)) continue;
@@ -174,6 +183,7 @@ export function useRecommendations(limit = 12) {
 
         if (tagScore <= 0) continue;
 
+        // Soma signal de rating e popularidade ao score de tags.
         const ratingScore = (game.community_rating || 0) * 0.08;
         const popularityScore = game.active_players
           ? Math.log10(game.active_players + 1) * 3
@@ -186,6 +196,7 @@ export function useRecommendations(limit = 12) {
         });
       }
 
+      // Se nao houver recomendacoes personalizadas, volta para populares.
       if (recommendations.length === 0) {
         return candidateGames
           .filter((game) => !ownedAppIds.has(game.app_id))

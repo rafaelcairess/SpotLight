@@ -41,6 +41,7 @@ type GameLocalizationRow = {
   updated_at: string;
 };
 
+// Mapeia o formato do banco para o formato usado pela UI.
 const mapGameRow = (row: GameRow): GameData => ({
   app_id: row.app_id,
   title: row.title,
@@ -69,6 +70,7 @@ type SteamAppRow = {
 export type CatalogGame = GameData & { hasDetails: boolean };
 type CatalogItem = { app_id: number; title: string; image?: string };
 
+// Aplica campos localizados sem perder o fallback original.
 const applyLocalization = (game: GameData, localization?: GameLocalizationRow | null): GameData => {
   if (!localization) return game;
   return {
@@ -80,6 +82,7 @@ const applyLocalization = (game: GameData, localization?: GameLocalizationRow | 
   };
 };
 
+// Busca localizacoes por app_id + locale.
 const fetchLocalizations = async (appIds: number[], locale: SupportedLocale) => {
   if (!appIds.length) return [] as GameLocalizationRow[];
   const { data, error } = await supabase
@@ -92,6 +95,7 @@ const fetchLocalizations = async (appIds: number[], locale: SupportedLocale) => 
   return (data ?? []) as GameLocalizationRow[];
 };
 
+// Mescla localizacoes mantendo a ordem original da lista.
 const mergeLocalizations = (games: GameData[], localizations: GameLocalizationRow[]) => {
   if (!localizations.length) return games;
   const map = new Map(localizations.map((row) => [row.app_id, row]));
@@ -109,7 +113,7 @@ const localizeGames = async (games: GameData[], locale: SupportedLocale) => {
   return mergeLocalizations(games, localizations);
 };
 
-// Helper padrao para consultas de jogos com localizacoes.
+// Helper padrao para consultas de jogos com localizacoes e filtro de nao-jogos.
 const fetchGamesWithLocalization = async (
   fetcher: () => Promise<{ data: GameRow[] | null; error: unknown }>,
   locale: SupportedLocale
@@ -121,6 +125,7 @@ const fetchGamesWithLocalization = async (
 };
 
 // Merge de itens do catalogo com detalhes/localizacao quando existirem.
+// Quando nao existe detalhe, monta um GameData minimo com poster e placeholders.
 const mergeCatalogItems = async (items: CatalogItem[], locale: SupportedLocale) => {
   if (!items.length) return [] as CatalogGame[];
 
@@ -309,6 +314,7 @@ export function useSearchCatalog(query: string, limit = 20) {
     queryFn: async () => {
       if (normalized.length < 2) return [];
 
+      // 1) Tenta via steam_apps (cache local do app list).
       let list: SteamAppRow[] = [];
       let appsFailed = false;
 
@@ -333,7 +339,6 @@ export function useSearchCatalog(query: string, limit = 20) {
         const filteredList = list.filter((app) =>
           isLikelyGame({ title: app.name, tags: [], genre: undefined })
         );
-        const appIds = filteredList.map((app) => app.app_id);
         const merged = await mergeCatalogItems(
           filteredList.map((app) => ({ app_id: app.app_id, title: app.name })),
           locale
@@ -359,6 +364,7 @@ export function useSearchCatalog(query: string, limit = 20) {
         return sortByPopularity(merged);
       }
 
+      // Fallback 2: consulta via edge function quando o cache local falha.
       const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke(
         "search-steam",
         { body: { query: normalized, limit, language: locale } },
@@ -443,6 +449,7 @@ export function useEnsureGameDetails() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    // Busca detalhes completos na Steam via edge function.
     mutationFn: async (appId: number) => {
       const { data, error } = await supabase.functions.invoke("fetch-steam-details", {
         body: { app_id: appId, language: locale },
@@ -450,6 +457,7 @@ export function useEnsureGameDetails() {
       if (error) throw error;
       return data as { status: string; app_id: number };
     },
+    // Revalida caches que dependem do detalhe do jogo.
     onSuccess: (_, appId) => {
       queryClient.invalidateQueries({ queryKey: ["games", "by-id", appId] });
       queryClient.invalidateQueries({ queryKey: ["games", "by-ids"] });
