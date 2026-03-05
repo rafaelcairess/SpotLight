@@ -1,3 +1,7 @@
+/**
+ * Arquivo do projeto (setup).
+ */
+
 import "@testing-library/jest-dom";
 
 Object.defineProperty(window, "matchMedia", {

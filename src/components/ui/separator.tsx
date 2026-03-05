@@ -1,3 +1,7 @@
+/**
+ * Componente de UI compartilhado (separator).
+ */
+
 import * as React from "react";
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 

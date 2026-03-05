@@ -1,3 +1,7 @@
+/**
+ * Componente da feature games.
+ */
+
 import { useMemo } from "react";
 import {
   Plus,

@@ -1,3 +1,7 @@
+/**
+ * Componente da feature games.
+ */
+
 import { Users, Star, Calendar, Building } from "lucide-react";
 import { GameData } from "@/types/game";
 import { cn } from "@/lib/utils";

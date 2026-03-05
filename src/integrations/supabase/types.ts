@@ -1,3 +1,7 @@
+/**
+ * Arquivo do projeto (types).
+ */
+
 export type Json =
   | string
   | number

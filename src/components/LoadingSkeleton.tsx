@@ -1,3 +1,7 @@
+/**
+ * Componente compartilhado (LoadingSkeleton).
+ */
+
 import { cn } from "@/lib/utils";
 
 interface LoadingSkeletonProps {

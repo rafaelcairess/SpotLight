@@ -1,3 +1,7 @@
+/**
+ * Componente da feature profile.
+ */
+
 import { GamepadIcon, Heart, Trophy, BookOpen, Users, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

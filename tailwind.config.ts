@@ -1,3 +1,7 @@
+/**
+ * Arquivo do projeto (tailwind.config).
+ */
+
 import type { Config } from "tailwindcss";
 
 export default {

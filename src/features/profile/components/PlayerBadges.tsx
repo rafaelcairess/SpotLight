@@ -1,3 +1,7 @@
+/**
+ * Componente da feature profile.
+ */
+
 import { useMemo } from "react";
 import { Shield, Users, Trophy } from "lucide-react";
 import { UserGame } from "@/hooks/useUserGames";

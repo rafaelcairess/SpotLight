@@ -1,3 +1,7 @@
+/**
+ * Hook de dados/estado (useMaturePreference).
+ */
+
 import { useLocalStorageState } from "@/hooks/useLocalStorageState";
 import { STORAGE_KEYS } from "@/config/storageKeys";
 

@@ -1,3 +1,7 @@
+/**
+ * Configuracao e recursos de i18n (utils).
+ */
+
 import { enUS, es, ptBR } from "date-fns/locale";
 
 export type SupportedLocale = "pt" | "en" | "es";

@@ -1,3 +1,7 @@
+/**
+ * Componente da feature profile.
+ */
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
 import { cn } from '@/lib/utils';

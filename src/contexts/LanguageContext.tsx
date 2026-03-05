@@ -1,3 +1,7 @@
+/**
+ * Arquivo do projeto (LanguageContext).
+ */
+
 import { createContext, useContext, useEffect, useMemo, ReactNode } from "react";
 import i18n from "@/i18n";
 import { normalizeLocale, type SupportedLocale } from "@/i18n/utils";

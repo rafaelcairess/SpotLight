@@ -1,6 +1,11 @@
 /// <reference types="node" />
 /// <reference lib="dom" />
 
+/**
+ * Script de manutencao/sync (check price alerts).
+ */
+
+
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";

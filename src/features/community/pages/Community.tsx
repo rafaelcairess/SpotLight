@@ -1,3 +1,7 @@
+/**
+ * Pagina da feature community.
+ */
+
 ﻿import { useMemo, useState } from "react";
 import { Search, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";

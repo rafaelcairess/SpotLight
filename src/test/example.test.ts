@@ -1,3 +1,7 @@
+/**
+ * Arquivo do projeto (example.test).
+ */
+
 import { describe, it, expect } from "vitest";
 
 describe("example", () => {

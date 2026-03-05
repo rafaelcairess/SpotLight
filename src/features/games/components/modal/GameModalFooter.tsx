@@ -1,3 +1,7 @@
+/**
+ * Componente da feature games.
+ */
+
 import { Button } from "@/components/ui/button";
 import { GameData } from "@/types/game";
 import steamIcon from "@/assets/steam.png";

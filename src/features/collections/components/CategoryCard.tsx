@@ -1,3 +1,7 @@
+/**
+ * Componente da feature collections.
+ */
+
 import { Link } from "react-router-dom";
 import {
   Building2,

@@ -1,3 +1,7 @@
+/**
+ * Helpers utilitarios (sort).
+ */
+
 export const sortByPopularity = <T extends { activePlayers?: number; communityRating?: number; title?: string }>(
   items: T[]
 ) =>

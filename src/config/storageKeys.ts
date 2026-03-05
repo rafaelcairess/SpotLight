@@ -1,3 +1,7 @@
+/**
+ * Configuracao/constantes (storageKeys).
+ */
+
 export const STORAGE_KEYS = {
   language: "spotlight.lang",
   onboarding: "spotlight.onboarding.v2",

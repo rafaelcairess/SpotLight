@@ -1,3 +1,7 @@
+/**
+ * Componente da feature profile.
+ */
+
 import { useEffect, useRef, useState, useMemo } from "react";
 import { Loader2, Upload } from "lucide-react";
 import {

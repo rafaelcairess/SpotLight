@@ -1,3 +1,7 @@
+/**
+ * Componente da feature profile.
+ */
+
 import { useMemo, useState } from "react";
 import { Star, Settings } from "lucide-react";
 import { useUserTopGames } from "@/hooks/useTopGames";

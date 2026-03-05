@@ -1,3 +1,7 @@
+/**
+ * Pagina da feature explore.
+ */
+
 ﻿import { useMemo, useRef, useState } from "react";
 import {
   TrendingUp,

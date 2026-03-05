@@ -1,3 +1,7 @@
+/**
+ * Componente da feature explore.
+ */
+
 import { Info, Users, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GameData } from "@/types/game";

@@ -1,3 +1,7 @@
+/**
+ * Pagina da feature promotions.
+ */
+
 ﻿import Header from "@/components/Header";
 import PromotionsBar from "@/features/promotions/components/PromotionsBar";
 

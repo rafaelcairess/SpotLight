@@ -1,3 +1,7 @@
+/**
+ * Componente da feature games.
+ */
+
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { GameData } from "@/types/game";

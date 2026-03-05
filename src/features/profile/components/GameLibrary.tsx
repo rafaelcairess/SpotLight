@@ -1,3 +1,7 @@
+/**
+ * Componente da feature profile.
+ */
+
 import { useMemo } from "react";
 import { Heart, Trophy, Clock, Trash2, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";

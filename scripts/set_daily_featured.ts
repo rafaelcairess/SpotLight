@@ -1,3 +1,7 @@
+/**
+ * Script de manutencao/sync (set daily featured).
+ */
+
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../src/integrations/supabase/types";
 

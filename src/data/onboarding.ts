@@ -1,3 +1,7 @@
+/**
+ * Dados locais (onboarding).
+ */
+
 export const onboardingContent = {
   intro: {
     titleKey: "onboarding.introTitle",

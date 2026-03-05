@@ -1,3 +1,7 @@
+/**
+ * Hook de dados/estado (useRecommendations).
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";

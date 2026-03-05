@@ -1,3 +1,7 @@
+/**
+ * Helpers utilitarios (text).
+ */
+
 export const normalizeText = (value: string) =>
   value
     .normalize("NFD")

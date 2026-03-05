@@ -1,3 +1,7 @@
+/**
+ * Componente de UI compartilhado (avatar).
+ */
+
 import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 

@@ -1,3 +1,7 @@
+/**
+ * Pagina da feature most-played.
+ */
+
 ﻿import { useState } from "react";
 import { Flame, Loader2 } from "lucide-react";
 import Header from "@/components/Header";

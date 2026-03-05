@@ -1,3 +1,7 @@
+/**
+ * Componente da feature profile.
+ */
+
 import { useMemo } from "react";
 import { Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";

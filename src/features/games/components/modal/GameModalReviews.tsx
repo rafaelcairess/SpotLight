@@ -1,3 +1,7 @@
+/**
+ * Componente da feature games.
+ */
+
 import { useState } from "react";
 import {
   ThumbsUp,

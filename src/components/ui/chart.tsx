@@ -1,3 +1,7 @@
+/**
+ * Componente de UI compartilhado (chart).
+ */
+
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 

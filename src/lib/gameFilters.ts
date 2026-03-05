@@ -1,3 +1,7 @@
+/**
+ * Helpers utilitarios (gameFilters).
+ */
+
 import { normalizeText } from "@/lib/text";
 
 const NON_GAME_TITLE_PATTERNS = [

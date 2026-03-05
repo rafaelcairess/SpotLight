@@ -1,3 +1,7 @@
+/**
+ * Dados/curadoria da feature top.
+ */
+
 export interface CuratedTopGameEntry {
   label: string;
   match: string[];

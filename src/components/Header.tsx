@@ -1,3 +1,7 @@
+/**
+ * Componente compartilhado (Header).
+ */
+
 ﻿import { Search, Menu, X, LogOut, DollarSign, Users, Bell, Trophy, Flame, MessageSquare } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";

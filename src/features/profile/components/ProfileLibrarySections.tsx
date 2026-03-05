@@ -1,3 +1,7 @@
+/**
+ * Componente da feature profile.
+ */
+
 ﻿import { GamepadIcon, CheckCircle2, XCircle } from "lucide-react";
 import { GameLibrary } from "@/features/profile/components/GameLibrary";
 import { UserGame } from "@/hooks/useUserGames";

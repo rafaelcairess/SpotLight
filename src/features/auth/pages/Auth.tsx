@@ -1,3 +1,7 @@
+/**
+ * Pagina da feature auth.
+ */
+
 ﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Orbit } from "lucide-react";

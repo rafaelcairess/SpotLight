@@ -1,3 +1,7 @@
+/**
+ * Dados/curadoria da feature explore.
+ */
+
 export interface ReadyList {
   id: string;
   appIds: number[];

@@ -1,3 +1,7 @@
+/**
+ * Helpers utilitarios (sentry).
+ */
+
 import * as Sentry from "@sentry/react";
 
 export const initSentry = () => {

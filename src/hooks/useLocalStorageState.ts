@@ -1,3 +1,7 @@
+/**
+ * Hook de dados/estado (useLocalStorageState).
+ */
+
 import { useEffect, useRef, useState } from "react";
 
 type Parser<T> = (raw: string | null) => T | null;

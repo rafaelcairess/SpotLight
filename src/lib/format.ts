@@ -1,3 +1,7 @@
+/**
+ * Helpers utilitarios (format).
+ */
+
 // Helpers pequenos para formatacao usada em varios lugares da UI.
 
 export const formatPlayers = (count?: number) => {

@@ -1,3 +1,7 @@
+/**
+ * Componente da feature games.
+ */
+
 import { Badge } from "@/components/ui/badge";
 import { GameData } from "@/types/game";
 import { getPosterImage } from "@/lib/steam";

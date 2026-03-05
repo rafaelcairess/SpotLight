@@ -1,3 +1,7 @@
+/**
+ * Pagina da feature feedback.
+ */
+
 import { useMemo, useState } from "react";
 import { MessageSquare, Loader2 } from "lucide-react";
 import { format } from "date-fns";
