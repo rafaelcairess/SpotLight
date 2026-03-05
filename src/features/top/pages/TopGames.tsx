@@ -1,5 +1,5 @@
 /**
- * Pagina da feature top.
+ * Página da feature top.
  */
 
 ﻿import { useState } from "react";

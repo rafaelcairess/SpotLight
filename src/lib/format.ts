@@ -1,5 +1,5 @@
 /**
- * Helpers utilitarios (format).
+ * Helpers utilitários (format).
  */
 
 // Helpers pequenos para formatacao usada em varios lugares da UI.

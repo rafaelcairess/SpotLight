@@ -90,7 +90,7 @@ const Header = () => {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Navegacao desktop */}
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <Link
@@ -111,7 +111,7 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Search Bar - Desktop */}
+          {/* Barra de busca - desktop */}
           <form onSubmit={handleSearch} className="hidden md:flex items-center gap-2 flex-1 max-w-md ml-4 mr-2">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -125,7 +125,7 @@ const Header = () => {
             </div>
           </form>
 
-          {/* Auth Section - Desktop */}
+          {/* Area de autenticacao - desktop */}
           <div className="hidden md:flex items-center gap-4">
             {!authLoading && (
               user ? (
@@ -232,7 +232,7 @@ const Header = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Botao do menu mobile */}
           <Button
             variant="ghost"
             size="icon"
@@ -247,10 +247,10 @@ const Header = () => {
           </Button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Menu mobile */}
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-border/30 animate-fade-in">
-            {/* Mobile Search */}
+            {/* Busca mobile */}
             <form onSubmit={handleSearch} className="mb-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -264,7 +264,7 @@ const Header = () => {
               </div>
             </form>
 
-            {/* Mobile Nav Links */}
+            {/* Links de navegacao mobile */}
             <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
@@ -286,7 +286,7 @@ const Header = () => {
               ))}
             </nav>
 
-            {/* Mobile Auth */}
+            {/* Autenticacao mobile */}
             <div className="mt-4 pt-4 border-t border-border/30 space-y-2">
               <div className="flex items-center justify-between px-3">
                 <span className="text-xs text-muted-foreground">{t("common.language")}</span>

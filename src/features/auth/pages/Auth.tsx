@@ -1,5 +1,5 @@
 /**
- * Pagina da feature auth.
+ * Página da feature auth.
  */
 
 ﻿import { useState, useEffect } from "react";

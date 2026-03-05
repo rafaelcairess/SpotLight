@@ -124,7 +124,7 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
         try {
           await addGame.mutateAsync({ appId, status: "playing" });
         } catch (error) {
-          // Ignore if already in library
+          // Ignora se ja estiver na biblioteca
         }
       }
 

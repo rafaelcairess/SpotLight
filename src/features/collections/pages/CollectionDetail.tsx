@@ -1,5 +1,5 @@
 /**
- * Pagina da feature collections.
+ * Página da feature collections.
  */
 
 ﻿import { useState } from "react";
@@ -220,7 +220,7 @@ const CollectionDetail = () => {
 
       <main className="pt-24 md:pt-28 pb-12">
         <div className="container mx-auto px-4">
-          {/* Back Button */}
+          {/* Botao de voltar */}
           <Link
             to="/collections"
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
@@ -229,7 +229,7 @@ const CollectionDetail = () => {
             {t("collectionDetail.back")}
           </Link>
 
-          {/* Category Header */}
+          {/* Cabecalho da categoria */}
           <div
             className={`relative rounded-2xl overflow-hidden mb-8 bg-gradient-to-br ${category.gradient} border border-border/30`}
           >
@@ -244,7 +244,7 @@ const CollectionDetail = () => {
             </div>
           </div>
 
-          {/* Games Grid */}
+          {/* Grade de jogos */}
           {isPageLoading ? (
             <LoadingSkeleton variant="card" count={6} />
           ) : games.length === 0 ? (

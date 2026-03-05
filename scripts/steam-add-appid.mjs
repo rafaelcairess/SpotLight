@@ -1,5 +1,5 @@
 /**
- * Script de manutencao/sync (steam add appid).
+ * Script de manutenção/sync (steam add appid).
  */
 
 import fs from "fs";

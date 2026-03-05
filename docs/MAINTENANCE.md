@@ -1,39 +1,39 @@
-# SpotLight Maintenance Guide
+# Guia de Manutencao do SpotLight
 
-## Project structure
-- `src/features`: feature-first UI (pages + feature components).
-- `src/components`: shared UI pieces (Header, SectionHeader, LayoutToggle, UI kit).
-- `src/hooks`: data hooks and local state helpers.
-- `src/lib`: reusable helpers (text, filters, sorting, steam URLs).
-- `src/config`: centralized constants (localStorage keys, feature flags).
-- `src/i18n`: translations and language setup.
+## Estrutura do projeto
+- `src/features`: UI por feature (paginas + componentes da feature).
+- `src/components`: componentes compartilhados (Header, SectionHeader, LayoutToggle, UI kit).
+- `src/hooks`: hooks de dados e estados locais.
+- `src/lib`: helpers reutilizaveis (texto, filtros, ordenacao, URLs da Steam).
+- `src/config`: constantes centralizadas (chaves de localStorage, flags).
+- `src/i18n`: traducoes e setup de idioma.
 - `supabase/functions`: edge functions.
-- `scripts`: Node/TS scripts for sync jobs.
+- `scripts`: scripts Node/TS para syncs e rotinas.
 
-## Common patterns
-- **LocalStorage keys** live in `src/config/storageKeys.ts`.
-- **Text normalization** and matching live in `src/lib/text.ts`.
-- **Steam URLs and images** live in `src/lib/steam.ts`.
-- **Filtering non-game content** lives in `src/lib/gameFilters.ts`.
-- **Popularity sorting** lives in `src/lib/sort.ts`.
+## Padroes comuns
+- **Chaves do LocalStorage** em `src/config/storageKeys.ts`.
+- **Normalizacao e match de texto** em `src/lib/text.ts`.
+- **URLs e imagens da Steam** em `src/lib/steam.ts`.
+- **Filtro de nao-jogos** em `src/lib/gameFilters.ts`.
+- **Ordenacao por popularidade** em `src/lib/sort.ts`.
 
-## Where to change things
-- **Top Games order**: `src/features/top/data/topGamesSeriesCurated.ts`.
-- **Explore layout preference**: `src/hooks/useLayoutPreference.ts` and `STORAGE_KEYS`.
-- **Mature content toggle**: `src/hooks/useMaturePreference.ts` + `ProfileEditDialog`.
-- **Search behavior**: `src/hooks/useGames.ts` (`useSearchCatalog`).
-- **Steam sync**: `scripts/steam-sync-popular.mjs`.
+## Onde alterar coisas
+- **Ordem do Top Games**: `src/features/top/data/topGamesSeriesCurated.ts`.
+- **Preferencia de layout no Explore**: `src/hooks/useLayoutPreference.ts` e `STORAGE_KEYS`.
+- **Toggle de conteudo adulto**: `src/hooks/useMaturePreference.ts` + `ProfileEditDialog`.
+- **Comportamento de busca**: `src/hooks/useGames.ts` (`useSearchCatalog`).
+- **Sync da Steam**: `scripts/steam-sync-popular.mjs`.
 
-## Tips
-- Prefer helpers in `src/lib` over duplicating logic.
-- Keep SQL out of git (migrations are local only).
-- Keep UI strings in `src/i18n/resources.ts`.
+## Dicas
+- Prefira helpers em `src/lib` em vez de duplicar logica.
+- Evite versionar SQL (migrations sao locais).
+- Mantenha strings da UI em `src/i18n/resources.ts`.
 
 ## Checklist
-- New feature: create `src/features/<feature>/` with `pages/`, `components/`, `data/` if needed.
-- New shared UI: place in `src/components` (not inside features).
-- New helper: place in `src/lib` and reuse it from features.
-- New localStorage key: add to `src/config/storageKeys.ts`.
-- New translations: update `src/i18n/resources.ts` (pt/en/es).
-- New Steam data fields: update `supabase` table + `useGames` mapping.
-- New routes: update `src/App.tsx`.
+- Nova feature: crie `src/features/<feature>/` com `pages/`, `components/`, `data/` se precisar.
+- Novo UI compartilhado: coloque em `src/components` (nao dentro de features).
+- Novo helper: coloque em `src/lib` e reutilize.
+- Nova chave de localStorage: adicione em `src/config/storageKeys.ts`.
+- Novas traducoes: atualize `src/i18n/resources.ts` (pt/en/es).
+- Novos campos da Steam: atualize a tabela do `supabase` + mapeamento em `useGames`.
+- Novas rotas: atualize `src/App.tsx`.

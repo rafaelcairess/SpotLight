@@ -24,7 +24,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
 
   return (
     <div className="relative w-full min-h-[360px] aspect-[4/3] sm:min-h-0 sm:aspect-[16/9] lg:aspect-[21/9] xl:aspect-[21/8] rounded-2xl overflow-hidden group">
-      {/* Background Image */}
+      {/* Imagem de fundo */}
       <img
         src={game.image}
         alt={game.title}
@@ -34,12 +34,12 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
         decoding="async"
       />
 
-      {/* Gradient Overlays */}
+      {/* Overlays de gradiente */}
       <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
       <div className="absolute inset-0 hero-gradient opacity-50" />
 
-      {/* Content */}
+      {/* Conteudo */}
       <div className="relative h-full flex flex-col justify-end p-5 pb-6 sm:p-8 sm:pb-10 md:p-10 md:pb-12 max-w-2xl">
         {/* Badge */}
         <div className="flex items-center gap-2 mb-4 animate-fade-in">
@@ -53,12 +53,12 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
           )}
         </div>
 
-        {/* Title */}
+        {/* Titulo */}
         <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4 leading-tight break-words line-clamp-3 animate-fade-in-up">
           {game.title}
         </h1>
 
-        {/* Stats */}
+        {/* Estatisticas */}
         <div className="flex flex-wrap items-center gap-4 sm:gap-6 mb-4 text-sm animate-fade-in">
           {game.activePlayers && (
             <div className="flex items-center gap-2">
@@ -88,14 +88,14 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
           )}
         </div>
 
-        {/* Description */}
+        {/* Descricao */}
         {game.short_description && (
           <p className="text-muted-foreground mb-6 line-clamp-2 md:line-clamp-3 max-w-lg animate-fade-in">
             {game.short_description}
           </p>
         )}
 
-        {/* Actions */}
+        {/* Acoes */}
         <div className="flex flex-wrap items-center gap-3 animate-fade-in-up">
           <Button
             size="lg"

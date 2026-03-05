@@ -2,7 +2,7 @@
 /// <reference lib="dom" />
 
 /**
- * Script de manutencao/sync (check price alerts).
+ * Script de manutenção/sync (check price alerts).
  */
 
 

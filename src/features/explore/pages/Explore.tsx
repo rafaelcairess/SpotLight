@@ -1,5 +1,5 @@
 /**
- * Pagina da feature explore.
+ * Página da feature explore.
  */
 
 ﻿import { useMemo, useRef, useState } from "react";

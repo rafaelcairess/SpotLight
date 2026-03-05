@@ -1,5 +1,5 @@
 /**
- * Pagina da feature profile.
+ * Página da feature profile.
  */
 
 ﻿import { useMemo, useState } from "react";
@@ -167,7 +167,7 @@ const PublicProfile = () => {
       <Header />
 
       <main className="pt-24 pb-12 container mx-auto px-4">
-        {/* Profile Header */}
+        {/* Cabecalho do perfil */}
         <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
           <div className="relative">
             <UserAvatar
@@ -209,7 +209,7 @@ const PublicProfile = () => {
               )}
             </div>
 
-            {/* Stats */}
+            {/* Estatisticas */}
             <ProfileStats
               totalGames={userGames.length}
               favorites={favoriteGames.length}
@@ -245,7 +245,7 @@ const PublicProfile = () => {
           )}
         </div>
 
-        {/* Tabs */}
+        {/* Abas */}
         <Tabs defaultValue="library" className="w-full">
           <TabsList className="w-full justify-start border-b border-border/50 rounded-none bg-transparent h-auto p-0 mb-6 overflow-x-auto flex-nowrap">
             <TabsTrigger

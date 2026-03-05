@@ -1,5 +1,5 @@
 /**
- * Pagina do app (NotFound).
+ * Página do app (NotFound).
  */
 
 import { useLocation } from "react-router-dom";

@@ -1,5 +1,5 @@
 /**
- * Pagina da feature most-played.
+ * Página da feature most-played.
  */
 
 ﻿import { useState } from "react";

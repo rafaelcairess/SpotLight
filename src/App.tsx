@@ -47,7 +47,7 @@ const App = () => (
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/alerts" element={<Alerts />} />
             <Route path="/u/:username" element={<PublicProfile />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            {/* Adicione todas as rotas acima do catch-all "*" */}
             <Route path="*" element={<NotFound />} />
           </Routes>
           <OnboardingModal />

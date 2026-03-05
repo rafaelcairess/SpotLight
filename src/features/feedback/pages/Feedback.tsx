@@ -1,5 +1,5 @@
 /**
- * Pagina da feature feedback.
+ * Página da feature feedback.
  */
 
 import { useMemo, useState } from "react";

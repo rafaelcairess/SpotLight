@@ -1,5 +1,5 @@
 /**
- * Pagina da feature community.
+ * Página da feature community.
  */
 
 ﻿import { useMemo, useState } from "react";

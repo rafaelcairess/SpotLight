@@ -1,5 +1,5 @@
 /**
- * Helpers utilitarios (steam).
+ * Helpers utilitários (steam).
  */
 
 export const getPosterImage = (appId: number) =>

@@ -1,5 +1,5 @@
 /**
- * Pagina da feature profile.
+ * Página da feature profile.
  */
 
 ﻿import { useState } from "react";

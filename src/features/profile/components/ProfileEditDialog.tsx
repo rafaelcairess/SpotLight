@@ -191,7 +191,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Avatar Upload */}
+          {/* Upload de avatar */}
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
               <UserAvatar
@@ -225,7 +225,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
             </Button>
           </div>
 
-          {/* Display Name */}
+          {/* Nome de exibicao */}
           <div className="space-y-2">
             <Label htmlFor="displayName">{t("profileEdit.displayName")}</Label>
             <Input
@@ -268,7 +268,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
             <p className="text-xs text-muted-foreground text-right">{bio.length}/200</p>
           </div>
 
-          {/* Language */}
+          {/* Idioma */}
           <div className="space-y-2">
             <Label>{t("profileEdit.languageLabel")}</Label>
             <div className="flex items-center justify-between rounded-lg border border-border/50 bg-secondary/30 px-3 py-2">
@@ -277,7 +277,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
             </div>
           </div>
 
-          {/* Mature Content */}
+          {/* Conteudo adulto */}
           <div className="space-y-2">
             <Label>{t("profileEdit.matureTitle")}</Label>
             <div className="flex items-center justify-between rounded-lg border border-border/50 bg-secondary/30 px-3 py-2">
@@ -288,7 +288,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
             </div>
           </div>
 
-          {/* Privacy */}
+          {/* Privacidade */}
           <div className="space-y-4 rounded-lg border border-border/50 p-4">
             <div>
               <h3 className="text-sm font-semibold">{t("profileEdit.privacyTitle")}</h3>
@@ -352,7 +352,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
             </div>
           </div>
 
-          {/* Actions */}
+          {/* Acoes */}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("common.actions.cancel")}

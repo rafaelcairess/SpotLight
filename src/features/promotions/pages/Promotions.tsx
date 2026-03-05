@@ -1,5 +1,5 @@
 /**
- * Pagina da feature promotions.
+ * Página da feature promotions.
  */
 
 ﻿import Header from "@/components/Header";

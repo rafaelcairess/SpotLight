@@ -1,5 +1,5 @@
 /**
- * Configuracao/constantes (storageKeys).
+ * Configuração/constantes (storageKeys).
  */
 
 export const STORAGE_KEYS = {

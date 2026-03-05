@@ -1,5 +1,5 @@
 /**
- * Pagina da feature search.
+ * Página da feature search.
  */
 
 ﻿import { useEffect, useState } from "react";

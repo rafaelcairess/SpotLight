@@ -1,5 +1,5 @@
 /**
- * Helpers utilitarios (gameFilters).
+ * Helpers utilitários (gameFilters).
  */
 
 import { normalizeText } from "@/lib/text";

@@ -1,5 +1,5 @@
 /**
- * Script de manutencao/sync (steam sync popular).
+ * Script de manutenção/sync (steam sync popular).
  */
 
 ﻿import fs from "fs";

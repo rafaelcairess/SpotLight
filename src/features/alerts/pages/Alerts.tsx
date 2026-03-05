@@ -1,5 +1,5 @@
 /**
- * Pagina da feature alerts.
+ * Página da feature alerts.
  */
 
 import { useMemo } from "react";

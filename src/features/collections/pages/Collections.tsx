@@ -1,5 +1,5 @@
 /**
- * Pagina da feature collections.
+ * Página da feature collections.
  */
 
 ﻿import { Sparkles, Orbit } from "lucide-react";

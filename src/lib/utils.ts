@@ -1,5 +1,5 @@
 /**
- * Helpers utilitarios (utils).
+ * Helpers utilitários (utils).
  */
 
 import { clsx, type ClassValue } from "clsx";

@@ -1,5 +1,5 @@
 /**
- * Helpers utilitarios (text).
+ * Helpers utilitários (text).
  */
 
 export const normalizeText = (value: string) =>

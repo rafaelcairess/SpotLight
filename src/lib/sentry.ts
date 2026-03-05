@@ -1,5 +1,5 @@
 /**
- * Helpers utilitarios (sentry).
+ * Helpers utilitários (sentry).
  */
 
 import * as Sentry from "@sentry/react";

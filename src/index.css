@@ -5,11 +5,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* SpotLight Design System - Gaming Discovery App */
+/* Sistema de Design do SpotLight - App de descoberta de jogos */
 
 @layer base {
   :root {
-    /* Deep space dark theme */
+    /* Tema escuro de espaco profundo */
     --background: 222 47% 5%;
     --foreground: 210 40% 98%;
 
@@ -20,19 +20,19 @@
     --popover: 222 47% 7%;
     --popover-foreground: 210 40% 98%;
 
-    /* Electric blue primary */
+    /* Azul eletrico primario */
     --primary: 217 91% 60%;
     --primary-foreground: 222 47% 5%;
     --primary-glow: 217 91% 50%;
 
-    /* Muted surfaces */
+    /* Superficies neutras */
     --secondary: 222 30% 14%;
     --secondary-foreground: 210 40% 90%;
 
     --muted: 222 30% 12%;
     --muted-foreground: 215 20% 55%;
 
-    /* Accent - warm orange for highlights */
+    /* Accent - laranja quente para destaques */
     --accent: 25 95% 53%;
     --accent-foreground: 222 47% 5%;
 
@@ -45,7 +45,7 @@
 
     --radius: 0.75rem;
 
-    /* Custom gaming tokens */
+    /* Tokens customizados de gaming */
     --glow-primary: 0 0 20px hsl(217 91% 60% / 0.4);
     --glow-accent: 0 0 20px hsl(25 95% 53% / 0.4);
     --gradient-dark: linear-gradient(180deg, hsl(222 47% 8%) 0%, hsl(222 47% 5%) 100%);
@@ -53,7 +53,7 @@
     --gradient-hero: linear-gradient(135deg, hsl(217 91% 60% / 0.15) 0%, transparent 50%);
     --gradient-featured: linear-gradient(180deg, transparent 0%, hsl(222 47% 5% / 0.9) 100%);
 
-    /* Sidebar */
+    /* Barra lateral */
     --sidebar-background: 222 47% 6%;
     --sidebar-foreground: 210 40% 90%;
     --sidebar-primary: 217 91% 60%;
@@ -75,12 +75,12 @@
 }
 
 @layer components {
-  /* Glass effect for overlays */
+  /* Efeito de vidro para overlays */
   .glass {
     @apply bg-card/80 backdrop-blur-xl border border-border/50;
   }
 
-  /* Glow effects */
+  /* Efeitos de brilho */
   .glow-primary {
     box-shadow: var(--glow-primary);
   }
@@ -89,7 +89,7 @@
     box-shadow: var(--glow-accent);
   }
 
-  /* Card hover animation */
+  /* Animacao de hover dos cards */
   .game-card {
     @apply relative overflow-hidden rounded-xl bg-card border border-border/50 transition-all duration-300;
   }
@@ -99,17 +99,17 @@
     box-shadow: 0 20px 40px hsl(222 47% 5% / 0.8), var(--glow-primary);
   }
 
-  /* Featured gradient overlay */
+  /* Overlay com gradiente do destaque */
   .featured-overlay {
     background: var(--gradient-featured);
   }
 
-  /* Hero gradient */
+  /* Gradiente do hero */
   .hero-gradient {
     background: var(--gradient-hero);
   }
 
-  /* Skeleton loading */
+  /* Skeleton de carregamento */
   .skeleton-shimmer {
     @apply relative overflow-hidden bg-muted;
   }
@@ -131,7 +131,7 @@
     100% { transform: translateX(100%); }
   }
 
-  /* Rating stars */
+  /* Estrelas de avaliacao */
   .rating-positive {
     @apply text-emerald-400;
   }
@@ -144,7 +144,7 @@
     @apply text-red-400;
   }
 
-  /* Scrollbar styling */
+  /* Estilo da scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -164,7 +164,7 @@
 }
 
 @layer utilities {
-  /* Text gradient */
+  /* Gradiente de texto */
   .text-gradient-primary {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-400;
   }
@@ -178,7 +178,7 @@
     letter-spacing: -0.01em;
   }
 
-  /* Animation utilities */
+  /* Utilitarios de animacao */
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }

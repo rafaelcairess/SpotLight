@@ -1,5 +1,5 @@
 /**
- * Configuracao e recursos de i18n (index).
+ * Configuração e recursos de i18n (index).
  */
 
 import i18n from "i18next";

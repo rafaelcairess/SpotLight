@@ -1,5 +1,5 @@
 /**
- * Script de manutencao/sync (set daily featured).
+ * Script de manutenção/sync (set daily featured).
  */
 
 import { createClient } from "@supabase/supabase-js";
