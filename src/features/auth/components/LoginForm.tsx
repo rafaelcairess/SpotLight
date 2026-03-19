@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Loader2, Mail, Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import steamIcon from "@/assets/steam.png";
 
 interface LoginFormProps {
   onSwitchToSignup: () => void;
@@ -21,7 +22,7 @@ export function LoginForm({ onSwitchToSignup, onForgotPassword }: LoginFormProps
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, signInWithSteam } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -41,6 +42,15 @@ export function LoginForm({ onSwitchToSignup, onForgotPassword }: LoginFormProps
     }
 
     setLoading(false);
+  };
+
+  const handleSteamLogin = async () => {
+    const { error } = await signInWithSteam();
+    if (error) {
+      toast.error(t("auth.form.loginError"), {
+        description: error.message,
+      });
+    }
   };
 
   return (
@@ -86,6 +96,11 @@ export function LoginForm({ onSwitchToSignup, onForgotPassword }: LoginFormProps
           </button>
         </div>
       </div>
+
+      <Button type="button" variant="outline" className="w-full gap-2" onClick={handleSteamLogin}>
+        <img src={steamIcon} alt="Steam" className="w-4 h-4" />
+        {t("auth.form.steamLogin")}
+      </Button>
 
       <Button type="button" variant="outline" className="w-full" disabled>
         {t("auth.form.googleDisabled")}

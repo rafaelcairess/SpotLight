@@ -7,6 +7,7 @@ import { Clock3, Gamepad2, CheckCircle2, Flame } from "lucide-react";
 import { UserGame } from "@/hooks/useUserGames";
 import { useGamesByIds } from "@/hooks/useGames";
 import { useTranslation } from "react-i18next";
+import { getEffectiveHours } from "@/lib/playtime";
 
 interface ProfileInsightsProps {
   games: UserGame[];
@@ -28,19 +29,19 @@ export function ProfileInsights({ games, isLoading }: ProfileInsightsProps) {
   const metrics = useMemo(() => {
     const totalGames = games.length;
     const totalHours = games.reduce(
-      (acc, game) => acc + (typeof game.hours_played === "number" ? game.hours_played : 0),
+      (acc, game) => acc + (getEffectiveHours(game) || 0),
       0
     );
     const completedCount = games.filter((game) => game.status === "completed").length;
     const completionRate = totalGames > 0 ? Math.round((completedCount / totalGames) * 100) : 0;
 
     const topPlayed = [...games]
-      .filter((game) => typeof game.hours_played === "number" && game.hours_played > 0)
-      .sort((a, b) => (b.hours_played || 0) - (a.hours_played || 0))
+      .filter((game) => (getEffectiveHours(game) || 0) > 0)
+      .sort((a, b) => (getEffectiveHours(b) || 0) - (getEffectiveHours(a) || 0))
       .slice(0, 3)
       .map((game) => ({
         appId: game.app_id,
-        hours: Math.round(game.hours_played || 0),
+        hours: Math.round(getEffectiveHours(game) || 0),
       }));
 
     const genreCounter = new Map<string, number>();

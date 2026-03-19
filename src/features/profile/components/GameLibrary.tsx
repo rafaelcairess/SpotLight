@@ -2,8 +2,8 @@
  * Componente da feature profile.
  */
 
-import { useMemo } from "react";
-import { Heart, Trophy, Clock, Trash2, MoreVertical } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Heart, Trophy, Clock, Trash2, MoreVertical, PencilLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,6 +12,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { UserGame, useUpdateGame, useRemoveGame } from "@/hooks/useUserGames";
 import { useGamesByIds } from "@/hooks/useGames";
 import { GameData } from "@/types/game";
@@ -19,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { getPosterImage } from "@/lib/steam";
+import { getEffectiveHours, hasManualOverride } from "@/lib/playtime";
 
 interface GameLibraryProps {
   games: UserGame[];
@@ -55,6 +60,9 @@ export function GameLibrary({
     [catalogGames]
   );
   const { t } = useTranslation();
+  const [editingGame, setEditingGame] = useState<UserGame | null>(null);
+  const [manualHours, setManualHours] = useState("");
+  const [manualOverride, setManualOverride] = useState(false);
 
   const statusLabels: Record<string, { label: string; color: string }> = {
     wishlist: { label: t("library.statusWishlist"), color: "bg-blue-500/10 text-blue-500" },
@@ -112,6 +120,64 @@ export function GameLibrary({
     }
   };
 
+  const openEditHours = (game: UserGame) => {
+    const baseValue =
+      game.hours_override && typeof game.hours_played_manual === "number"
+        ? game.hours_played_manual
+        : typeof game.hours_played === "number"
+          ? game.hours_played
+          : null;
+
+    setEditingGame(game);
+    setManualOverride(Boolean(game.hours_override));
+    setManualHours(baseValue !== null ? String(Math.round(baseValue * 10) / 10) : "");
+  };
+
+  const closeEditHours = () => {
+    setEditingGame(null);
+  };
+
+  const handleSaveHours = async () => {
+    if (!editingGame) return;
+
+    if (manualOverride) {
+      const parsed = Number(manualHours);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        toast({ title: t("library.manualHoursInvalid"), variant: "destructive" });
+        return;
+      }
+
+      try {
+        await updateGame.mutateAsync({
+          id: editingGame.id,
+          updates: {
+            hours_override: true,
+            hours_played_manual: parsed,
+          },
+        });
+        toast({ title: t("library.manualHoursSaved") });
+        closeEditHours();
+      } catch {
+        toast({ title: t("library.updateError"), variant: "destructive" });
+      }
+      return;
+    }
+
+    try {
+      await updateGame.mutateAsync({
+        id: editingGame.id,
+        updates: {
+          hours_override: false,
+          hours_played_manual: null,
+        },
+      });
+      toast({ title: t("library.manualHoursSaved") });
+      closeEditHours();
+    } catch {
+      toast({ title: t("library.updateError"), variant: "destructive" });
+    }
+  };
+
   const formatPlaytime = (hours?: number | null) => {
     if (hours === null || hours === undefined || hours <= 0) return "";
     if (hours < 1) {
@@ -122,59 +188,113 @@ export function GameLibrary({
     return t("library.playtimeHours", { count: Math.round(hours) });
   };
 
+  const editDialog = (
+    <Dialog
+      open={!!editingGame}
+      onOpenChange={(open) => {
+        if (!open) closeEditHours();
+      }}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("library.editHoursTitle")}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between rounded-lg border border-border/50 bg-secondary/20 px-3 py-2">
+            <Label className="text-xs text-muted-foreground">{t("library.useManualHours")}</Label>
+            <Switch checked={manualOverride} onCheckedChange={setManualOverride} />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="manualHours">{t("library.editHoursLabel")}</Label>
+            <Input
+              id="manualHours"
+              type="number"
+              min="0"
+              step="0.1"
+              value={manualHours}
+              onChange={(event) => setManualHours(event.target.value)}
+              placeholder={t("library.manualHoursPlaceholder")}
+              disabled={!manualOverride}
+            />
+            <p className="text-xs text-muted-foreground">{t("library.editHoursHint")}</p>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={closeEditHours}>
+              {t("common.actions.cancel")}
+            </Button>
+            <Button onClick={handleSaveHours} disabled={updateGame.isPending}>
+              {t("common.actions.save")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (isLoading || catalogLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="animate-pulse">
-            <div className="aspect-[2/3] bg-secondary rounded-xl" />
-          </div>
-        ))}
-      </div>
+      <>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="aspect-[2/3] bg-secondary rounded-xl" />
+            </div>
+          ))}
+        </div>
+        {editDialog}
+      </>
     );
   }
 
   if (games.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">{emptyMessage}</p>
-      </div>
+      <>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">{emptyMessage}</p>
+        </div>
+        {editDialog}
+      </>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-      {games.map((userGame) => {
-        const gameInfo = gameMap.get(userGame.app_id);
-        if (!gameInfo) return null;
-        const handleSelect = () => onGameSelect?.(gameInfo);
-        const playtimeLabel = formatPlaytime(userGame.hours_played);
-        const portraitImage = getPosterImage(gameInfo.app_id);
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+        {games.map((userGame) => {
+          const gameInfo = gameMap.get(userGame.app_id);
+          if (!gameInfo) return null;
+          const handleSelect = () => onGameSelect?.(gameInfo);
+          const effectiveHours = getEffectiveHours(userGame);
+          const playtimeLabel = formatPlaytime(effectiveHours);
+          const isManual = hasManualOverride(userGame);
+          const portraitImage = getPosterImage(gameInfo.app_id);
 
-        return (
-          <div
-            key={userGame.id}
-            className={cn(
-              "group relative rounded-xl overflow-hidden border hover:border-primary/40 transition-all",
-              cardToneStyles[cardTone],
-              highlightPlatinum &&
-                userGame.is_platinumed &&
-                "ring-2 ring-amber-400/40 shadow-[0_0_20px_rgba(251,191,36,0.35)]"
-            )}
-            onClick={onGameSelect ? handleSelect : undefined}
-            role={onGameSelect ? "button" : undefined}
-            tabIndex={onGameSelect ? 0 : undefined}
-            onKeyDown={
-              onGameSelect
-                ? (event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      handleSelect();
+          return (
+            <div
+              key={userGame.id}
+              className={cn(
+                "group relative rounded-xl overflow-hidden border hover:border-primary/40 transition-all",
+                cardToneStyles[cardTone],
+                highlightPlatinum &&
+                  userGame.is_platinumed &&
+                  "ring-2 ring-amber-400/40 shadow-[0_0_20px_rgba(251,191,36,0.35)]"
+              )}
+              onClick={onGameSelect ? handleSelect : undefined}
+              role={onGameSelect ? "button" : undefined}
+              tabIndex={onGameSelect ? 0 : undefined}
+              onKeyDown={
+                onGameSelect
+                  ? (event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleSelect();
+                      }
                     }
-                  }
-                : undefined
-            }
-          >
+                  : undefined
+              }
+            >
             <div className="aspect-[2/3] relative">
               <img
                 src={portraitImage}
@@ -195,6 +315,11 @@ export function GameLibrary({
                   <span className="inline-flex items-center gap-1 rounded-full bg-black/70 text-white text-[11px] px-2 py-0.5">
                     <Clock className="w-3 h-3" />
                     {playtimeLabel}
+                    {isManual && (
+                      <span className="ml-1 text-[9px] uppercase tracking-wide text-white/70">
+                        {t("library.playtimeManual")}
+                      </span>
+                    )}
                   </span>
                 )}
               </div>
@@ -262,6 +387,15 @@ export function GameLibrary({
                           ? t("library.platinumRemove")
                           : t("library.platinumAdd")}
                       </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openEditHours(userGame);
+                        }}
+                      >
+                        <PencilLine className="w-4 h-4 mr-2" />
+                        {t("library.editHours")}
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={(event) => {
@@ -322,7 +456,9 @@ export function GameLibrary({
             </div>
           </div>
         );
-      })}
-    </div>
+        })}
+      </div>
+      {editDialog}
+    </>
   );
 }

@@ -1,8 +1,8 @@
-/**
+﻿/**
  * Página da feature profile.
  */
 
-﻿import { useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   GamepadIcon,
@@ -11,15 +11,18 @@ import {
   BookOpen,
   Bell,
   Settings,
+  RefreshCw,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useUserGames } from "@/hooks/useUserGames";
 import { useReviewsByUser } from "@/hooks/useReviews";
 import { useFollowCounts, useFollowers, useFollowing } from "@/hooks/useFollows";
+import { useSyncSteamPlaytime } from "@/hooks/useSteamPlaytime";
 import { UserAvatar } from "@/features/profile/components/UserAvatar";
 import { ProfileStats } from "@/features/profile/components/ProfileStats";
 import { FollowListDialog } from "@/features/profile/components/FollowListDialog";
@@ -33,10 +36,12 @@ import { ProfileTopGames } from "@/features/profile/components/ProfileTopGames";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { locale } = useLanguage();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: userGames = [], isLoading: gamesLoading } = useUserGames();
   const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByUser();
@@ -48,7 +53,24 @@ const Profile = () => {
   const [isFollowingOpen, setIsFollowingOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { toast } = useToast();
+  const syncSteamPlaytime = useSyncSteamPlaytime();
+  const syncStatusLabel = useMemo(() => {
+    if (!profile?.steam_id) return t("profile.syncSteamNotLinked");
+    if (!profile?.steam_last_synced) return t("profile.syncSteamNever");
+    const parsed = new Date(profile.steam_last_synced);
+    if (Number.isNaN(parsed.getTime())) return t("profile.syncSteamNever");
+    const formatted = new Intl.DateTimeFormat(i18n.language, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(parsed);
+    return t("profile.syncSteamLast", { date: formatted });
+  }, [profile?.steam_id, profile?.steam_last_synced, i18n.language, t]);
+
+  const isSyncing = syncSteamPlaytime.isPending;
+  const isUpdating = isSyncing && syncSteamPlaytime.variables?.mode === "update";
+  const isImporting = isSyncing && syncSteamPlaytime.variables?.mode === "import";
 
   if (!authLoading && !user) {
     navigate("/auth");
@@ -86,6 +108,31 @@ const Profile = () => {
     setIsModalOpen(false);
     setSelectedGame(null);
   };
+  const handleSyncSteam = async (mode: "update" | "import") => {
+    if (!profile?.steam_id) {
+      toast({ title: t("profile.syncSteamMissing"), variant: "destructive" });
+      setIsEditOpen(true);
+      return;
+    }
+
+    try {
+      const result = await syncSteamPlaytime.mutateAsync({
+        importAll: mode === "import",
+        enrichDetails: mode === "import",
+        language: locale,
+        mode,
+      });
+      const total = (result?.updated ?? 0) + (result?.inserted ?? 0);
+      toast({
+        title:
+          mode === "import"
+            ? t("profile.syncSteamImportSuccess", { count: total })
+            : t("profile.syncSteamUpdateSuccess", { count: total }),
+      });
+    } catch (error) {
+      toast({ title: t("profile.syncSteamError"), variant: "destructive" });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -111,21 +158,48 @@ const Profile = () => {
                 <p className="text-muted-foreground">@{profile?.username}</p>
                 {profile?.bio && <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/alerts")}
-                >
-                  <Bell className="w-4 h-4" />
-                  {t("profile.alerts")}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => setIsEditOpen(true)}
-                >
-                  <Settings className="w-4 h-4" />
-                  {t("profile.settings")}
-                </Button>
+              <div className="flex flex-col items-start sm:items-end gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/alerts")}
+                  >
+                    <Bell className="w-4 h-4" />
+                    {t("profile.alerts")}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => handleSyncSteam("update")}
+                    disabled={isSyncing}
+                  >
+                    <RefreshCw className={isUpdating ? "w-4 h-4 animate-spin" : "w-4 h-4"} />
+                    {isUpdating
+                      ? t("profile.syncSteamUpdateLoading")
+                      : t("profile.syncSteamUpdate")}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => handleSyncSteam("import")}
+                    disabled={isSyncing}
+                  >
+                    <Download className={isImporting ? "w-4 h-4 animate-spin" : "w-4 h-4"} />
+                    {isImporting
+                      ? t("profile.syncSteamImportLoading")
+                      : t("profile.syncSteamImport")}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setIsEditOpen(true)}
+                  >
+                    <Settings className="w-4 h-4" />
+                    {t("profile.settings")}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">{syncStatusLabel}</p>
               </div>
             </div>
 
@@ -239,3 +313,19 @@ const Profile = () => {
 };
 
 export default Profile;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

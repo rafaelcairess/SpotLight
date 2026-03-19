@@ -13,6 +13,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
+  signInWithSteam: () => Promise<{ error: Error | null }>;
   requestPasswordReset: (email: string) => Promise<{ error: Error | null }>;
   updatePassword: (password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -77,6 +78,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error as Error | null };
   };
 
+  const signInWithSteam = async () => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+    if (!supabaseUrl) {
+      return { error: new Error("Supabase URL not configured") };
+    }
+
+    const redirect = encodeURIComponent(window.location.origin);
+    const steamUrl = `${supabaseUrl}/functions/v1/steam-auth-start?redirect=${redirect}`;
+    window.location.assign(steamUrl);
+    return { error: null };
+  };
+
   const requestPasswordReset = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth?mode=reset`,
@@ -102,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         signIn,
         signInWithGoogle,
+        signInWithSteam,
         requestPasswordReset,
         updatePassword,
         signOut,

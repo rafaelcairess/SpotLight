@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { GameData } from "@/types/game";
+import { getEffectiveHours } from "@/lib/playtime";
 
 type GameRow = {
   app_id: number;
@@ -32,6 +33,8 @@ type UserGameRow = {
   is_favorite: boolean;
   is_platinumed: boolean;
   hours_played: number | null;
+  hours_played_manual: number | null;
+  hours_override: boolean;
 };
 
 type ReviewRow = {
@@ -89,7 +92,7 @@ export function useRecommendations(limit = 12) {
       const [{ data: userGames, error: userGamesError }, { data: userReviews, error: reviewsError }] = await Promise.all([
         supabase
           .from("user_games")
-          .select("app_id, status, is_favorite, is_platinumed, hours_played")
+          .select("app_id, status, is_favorite, is_platinumed, hours_played, hours_played_manual, hours_override")
           .eq("user_id", user.id),
         supabase
           .from("reviews")
@@ -143,8 +146,9 @@ export function useRecommendations(limit = 12) {
         if (game.is_favorite) baseWeight += 2;
         if (game.is_platinumed) baseWeight += 3;
         if (game.status === "completed") baseWeight += 1;
-        if (typeof game.hours_played === "number" && game.hours_played > 0) {
-          baseWeight += Math.min(3, game.hours_played / 40);
+        const effectiveHours = getEffectiveHours(game);
+        if (typeof effectiveHours === "number" && effectiveHours > 0) {
+          baseWeight += Math.min(3, effectiveHours / 40);
         }
 
         for (const token of gameToTokens(catalogGame)) {

@@ -301,6 +301,8 @@ export type Database = {
           library_visibility: string
           profile_visibility: string
           reviews_visibility: string
+          steam_id: string | null
+          steam_last_synced: string | null
           updated_at: string
           user_id: string
           username: string
@@ -314,6 +316,8 @@ export type Database = {
           library_visibility?: string
           profile_visibility?: string
           reviews_visibility?: string
+          steam_id?: string | null
+          steam_last_synced?: string | null
           updated_at?: string
           user_id: string
           username: string
@@ -327,6 +331,8 @@ export type Database = {
           library_visibility?: string
           profile_visibility?: string
           reviews_visibility?: string
+          steam_id?: string | null
+          steam_last_synced?: string | null
           updated_at?: string
           user_id?: string
           username?: string
@@ -418,7 +424,9 @@ export type Database = {
         Row: {
           added_at: string
           app_id: number
+          hours_override: boolean
           hours_played: number | null
+          hours_played_manual: number | null
           id: string
           is_favorite: boolean
           is_platinumed: boolean
@@ -429,7 +437,9 @@ export type Database = {
         Insert: {
           added_at?: string
           app_id: number
+          hours_override?: boolean
           hours_played?: number | null
+          hours_played_manual?: number | null
           id?: string
           is_favorite?: boolean
           is_platinumed?: boolean
@@ -440,7 +450,9 @@ export type Database = {
         Update: {
           added_at?: string
           app_id?: number
+          hours_override?: boolean
           hours_played?: number | null
+          hours_played_manual?: number | null
           id?: string
           is_favorite?: boolean
           is_platinumed?: boolean

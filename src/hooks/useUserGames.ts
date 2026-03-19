@@ -17,6 +17,8 @@ export interface UserGame {
   app_id: number;
   status: GameStatus;
   hours_played: number | null;
+  hours_played_manual: number | null;
+  hours_override: boolean;
   is_favorite: boolean;
   is_platinumed: boolean;
   added_at: string;
@@ -182,7 +184,12 @@ export function useUpdateGame() {
       updates 
     }: { 
       id: string; 
-      updates: Partial<Pick<UserGame, 'status' | 'hours_played' | 'is_favorite' | 'is_platinumed'>>;
+      updates: Partial<
+        Pick<
+          UserGame,
+          "status" | "hours_played" | "hours_played_manual" | "hours_override" | "is_favorite" | "is_platinumed"
+        >
+      >;
     }) => {
       const { data, error } = await supabase
         .from('user_games')

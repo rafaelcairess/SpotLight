@@ -72,6 +72,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
   const [username, setUsername] = useState(profile?.username || "");
   const [bio, setBio] = useState(profile?.bio || "");
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "");
+  const [steamId, setSteamId] = useState(profile?.steam_id || "");
   const [profileVisibility, setProfileVisibility] = useState(normalizeVisibility(profile?.profile_visibility));
   const [reviewsVisibility, setReviewsVisibility] = useState(normalizeVisibility(profile?.reviews_visibility));
   const [libraryVisibility, setLibraryVisibility] = useState(normalizeVisibility(profile?.library_visibility));
@@ -100,6 +101,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
       setUsername(profile.username || "");
       setBio(profile.bio || "");
       setAvatarUrl(profile.avatar_url || "");
+      setSteamId(profile.steam_id || "");
       setProfileVisibility(normalizeVisibility(profile.profile_visibility));
       setReviewsVisibility(normalizeVisibility(profile.reviews_visibility));
       setLibraryVisibility(normalizeVisibility(profile.library_visibility));
@@ -168,6 +170,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
         display_name: displayName || null,
         bio: bio || null,
         avatar_url: avatarUrl || null,
+        steam_id: steamId.trim() ? steamId.trim() : null,
         profile_visibility: profileVisibility,
         reviews_visibility: reviewsVisibility,
         library_visibility: libraryVisibility,
@@ -266,6 +269,19 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
               maxLength={200}
             />
             <p className="text-xs text-muted-foreground text-right">{bio.length}/200</p>
+          </div>
+
+          {/* Steam ID */}
+          <div className="space-y-2">
+            <Label htmlFor="steamId">{t("profileEdit.steamIdLabel")}</Label>
+            <Input
+              id="steamId"
+              value={steamId}
+              onChange={(e) => setSteamId(e.target.value)}
+              placeholder={t("profileEdit.steamIdPlaceholder")}
+              maxLength={120}
+            />
+            <p className="text-xs text-muted-foreground">{t("profileEdit.steamIdHint")}</p>
           </div>
 
           {/* Idioma */}

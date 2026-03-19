@@ -14,6 +14,8 @@ export interface Profile {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  steam_id: string | null;
+  steam_last_synced: string | null;
   profile_visibility: string;
   reviews_visibility: string;
   library_visibility: string;
@@ -100,6 +102,7 @@ export function useUpdateProfile() {
           | 'display_name'
           | 'bio'
           | 'avatar_url'
+          | 'steam_id'
           | 'profile_visibility'
           | 'reviews_visibility'
           | 'library_visibility'
