@@ -14,6 +14,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signInWithSteam: () => Promise<{ error: Error | null }>;
+  signInWithXbox: () => Promise<{ error: Error | null }>;
+  signInWithPSN: () => Promise<{ error: Error | null }>;
   requestPasswordReset: (email: string) => Promise<{ error: Error | null }>;
   updatePassword: (password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -90,6 +92,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null };
   };
 
+  const signInWithXbox = async () => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+    if (!supabaseUrl) {
+      return { error: new Error("Supabase URL not configured") };
+    }
+
+    const redirect = encodeURIComponent(window.location.origin);
+    const xboxUrl = `${supabaseUrl}/functions/v1/xbox-auth-start?redirect=${redirect}`;
+    window.location.assign(xboxUrl);
+    return { error: null };
+  };
+
+  const signInWithPSN = async () => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+    if (!supabaseUrl) {
+      return { error: new Error("Supabase URL not configured") };
+    }
+
+    const redirect = encodeURIComponent(window.location.origin);
+    const psnUrl = `${supabaseUrl}/functions/v1/psn-auth-start?redirect=${redirect}`;
+    window.location.assign(psnUrl);
+    return { error: null };
+  };
+
   const requestPasswordReset = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth?mode=reset`,
@@ -116,6 +142,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signInWithGoogle,
         signInWithSteam,
+        signInWithXbox,
+        signInWithPSN,
         requestPasswordReset,
         updatePassword,
         signOut,

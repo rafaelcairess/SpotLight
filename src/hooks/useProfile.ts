@@ -16,6 +16,13 @@ export interface Profile {
   bio: string | null;
   steam_id: string | null;
   steam_last_synced: string | null;
+  steam_library_private: boolean | null;
+  xbox_id: string | null;
+  xbox_gamertag: string | null;
+  xbox_last_synced: string | null;
+  psn_id: string | null;
+  psn_online_id: string | null;
+  psn_last_synced: string | null;
   profile_visibility: string;
   reviews_visibility: string;
   library_visibility: string;

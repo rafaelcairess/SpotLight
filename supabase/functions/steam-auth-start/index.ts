@@ -1,4 +1,4 @@
-﻿import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
 const buildRedirect = (value: string | null, baseOrigin: string) => {
   if (!value) return baseOrigin;
@@ -25,8 +25,13 @@ serve((req) => {
 
   const requestedRedirect = url.searchParams.get("redirect");
   const safeRedirect = buildRedirect(requestedRedirect, baseOrigin);
+
+  // Gera nonce aleatório para proteção CSRF
+  const nonce = crypto.randomUUID();
+
   const callbackUrl = new URL(`${origin}/functions/v1/steam-auth-callback`);
   callbackUrl.searchParams.set("redirect", safeRedirect);
+  callbackUrl.searchParams.set("nonce", nonce);
 
   const params = new URLSearchParams({
     "openid.ns": "http://specs.openid.net/auth/2.0",
@@ -38,5 +43,14 @@ serve((req) => {
   });
 
   const steamLoginUrl = `https://steamcommunity.com/openid/login?${params.toString()}`;
-  return Response.redirect(steamLoginUrl, 302);
+
+  // Armazena nonce em cookie HttpOnly com validade de 10 minutos
+  const cookieMaxAge = 60 * 10;
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: steamLoginUrl,
+      "Set-Cookie": `steam_nonce=${nonce}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${cookieMaxAge}`,
+    },
+  });
 });

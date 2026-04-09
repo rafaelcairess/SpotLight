@@ -91,17 +91,70 @@ serve(async (req) => {
     auth: { persistSession: false },
   });
 
+  // ── Modo batch (GitHub Actions) ─────────────────────────────────
+  // Quando chamado com a service role key e batch: true, itera todos os
+  // usuários com steam_id e atualiza o playtime de cada um.
+  let rawPayload: Record<string, unknown> = {};
+  try {
+    rawPayload = await req.json();
+  } catch { /* body vazio */ }
+
+  if (rawPayload.batch === true && token === SUPABASE_SERVICE_ROLE_KEY) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, steam_id")
+      .not("steam_id", "is", null);
+
+    let synced = 0;
+    for (const p of profiles || []) {
+      if (!p.steam_id) continue;
+      try {
+        const minutesToHoursLocal = (m: number) => Math.round((m / 60) * 100) / 100;
+        const ownedUrl =
+          `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${STEAM_API_KEY}` +
+          `&steamid=${p.steam_id}&include_played_free_games=1&include_appinfo=0`;
+        const res = await fetch(ownedUrl);
+        if (!res.ok) continue;
+        const data = await res.json();
+        const games: Array<{ appid: number; playtime_forever?: number }> =
+          Array.isArray(data?.response?.games) ? data.response.games : [];
+
+        const { data: userGames } = await supabase
+          .from("user_games")
+          .select("id, app_id")
+          .eq("user_id", p.user_id)
+          .eq("source", "steam");
+
+        const byAppId = new Map<number, string>();
+        for (const row of userGames || []) byAppId.set(row.app_id, row.id);
+
+        const now = new Date().toISOString();
+        const updates = games
+          .map((game) => {
+            const id = byAppId.get(game.appid);
+            if (!id) return null;
+            const hours = minutesToHoursLocal(game.playtime_forever || 0);
+            return { id, hours_played: hours, updated_at: now };
+          })
+          .filter(Boolean) as Array<{ id: string; hours_played: number; updated_at: string }>;
+
+        if (updates.length) {
+          await supabase.from("user_games").upsert(updates, { onConflict: "id" });
+        }
+        await supabase.from("profiles").update({ steam_last_synced: now }).eq("user_id", p.user_id);
+        synced++;
+      } catch { /* continua para próximo usuário */ }
+    }
+    return json(200, { batch: true, synced_users: synced });
+  }
+  // ───────────────────────────────────────────────────────────────
+
   const { data: authData, error: authError } = await supabase.auth.getUser(token);
   if (authError || !authData?.user) {
     return json(401, { error: "unauthorized" });
   }
 
-  let payload: { steam_id?: string; import_all?: boolean } = {};
-  try {
-    payload = await req.json();
-  } catch {
-    payload = {};
-  }
+  const payload: { steam_id?: string; import_all?: boolean } = rawPayload as { steam_id?: string; import_all?: boolean };
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
