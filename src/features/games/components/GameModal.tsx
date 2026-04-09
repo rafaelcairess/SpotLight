@@ -14,6 +14,7 @@ import { GameModalReviews } from "@/features/games/components/modal/GameModalRev
 import { GameModalFooter } from "@/features/games/components/modal/GameModalFooter";
 import { useEnsureGameDetails, useGameById } from "@/hooks/useGames";
 import { useToast } from "@/hooks/use-toast";
+import { AddToListButton } from "@/features/games/components/AddToListButton";
 
 interface GameModalProps {
   game: GameData | null;
@@ -75,10 +76,13 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
 
           {/* Acoes de biblioteca + review */}
           <div className="pt-4 border-t border-border/50 space-y-4">
-            <GameLibraryActions
-              appId={Number(displayGame.app_id)}
-              onWriteReview={() => setIsReviewOpen(true)}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <GameLibraryActions
+                appId={Number(displayGame.app_id)}
+                onWriteReview={() => setIsReviewOpen(true)}
+              />
+              <AddToListButton appId={Number(displayGame.app_id)} />
+            </div>
             {isReviewOpen && (
               <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 space-y-3">
                 <h3 className="text-sm font-medium text-foreground">

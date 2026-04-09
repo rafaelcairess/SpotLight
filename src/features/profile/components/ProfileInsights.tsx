@@ -3,11 +3,22 @@
  */
 
 import { useMemo } from "react";
-import { Clock3, Gamepad2, CheckCircle2, Flame } from "lucide-react";
+import { Clock3, Gamepad2, CheckCircle2, Flame, TrendingUp } from "lucide-react";
 import { UserGame } from "@/hooks/useUserGames";
 import { useGamesByIds } from "@/hooks/useGames";
 import { useTranslation } from "react-i18next";
 import { getEffectiveHours } from "@/lib/playtime";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import { format, subMonths, startOfMonth } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface ProfileInsightsProps {
   games: UserGame[];
@@ -15,6 +26,14 @@ interface ProfileInsightsProps {
 }
 
 const normalizeToken = (value: string) => value.trim().toLowerCase();
+
+const GENRE_COLORS = [
+  "#6366f1",
+  "#8b5cf6",
+  "#a78bfa",
+  "#c4b5fd",
+  "#ddd6fe",
+];
 
 export function ProfileInsights({ games, isLoading }: ProfileInsightsProps) {
   const { t } = useTranslation();
@@ -62,15 +81,40 @@ export function ProfileInsights({ games, isLoading }: ProfileInsightsProps) {
       }
     }
 
-    const favoriteGenre =
-      [...genreCounter.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ||
-      t("profileInsights.noData");
+    const sortedGenres = [...genreCounter.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    const favoriteGenre = sortedGenres[0]?.[0] || t("profileInsights.noData");
+
+    const topGenresData = sortedGenres.map(([name, count]) => ({
+      name: name.length > 14 ? name.slice(0, 12) + "…" : name,
+      count,
+    }));
+
+    // Jogos adicionados por mês (últimos 6 meses)
+    const now = new Date();
+    const monthlyData = Array.from({ length: 6 }, (_, i) => {
+      const month = subMonths(now, 5 - i);
+      const start = startOfMonth(month);
+      const end = startOfMonth(subMonths(now, 4 - i));
+      const count = games.filter((g) => {
+        const added = new Date(g.added_at);
+        return added >= start && added < end;
+      }).length;
+      return {
+        month: format(month, "MMM", { locale: ptBR }),
+        count,
+      };
+    });
 
     return {
       totalHours: Math.round(totalHours),
       completionRate,
       topPlayed,
       favoriteGenre,
+      topGenresData,
+      monthlyData,
     };
   }, [games, gameMap, t]);
 
@@ -88,9 +132,10 @@ export function ProfileInsights({ games, isLoading }: ProfileInsightsProps) {
   }
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-4 space-y-4">
+    <div className="rounded-xl border border-border/50 bg-card p-4 space-y-6">
       <h3 className="text-sm font-semibold">{t("profileInsights.title")}</h3>
 
+      {/* Cards de métricas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="rounded-lg border border-border/40 bg-secondary/20 p-3">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
@@ -134,6 +179,90 @@ export function ProfileInsights({ games, isLoading }: ProfileInsightsProps) {
           <p className="text-sm font-semibold capitalize truncate">{metrics.favoriteGenre}</p>
         </div>
       </div>
+
+      {/* Gráficos */}
+      {games.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Top gêneros */}
+          {metrics.topGenresData.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Top Gêneros
+              </p>
+              <ResponsiveContainer width="100%" height={140}>
+                <BarChart
+                  data={metrics.topGenresData}
+                  layout="vertical"
+                  margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
+                >
+                  <XAxis type="number" hide />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                    width={80}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "hsl(var(--secondary))" }}
+                    contentStyle={{
+                      background: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "6px",
+                      fontSize: 12,
+                    }}
+                    formatter={(value: number) => [`${value} jogos`, ""]}
+                  />
+                  <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                    {metrics.topGenresData.map((_, index) => (
+                      <Cell key={index} fill={GENRE_COLORS[index % GENRE_COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Jogos por mês */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+              <TrendingUp className="w-3.5 h-3.5" />
+              Jogos adicionados
+            </p>
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart
+                data={metrics.monthlyData}
+                margin={{ top: 0, right: 8, left: -16, bottom: 0 }}
+              >
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  cursor={{ fill: "hsl(var(--secondary))" }}
+                  contentStyle={{
+                    background: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "6px",
+                    fontSize: 12,
+                  }}
+                  formatter={(value: number) => [`${value} jogos`, ""]}
+                />
+                <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

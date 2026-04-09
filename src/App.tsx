@@ -23,6 +23,8 @@ import Feedback from "@/features/feedback/pages/Feedback";
 import Alerts from "@/features/alerts/pages/Alerts";
 import NotFound from "@/pages/NotFound";
 import OnboardingModal from "@/features/onboarding/components/OnboardingModal";
+import GamePage from "@/features/games/pages/GamePage";
+import ListPage from "@/features/lists/pages/ListPage";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,8 @@ const App = () => (
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/alerts" element={<Alerts />} />
             <Route path="/u/:username" element={<PublicProfile />} />
+            <Route path="/game/:appId" element={<GamePage />} />
+            <Route path="/lists/:listId" element={<ListPage />} />
             {/* Adicione todas as rotas acima do catch-all "*" */}
             <Route path="*" element={<NotFound />} />
           </Routes>

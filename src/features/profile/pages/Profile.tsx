@@ -12,6 +12,8 @@ import {
   Bell,
   Settings,
   RefreshCw,
+  Download,
+  List,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -32,6 +34,8 @@ import { ProfileReviews } from "@/features/profile/components/ProfileReviews";
 import { ProfileEditDialog } from "@/features/profile/components/ProfileEditDialog";
 import { TrophyShowcase } from "@/features/profile/components/TrophyShowcase";
 import { ProfileInsights } from "@/features/profile/components/ProfileInsights";
+import { AchievementsBadges } from "@/features/profile/components/AchievementsBadges";
+import { UserListsTab } from "@/features/profile/components/UserListsTab";
 import { ProfileTopGames } from "@/features/profile/components/ProfileTopGames";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
@@ -223,6 +227,14 @@ const Profile = () => {
           <ProfileInsights games={userGames} isLoading={gamesLoading} />
         </div>
         <div className="mb-8">
+          <AchievementsBadges
+            games={userGames}
+            reviewsCount={reviews.length}
+            followersCount={followCounts?.followers ?? 0}
+            followingCount={followCounts?.following ?? 0}
+          />
+        </div>
+        <div className="mb-8">
           <ProfileTopGames games={userGames} isLoading={gamesLoading} onGameSelect={handleOpenGame} />
         </div>
 
@@ -256,6 +268,13 @@ const Profile = () => {
               <BookOpen className="w-4 h-4" />
               {t("profile.reviews")} ({reviews.length})
             </TabsTrigger>
+            <TabsTrigger
+              value="lists"
+              className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+            >
+              <List className="w-4 h-4" />
+              Listas
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="library">
@@ -285,6 +304,10 @@ const Profile = () => {
 
           <TabsContent value="reviews">
             <ProfileReviews reviews={reviews} isLoading={reviewsLoading} />
+          </TabsContent>
+
+          <TabsContent value="lists">
+            <UserListsTab />
           </TabsContent>
         </Tabs>
       </main>
