@@ -7,14 +7,24 @@ const json = (status: number, body: Record<string, unknown>) =>
     headers: { "Content-Type": "application/json" },
   });
 
-const buildRedirect = (value: string | null, baseOrigin: string) => {
-  if (!value) return baseOrigin;
+const ALLOWED_ORIGINS = [
+  "https://spot-light-xi.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
+const buildRedirect = (value: string | null, fallback: string) => {
+  if (!value) return fallback;
   try {
-    const resolved = new URL(value, baseOrigin);
-    if (resolved.origin !== baseOrigin) return baseOrigin;
-    return resolved.toString();
+    const u = new URL(value);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return fallback;
+    const fallbackOrigin = new URL(fallback).origin;
+    if (ALLOWED_ORIGINS.includes(u.origin) || u.origin === fallbackOrigin) {
+      return u.toString();
+    }
+    return fallback;
   } catch {
-    return baseOrigin;
+    return fallback;
   }
 };
 
@@ -55,7 +65,7 @@ serve(async (req) => {
     baseOrigin = url.origin;
   }
 
-  const safeRedirect = buildRedirect(url.searchParams.get("redirect"), baseOrigin);
+  const safeRedirect = buildRedirect(url.searchParams.get("redirect"), fallbackSite);
 
   // ── Validação CSRF via nonce ──────────────────────────────────────
   const nonceFromUrl = url.searchParams.get("nonce");

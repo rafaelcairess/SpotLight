@@ -71,12 +71,21 @@ serve(async (req) => {
     return json(403, { error: "csrf_nonce_mismatch" });
   }
 
-  const safeRedirectRaw = encodedRedirect ? decodeURIComponent(encodedRedirect) : baseOrigin;
-  let safeRedirect = baseOrigin;
+  const ALLOWED_ORIGINS = [
+    "https://spot-light-xi.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+  ];
+  const safeRedirectRaw = encodedRedirect ? decodeURIComponent(encodedRedirect) : fallbackSite;
+  let safeRedirect = fallbackSite;
   try {
-    const resolved = new URL(safeRedirectRaw, baseOrigin);
-    if (resolved.origin === baseOrigin) safeRedirect = resolved.toString();
-  } catch { /* usa baseOrigin */ }
+    const u = new URL(safeRedirectRaw);
+    if (u.protocol === "http:" || u.protocol === "https:") {
+      if (ALLOWED_ORIGINS.includes(u.origin) || u.origin === new URL(fallbackSite).origin) {
+        safeRedirect = u.toString();
+      }
+    }
+  } catch { /* usa fallbackSite */ }
   // ───────────────────────────────────────────────────────────────
 
   const callbackUrl = `${url.origin}/functions/v1/xbox-auth-callback`;
