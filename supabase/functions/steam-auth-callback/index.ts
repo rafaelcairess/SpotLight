@@ -47,6 +47,7 @@ const getCookie = (cookieHeader: string | null, name: string): string | null => 
 };
 
 serve(async (req) => {
+  try {
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   const STEAM_API_KEY = Deno.env.get("STEAM_API_KEY") || "";
@@ -115,28 +116,47 @@ serve(async (req) => {
   });
 
   const email = `steam_${steamId}@steam.local`;
+  const adminHeaders = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+  };
 
   let userId: string | undefined;
 
-  const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email);
-  if (existingUser?.user?.id) {
-    userId = existingUser.user.id;
-    await supabase.auth.admin.updateUserById(userId, {
-      user_metadata: { steam_id: steamId, provider: "steam" },
+  // Busca usuário existente pelo email via REST API
+  const listRes = await fetch(
+    `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(email)}&page=1&per_page=1`,
+    { headers: adminHeaders }
+  );
+  const listData = await listRes.json();
+  const existingUser = listData?.users?.[0];
+
+  if (existingUser?.id) {
+    userId = existingUser.id;
+    // Atualiza metadados
+    await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+      method: "PUT",
+      headers: adminHeaders,
+      body: JSON.stringify({ user_metadata: { steam_id: steamId, provider: "steam" } }),
     });
   } else {
-    const { data: createdUser, error: createError } = await supabase.auth.admin.createUser({
-      email,
-      email_confirm: true,
-      user_metadata: { steam_id: steamId, provider: "steam" },
+    // Cria novo usuário
+    const createRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+      method: "POST",
+      headers: adminHeaders,
+      body: JSON.stringify({
+        email,
+        email_confirm: true,
+        user_metadata: { steam_id: steamId, provider: "steam" },
+      }),
     });
-
-    if (createError || !createdUser?.user?.id) {
-      console.error("user_create_failed:", JSON.stringify(createError));
-      return json(500, { error: "user_create_failed", detail: createError?.message });
+    const createdUser = await createRes.json();
+    if (!createRes.ok || !createdUser?.id) {
+      console.error("user_create_failed:", JSON.stringify(createdUser));
+      return json(500, { error: "user_create_failed", detail: createdUser?.message });
     }
-
-    userId = createdUser.user.id;
+    userId = createdUser.id;
   }
 
   if (!userId) {
@@ -274,20 +294,32 @@ serve(async (req) => {
     }
   }
 
-  const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-    type: "magiclink",
-    email,
-    options: { redirectTo: safeRedirect },
+  // Gera magic link via REST API direta (mais confiável que supabase-js)
+  const generateLinkRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/generate_link`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      "apikey": SUPABASE_SERVICE_ROLE_KEY,
+    },
+    body: JSON.stringify({
+      type: "magiclink",
+      email,
+      redirect_to: safeRedirect,
+    }),
   });
 
-  if (linkError) {
-    console.error("magiclink_failed:", JSON.stringify(linkError), "redirectTo:", safeRedirect);
-    return json(500, { error: "magiclink_failed", detail: linkError.message });
+  if (!generateLinkRes.ok) {
+    const errBody = await generateLinkRes.text();
+    console.error("magiclink_failed status:", generateLinkRes.status, "body:", errBody, "redirectTo:", safeRedirect);
+    return json(500, { error: "magiclink_failed", detail: errBody });
   }
 
-  const actionLink = linkData?.properties?.action_link;
+  const generateLinkData = await generateLinkRes.json();
+  const actionLink = generateLinkData?.action_link;
+
   if (!actionLink) {
-    console.error("missing_action_link, linkData:", JSON.stringify(linkData));
+    console.error("missing_action_link, response:", JSON.stringify(generateLinkData));
     return json(500, { error: "missing_action_link" });
   }
 
@@ -299,4 +331,8 @@ serve(async (req) => {
       "Set-Cookie": "steam_nonce=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0",
     },
   });
+  } catch (err) {
+    console.error("unhandled_exception:", err instanceof Error ? err.message : String(err));
+    return json(500, { error: "unhandled_exception", detail: err instanceof Error ? err.message : String(err) });
+  }
 });

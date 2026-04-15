@@ -180,27 +180,43 @@ serve(async (req) => {
     .eq("xbox_id", xuid)
     .maybeSingle();
 
+  const fakeEmail = `xbox_${xuid}@xbox.local`;
+  const adminHeaders = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+  };
+
   let userId: string | undefined;
 
   if (existingProfile?.user_id) {
     userId = existingProfile.user_id;
   } else {
-    // Cria usuário fictício vinculado ao Xbox (sem e-mail real)
-    const fakeEmail = `xbox_${xuid}@xbox.local`;
-    const { data: existingUser } = await supabase.auth.admin.getUserByEmail(fakeEmail);
+    // Busca usuário pelo email via REST API
+    const listRes = await fetch(
+      `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(fakeEmail)}&page=1&per_page=1`,
+      { headers: adminHeaders }
+    );
+    const listData = await listRes.json();
+    const existingUser = listData?.users?.[0];
 
-    if (existingUser?.user?.id) {
-      userId = existingUser.user.id;
+    if (existingUser?.id) {
+      userId = existingUser.id;
     } else {
-      const { data: createdUser, error: createError } = await supabase.auth.admin.createUser({
-        email: fakeEmail,
-        email_confirm: true,
-        user_metadata: { xbox_id: xuid, provider: "xbox" },
+      const createRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+        method: "POST",
+        headers: adminHeaders,
+        body: JSON.stringify({
+          email: fakeEmail,
+          email_confirm: true,
+          user_metadata: { xbox_id: xuid, provider: "xbox" },
+        }),
       });
-      if (createError || !createdUser?.user?.id) {
-        return json(500, { error: "user_create_failed" });
+      const createdUser = await createRes.json();
+      if (!createRes.ok || !createdUser?.id) {
+        return json(500, { error: "user_create_failed", detail: createdUser?.message });
       }
-      userId = createdUser.user.id;
+      userId = createdUser.id;
     }
   }
 
@@ -246,22 +262,30 @@ serve(async (req) => {
     body: JSON.stringify({ user_id: userId, xuid, xsts_token: xstsToken, user_hash: userHash }),
   }).catch(() => { /* best effort */ });
 
-  // Gera magic link para autenticar o usuário
-  const fakeEmail = `xbox_${xuid}@xbox.local`;
-  const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-    type: "magiclink",
-    email: fakeEmail,
-    options: { redirectTo: safeRedirect },
+  // Gera magic link via REST API direta
+  const generateLinkRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/generate_link`, {
+    method: "POST",
+    headers: adminHeaders,
+    body: JSON.stringify({ type: "magiclink", email: fakeEmail, redirect_to: safeRedirect }),
   });
 
-  if (linkError || !linkData?.properties?.action_link) {
-    return json(500, { error: "magiclink_failed" });
+  if (!generateLinkRes.ok) {
+    const errBody = await generateLinkRes.text();
+    console.error("magiclink_failed:", generateLinkRes.status, errBody);
+    return json(500, { error: "magiclink_failed", detail: errBody });
+  }
+
+  const generateLinkData = await generateLinkRes.json();
+  const actionLink = generateLinkData?.action_link;
+
+  if (!actionLink) {
+    return json(500, { error: "missing_action_link" });
   }
 
   return new Response(null, {
     status: 302,
     headers: {
-      Location: linkData.properties.action_link,
+      Location: actionLink,
       "Set-Cookie": "xbox_nonce=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0",
     },
   });
