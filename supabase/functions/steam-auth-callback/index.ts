@@ -163,19 +163,22 @@ serve(async (req) => {
     return json(500, { error: "user_missing" });
   }
 
-  const { data: existingProfile } = await supabase
+  // Primeiro tenta atualizar o perfil existente (criado pelo trigger)
+  const { data: updatedRows, error: updateErr } = await supabase
     .from("profiles")
-    .select("id")
+    .update({
+      steam_id: steamId,
+      display_name: `Steam ${steamId.slice(-4)}`,
+      updated_at: new Date().toISOString(),
+    })
     .eq("user_id", userId)
-    .maybeSingle();
+    .select("id");
 
-  if (existingProfile?.id) {
-    await supabase.from("profiles").update({ steam_id: steamId }).eq("user_id", userId);
-  } else {
-    const username = `steam_${steamId.slice(-8)}`;
+  // Se não encontrou perfil (trigger não rodou), cria um novo
+  if (!updatedRows || updatedRows.length === 0) {
     await supabase.from("profiles").insert({
       user_id: userId,
-      username,
+      username: `steam_${steamId.slice(-8)}`,
       steam_id: steamId,
       profile_visibility: "public",
       library_visibility: "public",
@@ -183,6 +186,7 @@ serve(async (req) => {
       display_name: `Steam ${steamId.slice(-4)}`,
     });
   }
+  if (updateErr) console.error("profile_update_error:", JSON.stringify(updateErr));
 
   if (STEAM_API_KEY) {
     try {

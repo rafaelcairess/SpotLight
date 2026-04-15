@@ -37,6 +37,7 @@ import { ProfileInsights } from "@/features/profile/components/ProfileInsights";
 import { AchievementsBadges } from "@/features/profile/components/AchievementsBadges";
 import { UserListsTab } from "@/features/profile/components/UserListsTab";
 import { ProfileTopGames } from "@/features/profile/components/ProfileTopGames";
+import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
@@ -221,21 +222,29 @@ const Profile = () => {
         </div>
 
         <div className="mb-8">
-          <TrophyShowcase games={platinumGames} isLoading={gamesLoading} />
+          <SectionErrorBoundary code="TROPHY_SHOWCASE_ERROR">
+            <TrophyShowcase games={platinumGames} isLoading={gamesLoading} />
+          </SectionErrorBoundary>
         </div>
         <div className="mb-8">
-          <ProfileInsights games={userGames} isLoading={gamesLoading} />
+          <SectionErrorBoundary code="PROFILE_INSIGHTS_ERROR">
+            <ProfileInsights games={userGames} isLoading={gamesLoading} />
+          </SectionErrorBoundary>
         </div>
         <div className="mb-8">
-          <AchievementsBadges
-            games={userGames}
-            reviewsCount={reviews.length}
-            followersCount={followCounts?.followers ?? 0}
-            followingCount={followCounts?.following ?? 0}
-          />
+          <SectionErrorBoundary code="ACHIEVEMENTS_ERROR">
+            <AchievementsBadges
+              games={userGames}
+              reviewsCount={reviews.length}
+              followersCount={followCounts?.followers ?? 0}
+              followingCount={followCounts?.following ?? 0}
+            />
+          </SectionErrorBoundary>
         </div>
         <div className="mb-8">
-          <ProfileTopGames games={userGames} isLoading={gamesLoading} onGameSelect={handleOpenGame} />
+          <SectionErrorBoundary code="TOP_GAMES_ERROR">
+            <ProfileTopGames games={userGames} isLoading={gamesLoading} onGameSelect={handleOpenGame} />
+          </SectionErrorBoundary>
         </div>
 
         <Tabs defaultValue="library" className="w-full">

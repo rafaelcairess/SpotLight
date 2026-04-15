@@ -43,10 +43,10 @@ export function useProfile() {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
-      
+        .maybeSingle();  // ← era .single()
+
       if (error) throw error;
-      return data as Profile;
+      return data as Profile | null;
     },
     enabled: !!user?.id,
     staleTime: 2 * 60 * 1000,
