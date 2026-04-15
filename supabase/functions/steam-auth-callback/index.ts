@@ -132,7 +132,8 @@ serve(async (req) => {
     });
 
     if (createError || !createdUser?.user?.id) {
-      return json(500, { error: "user_create_failed" });
+      console.error("user_create_failed:", JSON.stringify(createError));
+      return json(500, { error: "user_create_failed", detail: createError?.message });
     }
 
     userId = createdUser.user.id;
@@ -280,11 +281,13 @@ serve(async (req) => {
   });
 
   if (linkError) {
-    return json(500, { error: "magiclink_failed" });
+    console.error("magiclink_failed:", JSON.stringify(linkError), "redirectTo:", safeRedirect);
+    return json(500, { error: "magiclink_failed", detail: linkError.message });
   }
 
   const actionLink = linkData?.properties?.action_link;
   if (!actionLink) {
+    console.error("missing_action_link, linkData:", JSON.stringify(linkData));
     return json(500, { error: "missing_action_link" });
   }
 
