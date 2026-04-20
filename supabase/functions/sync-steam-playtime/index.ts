@@ -28,15 +28,11 @@ const parseSteamInput = (raw?: string | null): SteamIdCandidate | null => {
       const parts = url.pathname.split("/").filter(Boolean);
       const type = parts[0];
       const value = parts[1];
-      if (type === "profiles" && value) {
-        return { type: "steamid", value };
-      }
-      if (type === "id" && value) {
-        return { type: "vanity", value };
-      }
+      if (type === "profiles" && value) return { type: "steamid", value };
+      if (type === "id" && value) return { type: "vanity", value };
     }
   } catch {
-    // Not a URL, keep parsing below.
+    // Not a URL.
   }
 
   if (isSteamId64(trimmed)) return { type: "steamid", value: trimmed };
@@ -72,6 +68,7 @@ serve(async (req) => {
 
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "";
   const STEAM_API_KEY = Deno.env.get("STEAM_API_KEY") || "";
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -84,23 +81,22 @@ serve(async (req) => {
   const authHeader = req.headers.get("Authorization") || "";
   const token = authHeader.replace("Bearer ", "").trim();
   if (!token) {
-    return json(401, { error: "unauthorized" });
+    return json(401, { error: "unauthorized", detail: "missing_token" });
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  // Cliente admin para operações de banco
+  const adminSupabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
   });
 
   // ── Modo batch (GitHub Actions) ─────────────────────────────────
-  // Quando chamado com a service role key e batch: true, itera todos os
-  // usuários com steam_id e atualiza o playtime de cada um.
   let rawPayload: Record<string, unknown> = {};
   try {
     rawPayload = await req.json();
   } catch { /* body vazio */ }
 
   if (rawPayload.batch === true && token === SUPABASE_SERVICE_ROLE_KEY) {
-    const { data: profiles } = await supabase
+    const { data: profiles } = await adminSupabase
       .from("profiles")
       .select("user_id, steam_id")
       .not("steam_id", "is", null);
@@ -119,7 +115,7 @@ serve(async (req) => {
         const games: Array<{ appid: number; playtime_forever?: number }> =
           Array.isArray(data?.response?.games) ? data.response.games : [];
 
-        const { data: userGames } = await supabase
+        const { data: userGames } = await adminSupabase
           .from("user_games")
           .select("id, app_id")
           .eq("user_id", p.user_id)
@@ -139,9 +135,9 @@ serve(async (req) => {
           .filter(Boolean) as Array<{ id: string; hours_played: number; updated_at: string }>;
 
         if (updates.length) {
-          await supabase.from("user_games").upsert(updates, { onConflict: "id" });
+          await adminSupabase.from("user_games").upsert(updates, { onConflict: "id" });
         }
-        await supabase.from("profiles").update({ steam_last_synced: now }).eq("user_id", p.user_id);
+        await adminSupabase.from("profiles").update({ steam_last_synced: now }).eq("user_id", p.user_id);
         synced++;
       } catch { /* continua para próximo usuário */ }
     }
@@ -149,17 +145,25 @@ serve(async (req) => {
   }
   // ───────────────────────────────────────────────────────────────
 
-  const { data: authData, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !authData?.user) {
-    return json(401, { error: "unauthorized" });
+  // Valida o JWT do usuário com cliente anon + JWT do usuário
+  const anonKey = SUPABASE_ANON_KEY || SUPABASE_SERVICE_ROLE_KEY;
+  const userSupabase = createClient(SUPABASE_URL, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const { data: { user }, error: authError } = await userSupabase.auth.getUser();
+  if (authError || !user) {
+    console.error("auth_error:", authError?.message, "token_prefix:", token.slice(0, 20));
+    return json(401, { error: "unauthorized", detail: authError?.message });
   }
 
   const payload: { steam_id?: string; import_all?: boolean } = rawPayload as { steam_id?: string; import_all?: boolean };
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile, error: profileError } = await adminSupabase
     .from("profiles")
     .select("steam_id")
-    .eq("user_id", authData.user.id)
+    .eq("user_id", user.id)
     .maybeSingle();
 
   if (profileError) {
@@ -183,10 +187,10 @@ serve(async (req) => {
   }
 
   if (profile?.steam_id !== steamId) {
-    await supabase
+    await adminSupabase
       .from("profiles")
       .update({ steam_id: steamId })
-      .eq("user_id", authData.user.id);
+      .eq("user_id", user.id);
   }
 
   const includeAppInfo = importAll ? 1 : 0;
@@ -199,13 +203,13 @@ serve(async (req) => {
     const data = await fetchJson(ownedUrl);
     games = Array.isArray(data?.response?.games) ? data.response.games : [];
   } catch (error) {
-    return json(502, { error: "steam_fetch_failed", details: `${error?.message ?? error}` });
+    return json(502, { error: "steam_fetch_failed", detail: `${(error as Error)?.message ?? error}` });
   }
 
-  const { data: userGames, error: userGamesError } = await supabase
+  const { data: userGames, error: userGamesError } = await adminSupabase
     .from("user_games")
     .select("id, app_id")
-    .eq("user_id", authData.user.id);
+    .eq("user_id", user.id);
 
   if (userGamesError) {
     return json(500, { error: "user_games_fetch_failed" });
@@ -234,6 +238,7 @@ serve(async (req) => {
     last_synced: string;
   }> = [];
   let detailAppIds: number[] = [];
+
   const updates = games
     .map((game) => {
       const id = byAppId.get(game.appid);
@@ -241,17 +246,13 @@ serve(async (req) => {
       const hours = minutesToHours(minutes);
 
       if (id) {
-        return {
-          id,
-          hours_played: hours,
-          updated_at: now,
-        };
+        return { id, hours_played: hours, updated_at: now };
       }
 
       if (importAll) {
         const status = hours > 0 ? "playing" : "wishlist";
         inserts.push({
-          user_id: authData.user.id,
+          user_id: user.id,
           app_id: game.appid,
           status,
           hours_played: hours,
@@ -279,55 +280,44 @@ serve(async (req) => {
     .filter((row): row is { id: string; hours_played: number; updated_at: string } => !!row);
 
   if (updates.length) {
-    const { error: updateError } = await supabase
+    const { error: updateError } = await adminSupabase
       .from("user_games")
       .upsert(updates, { onConflict: "id" });
-
-    if (updateError) {
-      return json(500, { error: "user_games_update_failed" });
-    }
+    if (updateError) return json(500, { error: "user_games_update_failed" });
   }
 
   if (inserts.length) {
-    const { error: insertError } = await supabase.from("user_games").insert(inserts);
-    if (insertError) {
-      return json(500, { error: "user_games_insert_failed" });
-    }
+    const { error: insertError } = await adminSupabase.from("user_games").insert(inserts);
+    if (insertError) return json(500, { error: "user_games_insert_failed", detail: insertError.message });
   }
 
   if (catalogRows.length) {
-    const { error: catalogError } = await supabase
+    const { error: catalogError } = await adminSupabase
       .from("games")
       .upsert(catalogRows, { onConflict: "app_id" });
-    if (catalogError) {
-      return json(500, { error: "games_upsert_failed" });
-    }
+    if (catalogError) return json(500, { error: "games_upsert_failed" });
   }
 
   if (importAll && games.length) {
-    const appIds = games.map((game) => game.appid);
-    const { data: detailRows, error: detailError } = await supabase
+    const appIds = games.map((g) => g.appid);
+    const { data: detailRows } = await adminSupabase
       .from("games")
       .select("app_id, short_description")
       .in("app_id", appIds);
-
-    if (detailError) {
-      return json(500, { error: "games_detail_fetch_failed" });
-    }
 
     const detailMap = new Map<number, string | null>(
       (detailRows || []).map((row) => [row.app_id, row.short_description || null])
     );
     detailAppIds = appIds.filter((appId) => {
-      const shortDescription = detailMap.get(appId);
-      return !shortDescription || shortDescription.length === 0;
+      const desc = detailMap.get(appId);
+      return !desc || desc.length === 0;
     });
   }
 
-  await supabase
+  await adminSupabase
     .from("profiles")
     .update({ steam_last_synced: now })
-    .eq("user_id", authData.user.id);
+    .eq("user_id", user.id);
 
   return json(200, {
     updated: updates.length,

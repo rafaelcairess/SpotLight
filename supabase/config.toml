@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.psn-auth-callback]
 verify_jwt = false
+
+[functions.sync-steam-playtime]
+verify_jwt = false
