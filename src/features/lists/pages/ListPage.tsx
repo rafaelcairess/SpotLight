@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import { useUserListById, useUserListGames } from "@/hooks/useUserLists";
 import { useGamesByIds } from "@/hooks/useGames";
-import { GameCard } from "@/features/games/components/GameCard";
+import GameCard from "@/features/games/components/GameCard";
 import { useState } from "react";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
