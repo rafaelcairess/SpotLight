@@ -2,7 +2,7 @@
  * Página da feature explore.
  */
 
-﻿import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   TrendingUp,
   Sparkles,

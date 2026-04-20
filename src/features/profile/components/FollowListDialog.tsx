@@ -2,7 +2,7 @@
  * Componente da feature profile.
  */
 
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Dialog,
   DialogContent,

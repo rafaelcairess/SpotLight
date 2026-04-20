@@ -2,7 +2,7 @@
  * Página da feature top.
  */
 
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Trophy, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import SectionHeader from "@/components/SectionHeader";

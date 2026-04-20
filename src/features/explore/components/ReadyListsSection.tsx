@@ -2,7 +2,7 @@
  * Componente da feature explore.
  */
 
-﻿import { useMemo } from "react";
+import { useMemo } from "react";
 import { Sparkles } from "lucide-react";
 import { READY_LISTS } from "@/features/explore/data/readyLists";
 import { useAllGames, useGamesByIds } from "@/hooks/useGames";

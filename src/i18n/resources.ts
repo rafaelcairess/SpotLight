@@ -2,7 +2,7 @@
  * Configuração e recursos de i18n (resources).
  */
 
-﻿export const resources = {
+export const resources = {
   pt: {
     translation: {
       common: {

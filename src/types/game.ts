@@ -2,7 +2,7 @@
  * Arquivo do projeto (game).
  */
 
-﻿export interface GameData {
+export interface GameData {
   app_id: number;
   title: string;
   image: string;

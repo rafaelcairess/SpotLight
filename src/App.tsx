@@ -23,6 +23,7 @@ import Feedback from "@/features/feedback/pages/Feedback";
 import Alerts from "@/features/alerts/pages/Alerts";
 import NotFound from "@/pages/NotFound";
 import OnboardingModal from "@/features/onboarding/components/OnboardingModal";
+import WhatsNewModal from "@/features/onboarding/components/WhatsNewModal";
 import GamePage from "@/features/games/pages/GamePage";
 import ListPage from "@/features/lists/pages/ListPage";
 
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <OnboardingModal />
+          <WhatsNewModal />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

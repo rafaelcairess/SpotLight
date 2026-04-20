@@ -2,7 +2,7 @@
  * Página da feature collections.
  */
 
-﻿import { Sparkles, Orbit } from "lucide-react";
+import { Sparkles, Orbit } from "lucide-react";
 import Header from "@/components/Header";
 import CategoryCard from "@/features/collections/components/CategoryCard";
 import SectionHeader from "@/components/SectionHeader";

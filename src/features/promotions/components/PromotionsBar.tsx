@@ -2,7 +2,7 @@
  * Componente da feature promotions.
  */
 
-﻿import { useState } from "react";
+import { useState } from "react";
 import { DollarSign } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
 import GameCard from "@/features/games/components/GameCard";

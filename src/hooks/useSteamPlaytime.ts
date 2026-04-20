@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Hook de dados/estado (useSteamPlaytime).
  */
 
