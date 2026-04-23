@@ -128,18 +128,26 @@ const Profile = () => {
         mode,
       });
       const total = (result?.updated ?? 0) + (result?.inserted ?? 0);
-      if (total === 0 && (result?.steam_total ?? 0) === 0) {
+      const steamTotal = result?.steam_total ?? 0;
+      if (steamTotal === 0) {
         toast({
           title: "Biblioteca Steam vazia ou privada",
-          description: "Vá em Steam → Perfil → Privacidade → 'Detalhes do Jogo' → Público.",
+          description: "Vá em Steam → Configurações → Privacidade → 'Detalhes do Jogo' → Público.",
           variant: "destructive",
+        });
+        return;
+      }
+      if (mode === "import" && (result?.inserted ?? 0) === 0) {
+        toast({
+          title: `Biblioteca Steam verificada (${steamTotal} jogos)`,
+          description: "Todos os seus jogos Steam já estão na sua biblioteca SpotLight.",
         });
         return;
       }
       toast({
         title:
           mode === "import"
-            ? t("profile.syncSteamImportSuccess", { count: total })
+            ? t("profile.syncSteamImportSuccess", { count: result?.inserted ?? 0 })
             : t("profile.syncSteamUpdateSuccess", { count: total }),
       });
     } catch (error: unknown) {
