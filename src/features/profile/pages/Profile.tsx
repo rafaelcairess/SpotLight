@@ -128,14 +128,28 @@ const Profile = () => {
         mode,
       });
       const total = (result?.updated ?? 0) + (result?.inserted ?? 0);
+      if (total === 0 && (result?.steam_total ?? 0) === 0) {
+        toast({
+          title: "Biblioteca Steam vazia ou privada",
+          description: "Vá em Steam → Perfil → Privacidade → 'Detalhes do Jogo' → Público.",
+          variant: "destructive",
+        });
+        return;
+      }
       toast({
         title:
           mode === "import"
             ? t("profile.syncSteamImportSuccess", { count: total })
             : t("profile.syncSteamUpdateSuccess", { count: total }),
       });
-    } catch (error) {
-      toast({ title: t("profile.syncSteamError"), variant: "destructive" });
+    } catch (error: unknown) {
+      const detail = (error as { message?: string })?.message ?? "";
+      const msg = detail.includes("steam_id_not_found")
+        ? "Perfil Steam não encontrado. Confira o Steam ID nas configurações."
+        : detail.includes("steam_fetch_failed") || detail.includes("502")
+        ? "Erro ao acessar a API Steam. Tente novamente em instantes."
+        : t("profile.syncSteamError");
+      toast({ title: msg, variant: "destructive" });
     }
   };
 
