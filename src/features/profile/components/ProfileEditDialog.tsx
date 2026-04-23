@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useRef, useState, useMemo } from "react";
-import { Loader2, Upload, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Upload, RefreshCw, CheckCircle2, AlertCircle, Download } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Switch } from "@/components/ui/switch";
 import { useMaturePreference } from "@/hooks/useMaturePreference";
 import { normalizeText } from "@/lib/text";
+import { useImportSteamByUrl, useImportPsnByUrl, useImportXboxByUrl } from "@/hooks/useImportByUrl";
 
 interface ProfileEditDialogProps {
   open: boolean;
@@ -81,6 +82,14 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
   const [isSyncingSteam, setIsSyncingSteam] = useState(false);
   const [matureEnabled, setMatureEnabled] = useMaturePreference();
 
+  const [steamImportUrl, setSteamImportUrl] = useState("");
+  const [psnImportUrl, setPsnImportUrl] = useState("");
+  const [xboxImportUrl, setXboxImportUrl] = useState("");
+
+  const importSteam = useImportSteamByUrl();
+  const importPsn = useImportPsnByUrl();
+  const importXbox = useImportXboxByUrl();
+
   const visibilityOptions = useMemo(
     () => [
       {
@@ -110,25 +119,41 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
     }
   }, [profile]);
 
+  const handleImportByUrl = async (
+    platform: "steam" | "psn" | "xbox",
+    url: string,
+    importFn: typeof importSteam,
+    clearUrl: () => void,
+  ) => {
+    if (!url.trim()) {
+      toast({ title: "Cole o link do seu perfil acima", variant: "destructive" });
+      return;
+    }
+    try {
+      const result = await importFn.mutateAsync(url.trim());
+      const count = result.imported + (result.updated ?? 0);
+      if (result.warning) {
+        toast({ title: result.detail || "Atenção", variant: "destructive" });
+      } else {
+        const platMsg = result.platinumed ? ` · ${result.platinumed} platinas/100%` : "";
+        toast({ title: `${platform.toUpperCase()} importado: ${count} jogos${platMsg}` });
+        clearUrl();
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao importar";
+      toast({ title: msg, variant: "destructive" });
+    }
+  };
+
   const handleSteamResync = async () => {
     if (!user?.id) return;
     setIsSyncingSteam(true);
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
-      const res = await fetch(`${supabaseUrl}/functions/v1/sync-steam-playtime`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${supabaseKey}`,
-        },
-        body: JSON.stringify({ user_id: user.id }),
+      const { error } = await supabase.functions.invoke("sync-steam-playtime", {
+        body: { import_all: false },
       });
-      if (res.ok) {
-        toast({ title: "Biblioteca Steam atualizada!" });
-      } else {
-        toast({ title: "Erro ao sincronizar Steam", variant: "destructive" });
-      }
+      if (error) throw error;
+      toast({ title: "Biblioteca Steam atualizada!" });
     } catch {
       toast({ title: "Erro ao sincronizar Steam", variant: "destructive" });
     } finally {
@@ -322,95 +347,173 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
             </div>
 
             {/* Steam */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <img src={steamIcon} alt="Steam" className="w-5 h-5" />
-                <div>
-                  <p className="text-sm font-medium">Steam</p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <img src={steamIcon} alt="Steam" className="w-5 h-5" />
+                  <div>
+                    <p className="text-sm font-medium">Steam</p>
+                    {profile?.steam_id ? (
+                      <p className="text-xs text-muted-foreground">
+                        {profile.steam_library_private
+                          ? "Biblioteca privada"
+                          : profile.steam_last_synced
+                          ? `Sync: ${new Date(profile.steam_last_synced).toLocaleDateString("pt-BR")}`
+                          : "Nunca sincronizado"}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Não conectado</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
                   {profile?.steam_id ? (
-                    <p className="text-xs text-muted-foreground">
-                      {profile.steam_library_private
-                        ? "Biblioteca privada"
-                        : profile.steam_last_synced
-                        ? `Sync: ${new Date(profile.steam_last_synced).toLocaleDateString("pt-BR")}`
-                        : "Nunca sincronizado"}
-                    </p>
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleSteamResync}
+                        disabled={isSyncingSteam}
+                        title="Atualizar biblioteca Steam"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${isSyncingSteam ? "animate-spin" : ""}`} />
+                      </Button>
+                    </>
                   ) : (
-                    <p className="text-xs text-muted-foreground">Não conectado</p>
+                    <AlertCircle className="w-4 h-4 text-muted-foreground" />
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1">
-                {profile?.steam_id ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleSteamResync}
-                      disabled={isSyncingSteam}
-                      title="Atualizar biblioteca Steam"
-                    >
-                      <RefreshCw className={`w-4 h-4 ${isSyncingSteam ? "animate-spin" : ""}`} />
-                    </Button>
-                  </>
+              <div className="flex gap-2">
+                <Input
+                  value={steamImportUrl}
+                  onChange={(e) => setSteamImportUrl(e.target.value)}
+                  placeholder="https://steamcommunity.com/id/seu-perfil"
+                  className="text-xs h-8"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="shrink-0 gap-1 h-8 text-xs"
+                  disabled={importSteam.isPending}
+                  onClick={() => handleImportByUrl("steam", steamImportUrl, importSteam, () => setSteamImportUrl(""))}
+                >
+                  {importSteam.isPending
+                    ? <Loader2 className="w-3 h-3 animate-spin" />
+                    : <Download className="w-3 h-3" />}
+                  {importSteam.isPending ? "Importando…" : "Importar"}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Cole o link do seu perfil Steam (deixe sua biblioteca pública para importar jogos e conquistas).
+              </p>
+            </div>
+
+            {/* Xbox */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M4.102 5.426C2.766 7.003 2 9.007 2 11.2c0 2.983 1.342 5.655 3.455 7.466C6.732 13.214 9.832 8.856 4.102 5.426zM12 2c-1.765 0-3.41.497-4.812 1.357 2.79 1.677 5.52 4.806 3.664 8.9C9.906 10.5 8.9 8.79 6.24 7.068 5.22 8.36 4.585 9.97 4.51 11.73c-.008.16-.01.322-.01.483 0 1.626.422 3.152 1.163 4.476.81-.68 1.583-1.67 2.034-2.9C7.92 13.49 7.92 16 11 17.5c.314.155.645.29.988.4-.01-.025-.018-.05-.027-.075C11.258 16.47 9.5 14.5 10 12c.523 2.523 2.58 4.45 4.013 5.825.325-.11.636-.245.934-.4C17.83 16 16.072 13.49 16.3 13.79c.452 1.23 1.225 2.22 2.034 2.9.74-1.324 1.162-2.85 1.162-4.476 0-.16-.002-.322-.01-.483-.076-1.76-.71-3.37-1.73-4.662C15.1 8.79 14.094 10.5 13.148 12.257 11.292 8.163 14.022 5.034 16.812 3.357A9.99 9.99 0 0 0 12 2zm7.898 3.426c-5.73 3.43-2.63 7.788-1.355 13.24C20.658 16.855 22 14.183 22 11.2c0-2.193-.766-4.197-2.102-5.774z"/>
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium">Xbox</p>
+                    {profile?.xbox_gamertag || profile?.xbox_id ? (
+                      <p className="text-xs text-muted-foreground">
+                        {profile.xbox_gamertag || profile.xbox_id}
+                        {profile.xbox_last_synced &&
+                          ` · ${new Date(profile.xbox_last_synced).toLocaleDateString("pt-BR")}`}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Não conectado</p>
+                    )}
+                  </div>
+                </div>
+                {profile?.xbox_gamertag || profile?.xbox_id ? (
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
                 ) : (
                   <AlertCircle className="w-4 h-4 text-muted-foreground" />
                 )}
               </div>
-            </div>
-
-            {/* Xbox */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M4.102 5.426C2.766 7.003 2 9.007 2 11.2c0 2.983 1.342 5.655 3.455 7.466C6.732 13.214 9.832 8.856 4.102 5.426zM12 2c-1.765 0-3.41.497-4.812 1.357 2.79 1.677 5.52 4.806 3.664 8.9C9.906 10.5 8.9 8.79 6.24 7.068 5.22 8.36 4.585 9.97 4.51 11.73c-.008.16-.01.322-.01.483 0 1.626.422 3.152 1.163 4.476.81-.68 1.583-1.67 2.034-2.9C7.92 13.49 7.92 16 11 17.5c.314.155.645.29.988.4-.01-.025-.018-.05-.027-.075C11.258 16.47 9.5 14.5 10 12c.523 2.523 2.58 4.45 4.013 5.825.325-.11.636-.245.934-.4C17.83 16 16.072 13.49 16.3 13.79c.452 1.23 1.225 2.22 2.034 2.9.74-1.324 1.162-2.85 1.162-4.476 0-.16-.002-.322-.01-.483-.076-1.76-.71-3.37-1.73-4.662C15.1 8.79 14.094 10.5 13.148 12.257 11.292 8.163 14.022 5.034 16.812 3.357A9.99 9.99 0 0 0 12 2zm7.898 3.426c-5.73 3.43-2.63 7.788-1.355 13.24C20.658 16.855 22 14.183 22 11.2c0-2.193-.766-4.197-2.102-5.774z"/>
-                </svg>
-                <div>
-                  <p className="text-sm font-medium">Xbox</p>
-                  {profile?.xbox_id ? (
-                    <p className="text-xs text-muted-foreground">
-                      {profile.xbox_gamertag || profile.xbox_id}
-                      {profile.xbox_last_synced &&
-                        ` · ${new Date(profile.xbox_last_synced).toLocaleDateString("pt-BR")}`}
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Não conectado</p>
-                  )}
-                </div>
+              <div className="flex gap-2">
+                <Input
+                  value={xboxImportUrl}
+                  onChange={(e) => setXboxImportUrl(e.target.value)}
+                  placeholder="https://www.xbox.com/play/user/SeuGamertag"
+                  className="text-xs h-8"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="shrink-0 gap-1 h-8 text-xs"
+                  disabled={importXbox.isPending}
+                  onClick={() => handleImportByUrl("xbox", xboxImportUrl, importXbox, () => setXboxImportUrl(""))}
+                >
+                  {importXbox.isPending
+                    ? <Loader2 className="w-3 h-3 animate-spin" />
+                    : <Download className="w-3 h-3" />}
+                  {importXbox.isPending ? "Importando…" : "Importar"}
+                </Button>
               </div>
-              {profile?.xbox_id ? (
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
-              ) : (
-                <AlertCircle className="w-4 h-4 text-muted-foreground" />
-              )}
+              <p className="text-xs text-muted-foreground">
+                Cole o link do seu perfil Xbox ou apenas o seu Gamertag.
+              </p>
             </div>
 
             {/* PSN */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M8.984 2.596v14.47l3.915 1.243V6.688c0-.67.144-1.15.736-1.15.592 0 .736.48.736 1.15v3.017l3.915 1.243V6.12c0-2.27-1.296-3.58-3.915-3.58-2.62 0-5.387 1.96-5.387 5.387zM18.29 14.92c-1.44.403-2.65.1-3.47-.41l.71-1.42c.79.47 1.82.72 2.76.51.5-.11.78-.43.72-.88-.06-.44-.5-.68-1.62-1.06-1.82-.62-3.04-1.46-2.8-3.22.21-1.56 1.67-2.58 3.71-2.58.81 0 1.67.17 2.44.52l-.68 1.47c-.67-.3-1.38-.48-2.07-.48-.56 0-.86.22-.9.6-.04.38.3.6 1.3.92 2 .68 3.08 1.52 2.84 3.35-.24 1.78-1.78 2.7-3.97 2.65zM5.71 20.68v-5.07l-1.23-.41v-1.5l6.27 2.1v1.5l-1.23-.41v5.07L5.71 20.68z"/>
-                </svg>
-                <div>
-                  <p className="text-sm font-medium">PlayStation</p>
-                  {profile?.psn_id ? (
-                    <p className="text-xs text-muted-foreground">
-                      {profile.psn_online_id || profile.psn_id}
-                      {profile.psn_last_synced &&
-                        ` · ${new Date(profile.psn_last_synced).toLocaleDateString("pt-BR")}`}
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Não conectado</p>
-                  )}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M8.984 2.596v14.47l3.915 1.243V6.688c0-.67.144-1.15.736-1.15.592 0 .736.48.736 1.15v3.017l3.915 1.243V6.12c0-2.27-1.296-3.58-3.915-3.58-2.62 0-5.387 1.96-5.387 5.387zM18.29 14.92c-1.44.403-2.65.1-3.47-.41l.71-1.42c.79.47 1.82.72 2.76.51.5-.11.78-.43.72-.88-.06-.44-.5-.68-1.62-1.06-1.82-.62-3.04-1.46-2.8-3.22.21-1.56 1.67-2.58 3.71-2.58.81 0 1.67.17 2.44.52l-.68 1.47c-.67-.3-1.38-.48-2.07-.48-.56 0-.86.22-.9.6-.04.38.3.6 1.3.92 2 .68 3.08 1.52 2.84 3.35-.24 1.78-1.78 2.7-3.97 2.65zM5.71 20.68v-5.07l-1.23-.41v-1.5l6.27 2.1v1.5l-1.23-.41v5.07L5.71 20.68z"/>
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium">PlayStation</p>
+                    {profile?.psn_online_id || profile?.psn_id ? (
+                      <p className="text-xs text-muted-foreground">
+                        {profile.psn_online_id || profile.psn_id}
+                        {profile.psn_last_synced &&
+                          ` · ${new Date(profile.psn_last_synced).toLocaleDateString("pt-BR")}`}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Não conectado</p>
+                    )}
+                  </div>
                 </div>
+                {profile?.psn_online_id || profile?.psn_id ? (
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                )}
               </div>
-              {profile?.psn_id ? (
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
-              ) : (
-                <AlertCircle className="w-4 h-4 text-muted-foreground" />
-              )}
+              <div className="flex gap-2">
+                <Input
+                  value={psnImportUrl}
+                  onChange={(e) => setPsnImportUrl(e.target.value)}
+                  placeholder="https://psnprofiles.com/seu-username"
+                  className="text-xs h-8"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="shrink-0 gap-1 h-8 text-xs"
+                  disabled={importPsn.isPending}
+                  onClick={() => handleImportByUrl("psn", psnImportUrl, importPsn, () => setPsnImportUrl(""))}
+                >
+                  {importPsn.isPending
+                    ? <Loader2 className="w-3 h-3 animate-spin" />
+                    : <Download className="w-3 h-3" />}
+                  {importPsn.isPending ? "Importando…" : "Importar"}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Cole o link do seu perfil no PSNProfiles.com (perfil deve ser público).
+              </p>
             </div>
           </div>
 

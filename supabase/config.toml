@@ -20,3 +20,12 @@ verify_jwt = false
 
 [functions.sync-steam-playtime]
 verify_jwt = false
+
+[functions.import-steam-by-url]
+verify_jwt = false
+
+[functions.import-psn-by-url]
+verify_jwt = false
+
+[functions.import-xbox-by-url]
+verify_jwt = false

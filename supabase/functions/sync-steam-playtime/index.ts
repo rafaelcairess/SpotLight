@@ -258,6 +258,7 @@ serve(async (req) => {
           hours_played: hours,
           added_at: now,
           updated_at: now,
+          source: "steam",
         });
         insertedAppIds.push(game.appid);
 
@@ -283,19 +284,20 @@ serve(async (req) => {
     const { error: updateError } = await adminSupabase
       .from("user_games")
       .upsert(updates, { onConflict: "id" });
-    if (updateError) return json(500, { error: "user_games_update_failed" });
+    if (updateError) return json(500, { error: "user_games_update_failed", detail: updateError.message });
+  }
+
+  // Upsert games catalog BEFORE inserting user_games (catalog must exist first)
+  if (catalogRows.length) {
+    const { error: catalogError } = await adminSupabase
+      .from("games")
+      .upsert(catalogRows, { onConflict: "app_id" });
+    if (catalogError) return json(500, { error: "games_upsert_failed", detail: catalogError.message });
   }
 
   if (inserts.length) {
     const { error: insertError } = await adminSupabase.from("user_games").insert(inserts);
     if (insertError) return json(500, { error: "user_games_insert_failed", detail: insertError.message });
-  }
-
-  if (catalogRows.length) {
-    const { error: catalogError } = await adminSupabase
-      .from("games")
-      .upsert(catalogRows, { onConflict: "app_id" });
-    if (catalogError) return json(500, { error: "games_upsert_failed" });
   }
 
   if (importAll && games.length) {
