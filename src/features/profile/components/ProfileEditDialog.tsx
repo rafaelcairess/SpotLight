@@ -149,21 +149,11 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
     if (!user?.id) return;
     setIsSyncingSteam(true);
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
-      const res = await fetch(`${supabaseUrl}/functions/v1/sync-steam-playtime`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${supabaseKey}`,
-        },
-        body: JSON.stringify({ user_id: user.id }),
+      const { error } = await supabase.functions.invoke("sync-steam-playtime", {
+        body: { import_all: false },
       });
-      if (res.ok) {
-        toast({ title: "Biblioteca Steam atualizada!" });
-      } else {
-        toast({ title: "Erro ao sincronizar Steam", variant: "destructive" });
-      }
+      if (error) throw error;
+      toast({ title: "Biblioteca Steam atualizada!" });
     } catch {
       toast({ title: "Erro ao sincronizar Steam", variant: "destructive" });
     } finally {
