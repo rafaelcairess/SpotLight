@@ -1,10 +1,8 @@
 <div align="center">
 
-# 🎮 SpotLight
+# SpotLight
 
-**Descubra, acompanhe e compartilhe sua jornada nos games.**
-
-Uma plataforma completa de descoberta de jogos com curadoria, biblioteca pessoal, reviews da comunidade e integração nativa com Steam e Xbox.
+**Sua jornada nos games, em um só lugar.**
 
 [![Deploy](https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)](https://spot-light-xi.vercel.app)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
@@ -19,55 +17,59 @@ Uma plataforma completa de descoberta de jogos com curadoria, biblioteca pessoal
 
 ---
 
+## O problema
+
+Quem joga muito sabe a dor: sua biblioteca está na Steam, outra parte no Xbox, aquele jogo indie foi no itch.io, e os títulos que você quer jogar estão numa lista do Notes que você nunca mais abre. Não existe um lugar único onde sua história como gamer faça sentido.
+
+O SpotLight nasceu disso. A ideia surgiu de uma planilha que foi crescendo — status de cada jogo, horas jogadas, nota pessoal, jogos na wishlist esperando promoção — até o ponto em que manter a planilha virou trabalho. A solução óbvia era construir algo feito para isso.
+
+---
+
 ## O que é o SpotLight
 
-O SpotLight nasceu da necessidade de ter um lugar centralizado para acompanhar jogos — sem depender de planilhas ou notas espalhadas. É uma plataforma focada em **qualidade de descoberta**: catálogo curado, reviews reais, alertas de preço e integração direta com as plataformas onde você já joga.
+O SpotLight é uma plataforma de acompanhamento e descoberta de jogos. Você conecta suas contas da Steam e Xbox, sua biblioteca é importada automaticamente, e a partir daí você tem um perfil real da sua vida como jogador: quantas horas investiu, quais gêneros domina, quais jogos terminou, o que ainda está na fila.
+
+Além de organizar o que você já tem, o SpotLight ajuda a decidir o próximo jogo: catálogo curado, rankings atualizados, promoções em tempo real e recomendações baseadas na sua biblioteca. Tudo com reviews de outros jogadores para ajudar na decisão.
 
 ---
 
 ## Funcionalidades
 
-### 🎮 Biblioteca pessoal
-- Organize seus jogos por status: **Jogando**, **Completado**, **Abandonado**, **Wishlist**
-- Acompanhe horas jogadas (sincronizado via Steam ou inserido manualmente)
-- Marque favoritos e platinas com vitrine no perfil
+### Biblioteca pessoal
+- Status por jogo: **Jogando**, **Completado**, **Abandonado**, **Wishlist**
+- Horas jogadas sincronizadas via Steam ou inseridas manualmente
+- Favoritos e platinas em vitrine no perfil
 
-### 🔗 Integração com plataformas
-- **Login com Steam** — importa sua biblioteca automaticamente via Steam Web API
-- **Login com Xbox** — conecta com Xbox Live e sincroniza biblioteca
-- **Login com Google** — autenticação rápida via OAuth
-- Sincronização manual com botão "Atualizar Steam" no perfil
+### Integração com plataformas
+- **Steam** — login com OpenID, importação automática da biblioteca e horas jogadas
+- **Xbox** — OAuth com Xbox Live, sincronização da biblioteca
+- **Google** — autenticação rápida via OAuth
 
-### 📊 Perfil e estatísticas
-- Perfil público com avatar, bio e vitrine de platinas
-- **Insights**: total de horas, taxa de conclusão, top gêneros (gráfico), jogos por mês
-- **Conquistas SpotLight**: badges desbloqueados por milestones (colecionador, crítico, maratonista…)
-- Sistema de seguidores e seguindo
+### Perfil e estatísticas
+- Perfil público em `/u/:username` com avatar, bio e vitrine de platinas
+- **Insights**: total de horas, taxa de conclusão, top gêneros (gráfico), jogos adicionados por mês
+- **Conquistas SpotLight**: badges por milestones (colecionador, crítico, maratonista…)
+- Sistema de seguidores
 
-### 🏆 Listas personalizadas
-- Crie coleções temáticas ("Pra jogar nas férias", "Melhores de 2024")
-- Torne listas públicas e compartilhe com a comunidade
-- Adicione qualquer jogo do catálogo a uma lista direto do modal de detalhes
-
-### 🔍 Descoberta de jogos
-- Catálogo dinâmico com dados da Steam
+### Descoberta de jogos
+- Catálogo dinâmico atualizado a cada 6 horas com dados da Steam
 - Busca por nome com resultados em tempo real
-- Rankings curados: **Top Jogos**, **Mais Jogados**, **Promoções**
-- Coleções temáticas (co-op, lançamentos, indie…)
-- Recomendações baseadas na sua biblioteca
+- Rankings curados: **Mais Vendidos**, **Mais Jogados**, **Top Games**
+- Coleções temáticas (co-op, indie, lançamentos…)
+- Recomendações personalizadas com base na sua biblioteca
 
-### 📝 Reviews e comunidade
+### Alertas de preço
+- Configure um preço-alvo para qualquer jogo da sua wishlist
+- Receba e-mail quando o preço cair abaixo do alvo
+
+### Reviews e comunidade
 - Escreva reviews com nota e texto para qualquer jogo
-- Veja reviews de outros jogadores no perfil e na página do jogo
-- Página pública de cada usuário em `/u/:username`
-
-### 🔔 Alertas de preço
-- Configure alertas de preço para jogos da sua wishlist
-- Receba e-mail quando o preço cair abaixo do seu alvo
+- Veja o que outros jogadores acharam antes de comprar
+- Listas públicas e compartilháveis criadas pela comunidade
 
 ---
 
-## Stack tecnológica
+## Stack
 
 | Camada | Tecnologia |
 |--------|-----------|
@@ -123,8 +125,6 @@ npm install
 
 ### 3. Configure as variáveis de ambiente
 
-Copie o arquivo de exemplo e preencha com suas chaves:
-
 ```bash
 cp .env.example .env
 ```
@@ -134,19 +134,17 @@ cp .env.example .env
 | `VITE_SUPABASE_URL` | URL do seu projeto Supabase |
 | `VITE_SUPABASE_ANON_KEY` | Chave anon/public do Supabase |
 
-> **Nota:** As variáveis de ambiente das Edge Functions (Steam API Key, Xbox Client ID/Secret, etc.) são configuradas diretamente no painel do Supabase em *Settings → Edge Functions → Secrets*.
+> As variáveis das Edge Functions (Steam API Key, Xbox Client ID/Secret, etc.) são configuradas no painel do Supabase em *Settings → Edge Functions → Secrets*.
 
 ### 4. Configure o banco de dados
-
-O projeto usa migrations versionadas em `supabase/migrations/`. Aplique-as via [Supabase CLI](https://supabase.com/docs/guides/cli):
 
 ```bash
 supabase db push
 ```
 
-Ou aplique manualmente no SQL Editor do painel do Supabase.
+Ou aplique manualmente as migrations em `supabase/migrations/` no SQL Editor do Supabase.
 
-### 5. Inicie o servidor de desenvolvimento
+### 5. Inicie o servidor
 
 ```bash
 npm run dev
@@ -164,9 +162,9 @@ npm run build            # Build de produção
 npm run preview          # Preview do build localmente
 npm run lint             # Lint com ESLint
 npm test                 # Testes com Vitest
-npm run sync:steam       # Sincroniza jogos populares da Steam (script CI)
+npm run sync:steam       # Sincroniza jogos populares da Steam
 npm run check:alerts     # Verifica e dispara alertas de preço
-npm run set:featured     # Define jogo em destaque do dia
+npm run set:featured     # Define o jogo em destaque do dia
 ```
 
 ---
@@ -217,16 +215,16 @@ supabase/
 
 ## Roadmap
 
-- [ ] Recomendações por IA com base na biblioteca
 - [ ] Feed de atividade de amigos
 - [ ] Integração completa com PSN (Trophy API)
-- [ ] Sincronização automática via pg_cron (playtime periódico)
+- [ ] Recomendações por IA com base na biblioteca
+- [ ] Sincronização automática periódica de playtime (pg_cron)
 - [ ] App mobile (PWA)
 
 ---
 
 <div align="center">
 
-Feito com foco em qualidade e evolução constante.
+Feito por um gamer, para gamers que querem levar sua biblioteca a sério.
 
 </div>
