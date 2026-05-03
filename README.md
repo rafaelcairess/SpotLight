@@ -2,7 +2,7 @@
 
 # SpotLight
 
-**Sua jornada nos games, em um só lugar.**
+**Steam, Xbox, PlayStation. Tudo em um perfil só.**
 
 [![Deploy](https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)](https://spot-light-xi.vercel.app)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
@@ -19,17 +19,17 @@
 
 ## O problema
 
-Quem joga muito sabe a dor: sua biblioteca está na Steam, outra parte no Xbox, aquele jogo indie foi no itch.io, e os títulos que você quer jogar estão numa lista do Notes que você nunca mais abre. Não existe um lugar único onde sua história como gamer faça sentido.
+Você tem 150h no Steam, platinas no PSN e conquistas no Xbox. Três plataformas, três bibliotecas, três perfis que não conversam entre si. Para saber o que você já jogou, precisa abrir cada app separado. Para compartilhar sua história como gamer, não existe um lugar que conte tudo de uma vez.
 
-O SpotLight nasceu disso. A ideia surgiu de uma planilha que foi crescendo — status de cada jogo, horas jogadas, nota pessoal, jogos na wishlist esperando promoção — até o ponto em que manter a planilha virou trabalho. A solução óbvia era construir algo feito para isso.
+O SpotLight nasceu para resolver exatamente isso.
 
 ---
 
 ## O que é o SpotLight
 
-O SpotLight é uma plataforma de acompanhamento e descoberta de jogos. Você conecta suas contas da Steam e Xbox, sua biblioteca é importada automaticamente, e a partir daí você tem um perfil real da sua vida como jogador: quantas horas investiu, quais gêneros domina, quais jogos terminou, o que ainda está na fila.
+O SpotLight é o seu perfil gamer completo. Conecte Steam, Xbox e PlayStation — suas bibliotecas, horas jogadas, platinas e troféus são sincronizados automaticamente para um único lugar. Quando você platinar um jogo no PS5 e terminar outro no PC, ambos aparecem no mesmo perfil, com o mesmo histórico. Você para de precisar abrir cada plataforma separada para enxergar sua vida como jogador.
 
-Além de organizar o que você já tem, o SpotLight ajuda a decidir o próximo jogo: catálogo curado, rankings atualizados, promoções em tempo real e recomendações baseadas na sua biblioteca. Tudo com reviews de outros jogadores para ajudar na decisão.
+Além de centralizar o que você já tem, o SpotLight ajuda a descobrir o próximo jogo: catálogo curado, rankings, promoções em tempo real e recomendações baseadas na sua biblioteca real.
 
 ---
 
@@ -41,8 +41,9 @@ Além de organizar o que você já tem, o SpotLight ajuda a decidir o próximo j
 - Favoritos e platinas em vitrine no perfil
 
 ### Integração com plataformas
-- **Steam** — login com OpenID, importação automática da biblioteca e horas jogadas
-- **Xbox** — OAuth com Xbox Live, sincronização da biblioteca
+- **Steam** — biblioteca completa e horas jogadas sincronizadas via Steam Web API
+- **Xbox** — biblioteca Xbox Live e conquistas via OAuth da Microsoft
+- **PlayStation** — troféus (Bronze, Prata, Ouro, Platina) via PSN OAuth
 - **Google** — autenticação rápida via OAuth
 
 ### Perfil e estatísticas
@@ -225,6 +226,6 @@ supabase/
 
 <div align="center">
 
-Feito por um gamer, para gamers que querem levar sua biblioteca a sério.
+Um perfil para toda a sua vida nos games.
 
 </div>
