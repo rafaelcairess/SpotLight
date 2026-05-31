@@ -88,8 +88,8 @@ export const resources = {
         recommendationsTitle: "Recomendações pessoais",
         recommendationsSubtitle: "Baseado no que você joga e avalia",
         recommendationsEmpty:
-          "Jogue e avalie alguns títulos para destravar recomendações personalizadas.",
-        footerTagline: "Descubra os melhores jogos de PC",
+          "Avalie os jogos que você já jogou — a gente monta as recomendações com base nisso.",
+        footerTagline: "Um perfil para toda a sua vida nos games.",
       },
       featuredBanner: {
         badge: "Em Destaque",
@@ -100,7 +100,7 @@ export const resources = {
         title: "Coleções",
         heading: "Coleções",
         subtitle:
-          "Descubra jogos incríveis organizados por gênero e estilo. Encontre rápido o próximo jogo.",
+          "Sem ideia do que jogar? Escolha uma categoria e vai direto ao ponto.",
         featuredTitle: "Co-op em Destaque",
         featuredSubtitle: "Jogos cooperativos escolhidos para jogar agora",
         exploreMore: "Explore mais estilos e gêneros",
@@ -128,8 +128,8 @@ export const resources = {
         signupTitle: "Crie sua conta",
         resetTitle: "Recuperar senha",
         recoverTitle: "Definir nova senha",
-        loginDescription: "Entre para acessar sua biblioteca de jogos",
-        signupDescription: "Junte-se à comunidade SpotLight",
+        loginDescription: "Seus jogos estão esperando por você.",
+        signupDescription: "Crie uma conta e monte sua biblioteca.",
         resetDescription: "Enviaremos um link de recuperação para seu email",
         recoverDescription: "Crie uma nova senha para sua conta",
         verifyError: "Erro ao validar login",
@@ -353,7 +353,7 @@ export const resources = {
       },
       community: {
         title: "Comunidade",
-        subtitle: "Encontre jogadores e siga perfis interessantes",
+        subtitle: "Veja o que outros jogadores estão jogando e siga quem te interessa.",
         searchPlaceholder: "Buscar perfis...",
         searchHint: "Digite ao menos 2 caracteres para buscar.",
         minSearch: "Digite pelo menos 2 caracteres para buscar.",
@@ -401,16 +401,16 @@ export const resources = {
         tutorialDescription: "Onboarding do SpotLight",
         introTitle: "O que é o SpotLight",
         introDescription:
-          "SpotLight é um hub social para descobrir jogos, organizar sua biblioteca e compartilhar reviews.",
-        howToUseTitle: "Como usar",
+          "Conecte Steam, Xbox e PlayStation e tenha toda sua vida nos games em um só lugar. Biblioteca, platinas, horas e reviews — tudo no mesmo perfil.",
+        howToUseTitle: "O que você pode fazer",
         howToUseItems: [
-          { title: "Explorar", description: "Descubra lançamentos, destaques e recomendações." },
-          { title: "Coleções", description: "Listas curadas por tema para decidir mais rápido." },
-          { title: "Promoções", description: "Acompanhe descontos e jogos em promoção." },
-          { title: "Comunidade", description: "Veja perfis, siga pessoas e leia reviews." },
-          { title: "Top Games", description: "Ranking curado do SpotLight e favoritos da galera." },
-          { title: "Alertas", description: "Receba aviso quando um jogo ficar mais barato." },
-          { title: "Reviews", description: "Avalie jogos e ajude outros jogadores." },
+          { title: "Explorar", description: "O ponto de partida. Novidades, destaques e o que tá bombando agora." },
+          { title: "Coleções", description: "Sem ideia do que jogar? Filtra por humor ou estilo e escolhe." },
+          { title: "Promoções", description: "Jogo que você quer tá caro? Aqui você acompanha as promoções." },
+          { title: "Comunidade", description: "Veja o que outros jogadores estão jogando e o que acharam." },
+          { title: "Top Games", description: "Ranking curado do SpotLight e o que a galera tá jogando de verdade." },
+          { title: "Alertas", description: "Coloca o preço que você topa pagar e a gente te avisa quando chegar lá." },
+          { title: "Reviews", description: "Escreva o que achou e deixe sua marca na página do jogo." },
         ],
         roadmapTitle: "O que vem por aí",
         roadmapItems: [
@@ -433,7 +433,7 @@ export const resources = {
       },
       readyLists: {
         sectionTitle: "Seleções prontas",
-        sectionSubtitle: "Curadoria para quando você quer decidir rápido",
+        sectionSubtitle: "Pra quando você não quer ficar 20 minutos escolhendo",
         "quick-30": {
           title: "Jogos rápidos até 30 min",
           subtitle: "Partidas curtas para entrar e sair rápido",
@@ -720,8 +720,8 @@ export const resources = {
         recommendationsTitle: "Personal recommendations",
         recommendationsSubtitle: "Based on what you play and review",
         recommendationsEmpty:
-          "Play and review a few titles to unlock personal recommendations.",
-        footerTagline: "Discover the best PC games",
+          "Rate the games you've already played — we'll build recommendations from that.",
+        footerTagline: "One profile for your entire gaming life.",
       },
       featuredBanner: {
         badge: "Featured",
@@ -732,7 +732,7 @@ export const resources = {
         title: "Collections",
         heading: "Collections",
         subtitle:
-          "Discover great games organized by genre and style. Find your next pick fast.",
+          "No idea what to play? Pick a category and go straight to the point.",
         featuredTitle: "Featured Co-op",
         featuredSubtitle: "Co-op picks ready to play right now",
         exploreMore: "Explore more styles and genres",
@@ -759,8 +759,8 @@ export const resources = {
         signupTitle: "Create your account",
         resetTitle: "Reset password",
         recoverTitle: "Set a new password",
-        loginDescription: "Sign in to access your game library",
-        signupDescription: "Join the SpotLight community",
+        loginDescription: "Your games are waiting for you.",
+        signupDescription: "Create an account and build your library.",
         resetDescription: "We'll send a recovery link to your email",
         recoverDescription: "Create a new password for your account",
         verifyError: "Error validating login",
@@ -984,7 +984,7 @@ export const resources = {
       },
       community: {
         title: "Community",
-        subtitle: "Find players and follow interesting profiles",
+        subtitle: "See what other players are into and follow whoever interests you.",
         searchPlaceholder: "Search profiles...",
         searchHint: "Type at least 2 characters to search.",
         minSearch: "Type at least 2 characters to search.",
@@ -1032,16 +1032,16 @@ export const resources = {
         tutorialDescription: "SpotLight onboarding",
         introTitle: "What is SpotLight",
         introDescription:
-          "SpotLight is a social hub to discover games, organize your library and share reviews.",
-        howToUseTitle: "How to use",
+          "Connect Steam, Xbox and PlayStation and have your entire gaming life in one place. Library, platinums, hours and reviews — all in one profile.",
+        howToUseTitle: "What you can do",
         howToUseItems: [
-          { title: "Explore", description: "Discover releases, highlights and recommendations." },
-          { title: "Collections", description: "Curated lists by theme to decide faster." },
-          { title: "Deals", description: "Track discounts and games on sale." },
-          { title: "Community", description: "See profiles, follow people and read reviews." },
-          { title: "Top Games", description: "Curated ranking and community favorites." },
-          { title: "Alerts", description: "Get notified when a game gets cheaper." },
-          { title: "Reviews", description: "Review games and help other players." },
+          { title: "Explore", description: "Your starting point. New releases, highlights and what's trending right now." },
+          { title: "Collections", description: "No idea what to play? Filter by mood or style and just pick." },
+          { title: "Deals", description: "Game you want too expensive? Track the deals here." },
+          { title: "Community", description: "See what other players are playing and what they think." },
+          { title: "Top Games", description: "SpotLight's curated ranking and what people are actually playing." },
+          { title: "Alerts", description: "Set the price you're willing to pay and we'll let you know when it gets there." },
+          { title: "Reviews", description: "Write what you think and leave your mark on the game's page." },
         ],
         roadmapTitle: "What’s next",
         roadmapItems: [
@@ -1064,7 +1064,7 @@ export const resources = {
       },
       readyLists: {
         sectionTitle: "Ready lists",
-        sectionSubtitle: "Curated picks to decide fast",
+        sectionSubtitle: "For when you don't want to spend 20 minutes choosing",
         "quick-30": {
           title: "Quick games up to 30 min",
           subtitle: "Short sessions to jump in and out",
@@ -1350,8 +1350,8 @@ export const resources = {
         recommendationsTitle: "Recomendaciones personales",
         recommendationsSubtitle: "Basado en lo que juegas y calificas",
         recommendationsEmpty:
-          "Juega y califica algunos títulos para desbloquear recomendaciones personalizadas.",
-        footerTagline: "Descubre los mejores juegos de PC",
+          "Califica los juegos que ya jugaste — nosotros armamos las recomendaciones con eso.",
+        footerTagline: "Un perfil para toda tu vida en los games.",
       },
       featuredBanner: {
         badge: "Destacado",
@@ -1362,7 +1362,7 @@ export const resources = {
         title: "Colecciones",
         heading: "Colecciones",
         subtitle:
-          "Descubre grandes juegos organizados por género y estilo. Encuentra rápido tu próximo juego.",
+          "¿Sin idea de qué jugar? Elige una categoría y ve directo al punto.",
         featuredTitle: "Co-op destacado",
         featuredSubtitle: "Selección cooperativa lista para jugar",
         exploreMore: "Explora más estilos y géneros",
@@ -1389,8 +1389,8 @@ export const resources = {
         signupTitle: "Crea tu cuenta",
         resetTitle: "Recuperar contraseña",
         recoverTitle: "Definir nueva contraseña",
-        loginDescription: "Entra para acceder a tu biblioteca",
-        signupDescription: "Únete a la comunidad SpotLight",
+        loginDescription: "Tus juegos están esperándote.",
+        signupDescription: "Crea una cuenta y arma tu biblioteca.",
         resetDescription: "Enviaremos un enlace de recuperación a tu email",
         recoverDescription: "Crea una nueva contraseña para tu cuenta",
         verifyError: "Error al validar el login",
@@ -1614,7 +1614,7 @@ export const resources = {
       },
       community: {
         title: "Comunidad",
-        subtitle: "Encuentra jugadores y sigue buenos perfiles",
+        subtitle: "Ve lo que otros jugadores están jugando y sigue a quien te interese.",
         searchPlaceholder: "Buscar perfiles...",
         searchHint: "Escribe al menos 2 caracteres para buscar.",
         minSearch: "Escribe al menos 2 caracteres para buscar.",
@@ -1662,16 +1662,16 @@ export const resources = {
         tutorialDescription: "Tutorial de SpotLight",
         introTitle: "¿Qué es SpotLight?",
         introDescription:
-          "SpotLight es un hub social para descubrir juegos, organizar tu biblioteca y compartir reviews.",
-        howToUseTitle: "Cómo usar",
+          "Conecta Steam, Xbox y PlayStation y ten toda tu vida en los games en un solo lugar. Biblioteca, platinos, horas y reviews — todo en el mismo perfil.",
+        howToUseTitle: "Lo que puedes hacer",
         howToUseItems: [
-          { title: "Explorar", description: "Descubre lanzamientos, destaques y recomendaciones." },
-          { title: "Colecciones", description: "Listas curadas por tema para decidir más rápido." },
-          { title: "Ofertas", description: "Sigue descuentos y juegos en oferta." },
-          { title: "Comunidad", description: "Ve perfiles, sigue personas y lee reviews." },
-          { title: "Top Games", description: "Ranking curado y favoritos de la comunidad." },
-          { title: "Alertas", description: "Recibe aviso cuando un juego esté más barato." },
-          { title: "Reviews", description: "Evalúa juegos y ayuda a otros jugadores." },
+          { title: "Explorar", description: "Tu punto de partida. Novedades, destaques y lo que está de moda ahora." },
+          { title: "Colecciones", description: "¿Sin idea de qué jugar? Filtra por estilo o humor y elige." },
+          { title: "Ofertas", description: "¿El juego que querés está caro? Seguí las ofertas acá." },
+          { title: "Comunidad", description: "Mirá qué están jugando otros y qué les pareció." },
+          { title: "Top Games", description: "El ranking curado de SpotLight y lo que la gente realmente juega." },
+          { title: "Alertas", description: "Ponés el precio que estás dispuesto a pagar y te avisamos cuando llegue." },
+          { title: "Reviews", description: "Escribí lo que te pareció y dejá tu huella en la página del juego." },
         ],
         roadmapTitle: "Lo que viene",
         roadmapItems: [
@@ -1694,7 +1694,7 @@ export const resources = {
       },
       readyLists: {
         sectionTitle: "Selecciones listas",
-        sectionSubtitle: "Curaduría para decidir rápido",
+        sectionSubtitle: "Para cuando no querés pasar 20 minutos eligiendo",
         "quick-30": {
           title: "Juegos rápidos hasta 30 min",
           subtitle: "Sesiones cortas para entrar y salir rápido",
