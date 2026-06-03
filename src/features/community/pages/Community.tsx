@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/features/profile/components/UserAvatar";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCommunityProfiles, useSearchProfiles } from "@/hooks/useProfile";
+import { useSearchProfiles } from "@/hooks/useProfile";
 import { useFollowUser, useFollowingIds, useUnfollowUser } from "@/hooks/useFollows";
 import { useTranslation } from "react-i18next";
 
@@ -23,10 +23,8 @@ const Community = () => {
 
   const hasSearch = searchTerm.trim().length >= 2;
   const { data: searchResults = [], isLoading: searchLoading } = useSearchProfiles(searchTerm.trim());
-  const { data: communityProfiles = [], isLoading: communityLoading } = useCommunityProfiles(24);
 
-  const profiles = hasSearch ? searchResults : communityProfiles;
-  const filteredProfiles = profiles.filter((profile) => profile.user_id !== user?.id);
+  const filteredProfiles = searchResults.filter((profile) => profile.user_id !== user?.id);
 
   const profileIds = useMemo(
     () => filteredProfiles.map((profile) => profile.user_id),
@@ -38,8 +36,6 @@ const Community = () => {
 
   const followUser = useFollowUser();
   const unfollowUser = useUnfollowUser();
-
-  const isLoading = hasSearch ? searchLoading : communityLoading;
 
   const handleToggleFollow = (targetUserId: string, isFollowing: boolean) => {
     if (!user) {
@@ -83,13 +79,15 @@ const Community = () => {
             <p className="text-xs text-muted-foreground mt-2">{t("community.searchHint")}</p>
           </div>
 
-          {searchTerm.trim().length > 0 && !hasSearch && (
-            <div className="text-sm text-muted-foreground py-6">{t("community.minSearch")}</div>
-          )}
-
-          {isLoading ? (
+          {!hasSearch ? (
+            <div className="text-center py-16 text-muted-foreground">
+              {searchTerm.trim().length > 0
+                ? t("community.minSearch")
+                : t("community.searchPrompt")}
+            </div>
+          ) : searchLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Array.from({ length: 6 }).map((_, idx) => (
+              {Array.from({ length: 4 }).map((_, idx) => (
                 <div
                   key={idx}
                   className="h-20 rounded-xl border border-border/40 bg-card/60 animate-pulse"
@@ -98,7 +96,7 @@ const Community = () => {
             </div>
           ) : filteredProfiles.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              {hasSearch ? t("community.noProfiles") : t("community.noProfiles")}
+              {t("community.noProfiles")}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
