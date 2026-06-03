@@ -33,7 +33,6 @@ import { GameLibrary } from "@/features/profile/components/GameLibrary";
 import { ProfileReviews } from "@/features/profile/components/ProfileReviews";
 import { FollowListDialog } from "@/features/profile/components/FollowListDialog";
 import { TrophyShowcase } from "@/features/profile/components/TrophyShowcase";
-import { ProfileInsights } from "@/features/profile/components/ProfileInsights";
 import { ProfileTopGames } from "@/features/profile/components/ProfileTopGames";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
@@ -225,9 +224,6 @@ const PublicProfile = () => {
 
         <div className="mb-8">
           <TrophyShowcase games={platinumGames} isLoading={gamesLoading} />
-        </div>
-        <div className="mb-8">
-          <ProfileInsights games={userGames} isLoading={gamesLoading} />
         </div>
         <div className="mb-8">
           {canViewLibrary ? (

@@ -33,7 +33,6 @@ import { GameLibrary } from "@/features/profile/components/GameLibrary";
 import { ProfileReviews } from "@/features/profile/components/ProfileReviews";
 import { ProfileEditDialog } from "@/features/profile/components/ProfileEditDialog";
 import { TrophyShowcase } from "@/features/profile/components/TrophyShowcase";
-import { ProfileInsights } from "@/features/profile/components/ProfileInsights";
 import { AchievementsBadges } from "@/features/profile/components/AchievementsBadges";
 import { UserListsTab } from "@/features/profile/components/UserListsTab";
 import { ProfileTopGames } from "@/features/profile/components/ProfileTopGames";
@@ -224,11 +223,6 @@ const Profile = () => {
         <div className="mb-8">
           <SectionErrorBoundary code="TROPHY_SHOWCASE_ERROR">
             <TrophyShowcase games={platinumGames} isLoading={gamesLoading} />
-          </SectionErrorBoundary>
-        </div>
-        <div className="mb-8">
-          <SectionErrorBoundary code="PROFILE_INSIGHTS_ERROR">
-            <ProfileInsights games={userGames} isLoading={gamesLoading} />
           </SectionErrorBoundary>
         </div>
         <div className="mb-8">
