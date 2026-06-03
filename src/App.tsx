@@ -26,6 +26,7 @@ import OnboardingModal from "@/features/onboarding/components/OnboardingModal";
 import WhatsNewModal from "@/features/onboarding/components/WhatsNewModal";
 import GamePage from "@/features/games/pages/GamePage";
 import ListPage from "@/features/lists/pages/ListPage";
+import Admin from "@/features/admin/pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/u/:username" element={<PublicProfile />} />
             <Route path="/game/:appId" element={<GamePage />} />
             <Route path="/lists/:listId" element={<ListPage />} />
+            <Route path="/admin" element={<Admin />} />
             {/* Adicione todas as rotas acima do catch-all "*" */}
             <Route path="*" element={<NotFound />} />
           </Routes>
