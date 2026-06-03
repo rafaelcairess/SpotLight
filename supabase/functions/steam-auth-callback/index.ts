@@ -195,8 +195,15 @@ serve(async (req) => {
         `&steamid=${steamId}&include_played_free_games=1&include_appinfo=1`;
 
       const data = await fetchJson(ownedUrl);
-      const games: Array<{ appid: number; playtime_forever?: number; name?: string }> =
+      const games: Array<{ appid: number; playtime_forever?: number; name?: string; rtime_last_played?: number }> =
         Array.isArray(data?.response?.games) ? data.response.games : [];
+
+      const twelveMonthsAgoUnix = Math.floor(Date.now() / 1000) - 365 * 24 * 3600;
+      const getSmartStatus = (hours: number, rtime?: number): "wishlist" | "playing" | "dropped" => {
+        const rt = rtime ?? 0;
+        if (rt === 0) return hours > 0 ? "playing" : "wishlist";
+        return rt < twelveMonthsAgoUnix ? "dropped" : "playing";
+      };
 
       // Perfil Steam privado: games é undefined/vazio — registra mas não bloqueia o login
       if (games.length === 0) {
@@ -222,7 +229,7 @@ serve(async (req) => {
         const inserts: Array<{
           user_id: string;
           app_id: number;
-          status: "wishlist" | "playing";
+          status: "wishlist" | "playing" | "dropped";
           hours_played: number;
           source: string;
           added_at: string;
@@ -245,7 +252,7 @@ serve(async (req) => {
               return { id, hours_played: hours, updated_at: now };
             }
 
-            const status = hours > 0 ? "playing" : "wishlist";
+            const status = getSmartStatus(hours, game.rtime_last_played);
             inserts.push({
               user_id: userId!,
               app_id: game.appid,

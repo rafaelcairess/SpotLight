@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useRef, useState, useMemo } from "react";
-import { Loader2, Upload, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Upload, RefreshCw, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
+import { useDeleteAccount } from "@/hooks/useDeleteAccount";
+import { useNavigate } from "react-router-dom";
 import steamIcon from "@/assets/steam.png";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Switch } from "@/components/ui/switch";
@@ -63,9 +65,11 @@ const containsBannedWords = (value: string) => {
 };
 
 export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDialogProps) {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const updateProfile = useUpdateProfile();
+  const deleteAccount = useDeleteAccount();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
 
@@ -80,6 +84,8 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
   const [isUploading, setIsUploading] = useState(false);
   const [isSyncingSteam, setIsSyncingSteam] = useState(false);
   const [matureEnabled, setMatureEnabled] = useMaturePreference();
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const visibilityOptions = useMemo(
     () => [
@@ -496,6 +502,67 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
                 {visibilityOptions.find((o) => o.value === reviewsVisibility)?.description}
               </p>
             </div>
+          </div>
+
+          {/* Zona de perigo */}
+          <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 space-y-3">
+            <div>
+              <h3 className="text-sm font-semibold text-destructive">{t("profileEdit.dangerZoneTitle")}</h3>
+              <p className="text-xs text-muted-foreground">{t("profileEdit.dangerZoneDescription")}</p>
+            </div>
+            {!showDeleteConfirm ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                <Trash2 className="w-4 h-4" />
+                {t("profileEdit.deleteAccount")}
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  {t("profileEdit.deleteConfirmHint", { word: "EXCLUIR" })}
+                </p>
+                <input
+                  type="text"
+                  value={deleteConfirm}
+                  onChange={(e) => setDeleteConfirm(e.target.value)}
+                  placeholder="EXCLUIR"
+                  className="w-full rounded-md border border-destructive/50 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-destructive"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => { setShowDeleteConfirm(false); setDeleteConfirm(""); }}
+                  >
+                    {t("common.actions.cancel")}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="destructive"
+                    disabled={deleteConfirm !== "EXCLUIR" || deleteAccount.isPending}
+                    onClick={async () => {
+                      try {
+                        await deleteAccount.mutateAsync();
+                        await signOut();
+                        navigate("/");
+                      } catch {
+                        toast({ title: t("profileEdit.deleteError"), variant: "destructive" });
+                      }
+                    }}
+                  >
+                    {deleteAccount.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    {t("profileEdit.deleteConfirmButton")}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Acoes */}

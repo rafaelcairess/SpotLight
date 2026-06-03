@@ -26,6 +26,7 @@ export interface Profile {
   profile_visibility: string;
   reviews_visibility: string;
   library_visibility: string;
+  is_admin: boolean;
   created_at: string;
   updated_at: string;
 }

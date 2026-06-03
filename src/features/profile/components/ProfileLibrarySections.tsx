@@ -2,11 +2,15 @@
  * Componente da feature profile.
  */
 
+import { useMemo } from "react";
 import { GamepadIcon, CheckCircle2, XCircle } from "lucide-react";
 import { GameLibrary } from "@/features/profile/components/GameLibrary";
 import { UserGame } from "@/hooks/useUserGames";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
+import { useGamesByIds } from "@/hooks/useGames";
+import { useMaturePreference } from "@/hooks/useMaturePreference";
+import { isMatureGame } from "@/lib/matureFilter";
 
 interface ProfileLibrarySectionsProps {
   games: UserGame[];
@@ -22,9 +26,24 @@ export function ProfileLibrarySections({
   onGameSelect,
 }: ProfileLibrarySectionsProps) {
   const { t } = useTranslation();
-  const completedGames = games.filter((g) => g.status === "completed");
-  const droppedGames = games.filter((g) => g.status === "dropped");
-  const activeGames = games.filter(
+  const [showMature] = useMaturePreference();
+
+  const appIds = useMemo(() => games.map((g) => g.app_id), [games]);
+  const { data: catalogGames = [] } = useGamesByIds(appIds);
+
+  const matureAppIds = useMemo(() => {
+    if (showMature) return new Set<number>();
+    return new Set(catalogGames.filter(isMatureGame).map((g) => g.app_id));
+  }, [catalogGames, showMature]);
+
+  const visibleGames = useMemo(
+    () => (matureAppIds.size > 0 ? games.filter((g) => !matureAppIds.has(g.app_id)) : games),
+    [games, matureAppIds]
+  );
+
+  const completedGames = visibleGames.filter((g) => g.status === "completed");
+  const droppedGames = visibleGames.filter((g) => g.status === "dropped");
+  const activeGames = visibleGames.filter(
     (g) => g.status === "playing" || g.status === "wishlist"
   );
 

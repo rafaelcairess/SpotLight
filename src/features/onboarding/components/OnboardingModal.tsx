@@ -9,12 +9,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearchGames } from "@/hooks/useGames";
 import { useEnsureFavoriteGame } from "@/hooks/useUserGames";
+import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useMaturePreference } from "@/hooks/useMaturePreference";
 import { STORAGE_KEYS } from "@/config/storageKeys";
 
 const STORAGE_KEY = STORAGE_KEYS.onboarding;
@@ -39,6 +43,9 @@ export default function OnboardingModal() {
   const ensureFavorite = useEnsureFavoriteGame();
   const { t } = useTranslation();
   const { locale, setLocale } = useLanguage();
+  const { data: profile } = useProfile();
+  const updateProfile = useUpdateProfile();
+  const [, setShowMature] = useMaturePreference();
 
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
@@ -46,8 +53,13 @@ export default function OnboardingModal() {
   const [selectedGames, setSelectedGames] = useState<
     { app_id: number; title: string; image?: string; genre?: string }[]
   >([]);
+  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
+  const [matureEnabled, setMatureEnabled] = useState(false);
 
   const { data: results = [], isLoading: searchLoading } = useSearchGames(search, 20);
+
+  const isSteamUser = !!profile?.username?.startsWith("steam_");
 
   useEffect(() => {
     if (loading) return;
@@ -57,6 +69,13 @@ export default function OnboardingModal() {
       setOpen(true);
     }
   }, [loading]);
+
+  useEffect(() => {
+    if (profile && isSteamUser) {
+      setDisplayName(profile.display_name ?? "");
+      setUsername(profile.username ?? "");
+    }
+  }, [profile, isSteamUser]);
 
   const selectedIds = useMemo(
     () => selectedGames.map((game) => game.app_id),
@@ -85,7 +104,33 @@ export default function OnboardingModal() {
     ]);
   };
 
+  const handleSaveProfile = async () => {
+    if (!user || !isSteamUser) return;
+    try {
+      await updateProfile.mutateAsync({
+        display_name: displayName.trim() || undefined,
+        username: username.trim() || undefined,
+      });
+      toast({ title: t("onboarding.profileSaved") });
+    } catch {
+      toast({ title: t("onboarding.profileError"), variant: "destructive" });
+    }
+  };
+
   const handleFinish = async () => {
+    setShowMature(matureEnabled);
+
+    if (user && isSteamUser && (displayName.trim() || username.trim())) {
+      try {
+        await updateProfile.mutateAsync({
+          display_name: displayName.trim() || undefined,
+          username: username.trim() || undefined,
+        });
+      } catch {
+        // Best effort
+      }
+    }
+
     if (user && selectedIds.length > 0) {
       try {
         for (const appId of selectedIds) {
@@ -99,18 +144,56 @@ export default function OnboardingModal() {
     closeOnboarding();
   };
 
-  const stepTitles = [
-    t("onboarding.languageTitle"),
-    t("onboarding.introTitle"),
-    t("onboarding.howToUseTitle"),
-    t("onboarding.favoritesTitle"),
-  ];
+  const steps = useMemo(() => {
+    const base = [
+      { id: "language", title: t("onboarding.languageTitle") },
+      { id: "intro", title: t("onboarding.introTitle") },
+      { id: "howToUse", title: t("onboarding.howToUseTitle") },
+      { id: "mature", title: t("onboarding.matureStepTitle") },
+      { id: "favorites", title: t("onboarding.favoritesTitle") },
+    ];
+    if (isSteamUser) {
+      return [{ id: "profile", title: t("onboarding.profileTitle") }, ...base];
+    }
+    return base;
+  }, [isSteamUser, t]);
+
+  const stepTitles = steps.map((s) => s.title);
+  const currentStepId = steps[step]?.id;
 
   const howToItems = t("onboarding.howToUseItems", { returnObjects: true }) as HowToItem[];
   const roadmapItems = t("onboarding.roadmapItems", { returnObjects: true }) as string[];
 
   const renderStep = () => {
-    if (step === 0) {
+    if (currentStepId === "profile") {
+      return (
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">{t("onboarding.profileDescription")}</p>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="onb-displayName">{t("onboarding.displayNameLabel")}</Label>
+              <Input
+                id="onb-displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder={t("auth.form.displayNamePlaceholder")}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="onb-username">{t("onboarding.usernameLabel")}</Label>
+              <Input
+                id="onb-username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                placeholder={t("onboarding.usernamePlaceholder")}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (currentStepId === "language") {
       return (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">{t("onboarding.languageDescription")}</p>
@@ -135,7 +218,7 @@ export default function OnboardingModal() {
       );
     }
 
-    if (step === 1) {
+    if (currentStepId === "intro") {
       return (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">{t("onboarding.introDescription")}</p>
@@ -151,7 +234,7 @@ export default function OnboardingModal() {
       );
     }
 
-    if (step === 2) {
+    if (currentStepId === "howToUse") {
       return (
         <div className="space-y-3">
           <div className="grid gap-2 sm:grid-cols-2">
@@ -176,6 +259,21 @@ export default function OnboardingModal() {
                 </Badge>
               ))}
             </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (currentStepId === "mature") {
+      return (
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">{t("onboarding.matureStepDescription")}</p>
+          <div className="flex items-center justify-between rounded-lg border border-border/40 bg-secondary/30 px-4 py-3">
+            <div>
+              <p className="text-sm font-medium">{t("profileEdit.matureTitle")}</p>
+              <p className="text-xs text-muted-foreground">{t("profileEdit.matureDescription")}</p>
+            </div>
+            <Switch checked={matureEnabled} onCheckedChange={setMatureEnabled} />
           </div>
         </div>
       );
