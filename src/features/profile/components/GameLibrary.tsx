@@ -3,7 +3,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { Heart, Trophy, Clock, Trash2, MoreVertical, PencilLine } from "lucide-react";
+import { Heart, Trophy, Clock, Trash2, MoreVertical, PencilLine, EyeOff, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -32,6 +32,7 @@ interface GameLibraryProps {
   readOnly?: boolean;
   highlightPlatinum?: boolean;
   cardTone?: "default" | "completed" | "dropped";
+  showHidden?: boolean;
   onGameSelect?: (game: GameData) => void;
 }
 
@@ -48,6 +49,7 @@ export function GameLibrary({
   readOnly = false,
   highlightPlatinum = false,
   cardTone = "default",
+  showHidden = false,
   onGameSelect,
 }: GameLibraryProps) {
   const { toast } = useToast();
@@ -117,6 +119,24 @@ export function GameLibrary({
       toast({ title: t("library.removeSuccess") });
     } catch (error) {
       toast({ title: t("library.removeError"), variant: "destructive" });
+    }
+  };
+
+  const handleHideGame = async (game: UserGame) => {
+    try {
+      await updateGame.mutateAsync({ id: game.id, updates: { is_hidden: true } });
+      toast({ title: t("library.hideGameSuccess") });
+    } catch {
+      toast({ title: t("library.updateError"), variant: "destructive" });
+    }
+  };
+
+  const handleShowGame = async (game: UserGame) => {
+    try {
+      await updateGame.mutateAsync({ id: game.id, updates: { is_hidden: false } });
+      toast({ title: t("library.showGameSuccess") });
+    } catch {
+      toast({ title: t("library.updateError"), variant: "destructive" });
     }
   };
 
@@ -429,6 +449,28 @@ export function GameLibrary({
                       >
                         {t("library.statusDropped")}
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      {showHidden ? (
+                        <DropdownMenuItem
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleShowGame(userGame);
+                          }}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          {t("library.showGame")}
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleHideGame(userGame);
+                          }}
+                        >
+                          <EyeOff className="w-4 h-4 mr-2" />
+                          {t("library.hideGame")}
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={(event) => {

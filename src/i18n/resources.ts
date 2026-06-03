@@ -217,6 +217,8 @@ export const resources = {
         syncSteamImport: "Importar biblioteca",
         syncSteamImportLoading: "Importando...",
         syncSteamImportSuccess: "Biblioteca importada ({{count}} jogos).",
+        hiddenTab: "Ocultos",
+        hiddenEmpty: "Nenhum jogo oculto.",
       },
       profileLibrarySections: {
         completed: {
@@ -328,6 +330,10 @@ export const resources = {
         platinumRemove: "Remover platina",
         added: "Jogo adicionado!",
         favoriteToggle: "Favorito",
+        hideGame: "Ocultar jogo",
+        hideGameSuccess: "Jogo ocultado da biblioteca",
+        showGame: "Mostrar novamente",
+        showGameSuccess: "Jogo visível novamente",
       },
       trophyShowcase: {
         title: "Vitrine de Platinas",
@@ -431,6 +437,15 @@ export const resources = {
         favoritesSearchHint: "Digite ao menos 2 letras para buscar.",
         favoritesSaved: "Favoritos salvos!",
         favoritesError: "Não foi possível salvar os favoritos.",
+        profileTitle: "Configure seu perfil",
+        profileDescription: "Escolha como quer ser conhecido no SpotLight. Você pode mudar isso depois nas configurações.",
+        displayNameLabel: "Nome de exibição",
+        usernameLabel: "Nome de usuário",
+        usernamePlaceholder: "seu_username",
+        profileSaved: "Perfil configurado!",
+        profileError: "Não foi possível salvar o perfil.",
+        matureStepTitle: "Conteúdo adulto",
+        matureStepDescription: "Você tem jogos 18+ na biblioteca Steam? Ative para ver e organizar esse conteúdo no seu perfil.",
       },
       readyLists: {
         sectionTitle: "Seleções prontas",
@@ -849,6 +864,8 @@ export const resources = {
         syncSteamImport: "Import library",
         syncSteamImportLoading: "Importing...",
         syncSteamImportSuccess: "Library imported ({{count}} games).",
+        hiddenTab: "Hidden",
+        hiddenEmpty: "No hidden games.",
       },
       profileLibrarySections: {
         completed: {
@@ -960,6 +977,10 @@ export const resources = {
         platinumRemove: "Remove platinum",
         added: "Game added!",
         favoriteToggle: "Favorite",
+        hideGame: "Hide game",
+        hideGameSuccess: "Game hidden from library",
+        showGame: "Show again",
+        showGameSuccess: "Game visible again",
       },
       trophyShowcase: {
         title: "Platinum showcase",
@@ -1063,6 +1084,15 @@ export const resources = {
         favoritesSearchHint: "Type at least 2 letters to search.",
         favoritesSaved: "Favorites saved!",
         favoritesError: "Couldn't save favorites.",
+        profileTitle: "Set up your profile",
+        profileDescription: "Choose how you want to be known on SpotLight. You can change this later in settings.",
+        displayNameLabel: "Display name",
+        usernameLabel: "Username",
+        usernamePlaceholder: "your_username",
+        profileSaved: "Profile set up!",
+        profileError: "Could not save profile.",
+        matureStepTitle: "Adult content",
+        matureStepDescription: "Do you have 18+ games in your Steam library? Enable to view and organize adult content in your profile.",
       },
       readyLists: {
         sectionTitle: "Ready lists",
@@ -1480,6 +1510,8 @@ export const resources = {
         syncSteamImport: "Importar biblioteca",
         syncSteamImportLoading: "Importando...",
         syncSteamImportSuccess: "Biblioteca importada ({{count}} juegos).",
+        hiddenTab: "Ocultos",
+        hiddenEmpty: "Sin juegos ocultos.",
       },
       profileLibrarySections: {
         completed: {
@@ -1591,6 +1623,10 @@ export const resources = {
         platinumRemove: "Eliminar platino",
         added: "¡Juego agregado!",
         favoriteToggle: "Favorito",
+        hideGame: "Ocultar juego",
+        hideGameSuccess: "Juego ocultado de la biblioteca",
+        showGame: "Mostrar de nuevo",
+        showGameSuccess: "Juego visible de nuevo",
       },
       trophyShowcase: {
         title: "Vitrina de platinos",
@@ -1694,6 +1730,15 @@ export const resources = {
         favoritesSearchHint: "Escribe al menos 2 letras para buscar.",
         favoritesSaved: "¡Favoritos guardados!",
         favoritesError: "No se pudieron guardar los favoritos.",
+        profileTitle: "Configura tu perfil",
+        profileDescription: "Elige cómo quieres ser conocido en SpotLight. Puedes cambiarlo después en la configuración.",
+        displayNameLabel: "Nombre visible",
+        usernameLabel: "Usuario",
+        usernamePlaceholder: "tu_usuario",
+        profileSaved: "¡Perfil configurado!",
+        profileError: "No se pudo guardar el perfil.",
+        matureStepTitle: "Contenido adulto",
+        matureStepDescription: "¿Tienes juegos 18+ en tu biblioteca de Steam? Actívalo para ver y organizar contenido adulto en tu perfil.",
       },
       readyLists: {
         sectionTitle: "Selecciones listas",

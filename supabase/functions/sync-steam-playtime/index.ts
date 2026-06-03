@@ -198,7 +198,14 @@ serve(async (req) => {
     `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${STEAM_API_KEY}` +
     `&steamid=${steamId}&include_played_free_games=1&include_appinfo=${includeAppInfo}`;
 
-  let games: Array<{ appid: number; playtime_forever?: number; name?: string }> = [];
+  const twelveMonthsAgoUnix = Math.floor(Date.now() / 1000) - 365 * 24 * 3600;
+  const getSmartStatus = (hours: number, rtime?: number): "wishlist" | "playing" | "dropped" => {
+    const rt = rtime ?? 0;
+    if (rt === 0) return hours > 0 ? "playing" : "wishlist";
+    return rt < twelveMonthsAgoUnix ? "dropped" : "playing";
+  };
+
+  let games: Array<{ appid: number; playtime_forever?: number; name?: string; rtime_last_played?: number }> = [];
   try {
     const data = await fetchJson(ownedUrl);
     games = Array.isArray(data?.response?.games) ? data.response.games : [];
@@ -224,7 +231,7 @@ serve(async (req) => {
   const inserts: Array<{
     user_id: string;
     app_id: number;
-    status: "wishlist" | "playing";
+    status: "wishlist" | "playing" | "dropped";
     hours_played: number;
     added_at: string;
     updated_at: string;
@@ -250,7 +257,7 @@ serve(async (req) => {
       }
 
       if (importAll) {
-        const status = hours > 0 ? "playing" : "wishlist";
+        const status = getSmartStatus(hours, game.rtime_last_played);
         inserts.push({
           user_id: user.id,
           app_id: game.appid,
@@ -312,6 +319,33 @@ serve(async (req) => {
       const desc = detailMap.get(appId);
       return !desc || desc.length === 0;
     });
+
+    // Sync Steam achievements → auto-set is_platinumed for 100% completion
+    if (STEAM_API_KEY && steamId) {
+      const candidateGames = inserts
+        .filter((g) => g.hours_played >= 1)
+        .slice(0, 50);
+
+      for (const g of candidateGames) {
+        try {
+          const achieveUrl =
+            `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?key=${STEAM_API_KEY}` +
+            `&steamid=${steamId}&appid=${g.app_id}&l=english`;
+          const achieveData = await fetchJson(achieveUrl);
+          const achievements: Array<{ achieved: number }> =
+            achieveData?.playerstats?.achievements ?? [];
+          if (achievements.length > 0 && achievements.every((a) => a.achieved === 1)) {
+            await adminSupabase
+              .from("user_games")
+              .update({ is_platinumed: true })
+              .eq("user_id", user.id)
+              .eq("app_id", g.app_id);
+          }
+        } catch {
+          // Best effort: skip on error
+        }
+      }
+    }
   }
 
   await adminSupabase

@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Download,
   List,
+  EyeOff,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useProfile } from "@/hooks/useProfile";
-import { useUserGames } from "@/hooks/useUserGames";
+import { useUserGames, useHiddenGames } from "@/hooks/useUserGames";
 import { useReviewsByUser } from "@/hooks/useReviews";
 import { useFollowCounts, useFollowers, useFollowing } from "@/hooks/useFollows";
 import { useSyncSteamPlaytime } from "@/hooks/useSteamPlaytime";
@@ -48,6 +49,7 @@ const Profile = () => {
   const { locale } = useLanguage();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: userGames = [], isLoading: gamesLoading } = useUserGames();
+  const { data: hiddenGames = [], isLoading: hiddenLoading } = useHiddenGames();
   const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByUser();
   const { data: followCounts } = useFollowCounts(profile?.user_id);
   const { data: followersList = [], isLoading: followersLoading } = useFollowers(profile?.user_id);
@@ -278,6 +280,13 @@ const Profile = () => {
               <List className="w-4 h-4" />
               Listas
             </TabsTrigger>
+            <TabsTrigger
+              value="hidden"
+              className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+            >
+              <EyeOff className="w-4 h-4" />
+              {t("profile.hiddenTab")} ({hiddenGames.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="library">
@@ -311,6 +320,16 @@ const Profile = () => {
 
           <TabsContent value="lists">
             <UserListsTab />
+          </TabsContent>
+
+          <TabsContent value="hidden">
+            <GameLibrary
+              games={hiddenGames}
+              isLoading={hiddenLoading}
+              emptyMessage={t("profile.hiddenEmpty")}
+              showHidden
+              onGameSelect={handleOpenGame}
+            />
           </TabsContent>
         </Tabs>
       </main>

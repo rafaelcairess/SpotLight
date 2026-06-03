@@ -20,6 +20,7 @@ export interface UserGame {
   hours_played_manual: number | null;
   hours_override: boolean;
   is_favorite: boolean;
+  is_hidden: boolean;
   is_platinumed: boolean;
   added_at: string;
   updated_at: string;
@@ -39,8 +40,9 @@ export function useUserGames(userId?: string, useAuthFallback = true) {
         .from('user_games')
         .select('*')
         .eq('user_id', targetUserId)
+        .eq('is_hidden', false)
         .order('added_at', { ascending: false });
-      
+
       if (error) throw error;
       return data as UserGame[];
     },
@@ -179,15 +181,15 @@ export function useUpdateGame() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ 
-      id, 
-      updates 
-    }: { 
-      id: string; 
+    mutationFn: async ({
+      id,
+      updates
+    }: {
+      id: string;
       updates: Partial<
         Pick<
           UserGame,
-          "status" | "hours_played" | "hours_played_manual" | "hours_override" | "is_favorite" | "is_platinumed"
+          "status" | "hours_played" | "hours_played_manual" | "hours_override" | "is_favorite" | "is_hidden" | "is_platinumed"
         >
       >;
     }) => {
@@ -205,6 +207,31 @@ export function useUpdateGame() {
       // Atualiza a lista da biblioteca após editar.
       queryClient.invalidateQueries({ queryKey: ['user_games'] });
     },
+  });
+}
+
+// Busca jogos ocultos do usuário logado.
+export function useHiddenGames() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['user_games_hidden', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data, error } = await supabase
+        .from('user_games')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_hidden', true)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+      return data as UserGame[];
+    },
+    enabled: !!user?.id,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
 

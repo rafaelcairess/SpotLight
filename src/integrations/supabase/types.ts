@@ -429,6 +429,7 @@ export type Database = {
           hours_played_manual: number | null
           id: string
           is_favorite: boolean
+          is_hidden: boolean
           is_platinumed: boolean
           status: Database["public"]["Enums"]["game_status"]
           updated_at: string
@@ -442,6 +443,7 @@ export type Database = {
           hours_played_manual?: number | null
           id?: string
           is_favorite?: boolean
+          is_hidden?: boolean
           is_platinumed?: boolean
           status?: Database["public"]["Enums"]["game_status"]
           updated_at?: string
@@ -455,6 +457,7 @@ export type Database = {
           hours_played_manual?: number | null
           id?: string
           is_favorite?: boolean
+          is_hidden?: boolean
           is_platinumed?: boolean
           status?: Database["public"]["Enums"]["game_status"]
           updated_at?: string
