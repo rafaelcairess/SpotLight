@@ -1,0 +1,22 @@
+project_id = "bqdrlvxijhlxtioikwhh"
+
+[functions.steam-auth-start]
+verify_jwt = false
+
+[functions.steam-auth-callback]
+verify_jwt = false
+
+[functions.xbox-auth-start]
+verify_jwt = false
+
+[functions.xbox-auth-callback]
+verify_jwt = false
+
+[functions.psn-auth-start]
+verify_jwt = false
+
+[functions.psn-auth-callback]
+verify_jwt = false
+
+[functions.sync-steam-playtime]
+verify_jwt = false

@@ -1,0 +1,350 @@
+/**
+ * Componente compartilhado (Header).
+ */
+
+import { Search, Menu, X, LogOut, DollarSign, Users, Bell, Trophy, Flame, MessageSquare } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
+import { UserAvatar } from "@/features/profile/components/UserAvatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/useNotifications";
+import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getDateLocale } from "@/i18n/utils";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import logoSpotlight from "@/assets/logospotlight.png";
+
+const Header = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { data: profile } = useProfile();
+  const { data: notifications = [], isLoading: notificationsLoading } = useNotifications();
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
+  const { t } = useTranslation();
+  const { locale } = useLanguage();
+  const dateLocale = getDateLocale(locale);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  };
+
+  const navLinks = [
+    { href: "/", label: t("header.nav.explore") },
+    { href: "/collections", label: t("header.nav.collections") },
+    { href: "/promocoes", label: t("header.nav.promotions"), icon: DollarSign },
+    { href: "/comunidade", label: t("header.nav.community"), icon: Users },
+    { href: "/top", label: t("header.nav.topGames"), icon: Trophy },
+    { href: "/mais-jogados", label: t("header.nav.mostPlayed"), icon: Flame },
+  ];
+
+  const unreadCount = notifications.filter((notification) => !notification.read_at).length;
+
+  const handleNotificationClick = (id: string, link?: string | null) => {
+    markRead.mutate(id);
+    if (link) {
+      navigate(link);
+    }
+  };
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
+      <div className="w-full px-4">
+        <div className="flex items-center justify-between h-16 md:h-20">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 group -ml-30 md:-ml-50">
+            <div className="relative">
+              <img
+                src={logoSpotlight}
+                alt="SpotLight"
+                className="w-[5.25rem] h-[5.25rem] md:w-[6rem] md:h-[6rem] object-contain transition-transform group-hover:scale-110"
+              />
+              <div className="absolute inset-0 blur-lg bg-primary/20 group-hover:bg-primary/40 transition-colors" />
+            </div>
+            <span className="text-xl md:text-2xl font-bold text-gradient-primary font-logo">
+              SpotLight
+            </span>
+          </Link>
+
+          {/* Navegacao desktop */}
+          <nav className="hidden md:flex items-center gap-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={cn(
+                  "text-sm font-medium transition-colors hover:text-primary",
+                  location.pathname === link.href
+                    ? "text-primary"
+                    : "text-muted-foreground"
+                )}
+              >
+                <span className="inline-flex items-center gap-2">
+                  {link.icon && <link.icon className="w-4 h-4" />}
+                  {link.label}
+                </span>
+              </Link>
+            ))}
+          </nav>
+
+          {/* Barra de busca - desktop */}
+          <form onSubmit={handleSearch} className="hidden md:flex items-center gap-2 flex-1 max-w-md ml-4 mr-2">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder={t("header.searchPlaceholder")}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-secondary/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 placeholder:text-muted-foreground/60"
+              />
+            </div>
+          </form>
+
+          {/* Area de autenticacao - desktop */}
+          <div className="hidden md:flex items-center gap-4">
+            {!authLoading && (
+              user ? (
+                <div className="flex items-center">
+                  <div className="flex items-center gap-2">
+                    <LanguageSwitcher />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="relative">
+                          <Bell className="w-5 h-5" />
+                          {unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground px-1">
+                              {unreadCount > 9 ? "9+" : unreadCount}
+                            </span>
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-80">
+                        <div className="flex items-center justify-between px-2 py-1">
+                          <span className="text-sm font-semibold">{t("header.notifications")}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs"
+                            onClick={() => markAllRead.mutate()}
+                            disabled={markAllRead.isPending || unreadCount === 0}
+                          >
+                            {t("header.markAll")}
+                          </Button>
+                        </div>
+                        <DropdownMenuSeparator />
+                        {notificationsLoading ? (
+                          <div className="px-3 py-6 text-sm text-muted-foreground">
+                            {t("header.notificationsLoading")}
+                          </div>
+                        ) : notifications.length === 0 ? (
+                          <div className="px-3 py-6 text-sm text-muted-foreground">
+                            {t("header.notificationsEmpty")}
+                          </div>
+                        ) : (
+                          notifications.map((notification) => (
+                            <DropdownMenuItem
+                              key={notification.id}
+                              onClick={() => handleNotificationClick(notification.id, notification.link)}
+                              className={cn(
+                                "flex flex-col items-start gap-1 whitespace-normal",
+                                !notification.read_at && "bg-primary/5"
+                              )}
+                            >
+                              <span className="text-sm font-medium">{notification.message}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(new Date(notification.created_at), {
+                                  addSuffix: true,
+                                  locale: dateLocale,
+                                })}
+                              </span>
+                            </DropdownMenuItem>
+                          ))
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <Link to="/profile" className="relative h-10 w-10 rounded-full">
+                      <UserAvatar
+                        src={profile?.avatar_url}
+                        displayName={profile?.display_name}
+                        username={profile?.username}
+                        size="md"
+                      />
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-3 ml-5">
+                    <button
+                      onClick={handleSignOut}
+                      className="inline-flex items-center gap-2 text-sm font-medium text-destructive hover:text-destructive/90 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {t("header.signOut")}
+                    </button>
+                    <Link
+                      to="/feedback"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      {t("header.feedback")}
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <LanguageSwitcher />
+                  <Link
+                    to="/feedback"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    {t("header.feedback")}
+                  </Link>
+                  <Button variant="glow" size="sm" asChild>
+                    <Link to="/auth">{t("header.signIn")}</Link>
+                  </Button>
+                </div>
+              )
+            )}
+          </div>
+
+          {/* Botao do menu mobile */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
+          </Button>
+        </div>
+
+        {/* Menu mobile */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden py-4 border-t border-border/30 animate-fade-in">
+            {/* Busca mobile */}
+            <form onSubmit={handleSearch} className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder={t("header.searchPlaceholder")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-secondary/50 border-border/50"
+                />
+              </div>
+            </form>
+
+            {/* Links de navegacao mobile */}
+            <nav className="flex flex-col gap-2">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "px-3 py-3 rounded-lg text-base font-medium transition-colors",
+                    location.pathname === link.href
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-secondary"
+                  )}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    {link.icon && <link.icon className="w-4 h-4" />}
+                    {link.label}
+                  </span>
+                </Link>
+              ))}
+            </nav>
+
+            {/* Autenticacao mobile */}
+            <div className="mt-4 pt-4 border-t border-border/30 space-y-2">
+              <div className="flex items-center justify-between px-3">
+                <span className="text-xs text-muted-foreground">{t("common.language")}</span>
+                <LanguageSwitcher />
+              </div>
+              <Link
+                to="/feedback"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-2 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary"
+              >
+                <MessageSquare className="w-4 h-4" />
+                {t("header.feedback")}
+              </Link>
+              {!authLoading && (
+                user ? (
+                  <div className="space-y-2">
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary"
+                    >
+                      <UserAvatar
+                        src={profile?.avatar_url}
+                        displayName={profile?.display_name}
+                        username={profile?.username}
+                        size="sm"
+                      />
+                      <span>{profile?.display_name || t("header.myProfile")}</span>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleSignOut();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="flex items-center gap-2 px-3 py-3 w-full rounded-lg text-base font-medium text-destructive hover:bg-destructive/10"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {t("header.signOut")}
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    to="/auth"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block"
+                  >
+                    <Button variant="glow" className="w-full">
+                      {t("header.signIn")}
+                    </Button>
+                  </Link>
+                )
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+};
+
+export default Header;

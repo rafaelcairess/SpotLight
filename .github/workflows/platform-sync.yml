@@ -1,0 +1,59 @@
+name: Platform Sync (Steam Playtime + Xbox + PSN)
+
+# Roda a cada 6 horas para atualizar playtime/conquistas de todos os usuários.
+# Usa GitHub Actions gratuito no lugar do pg_cron (que requer Supabase Pro).
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync-steam-playtime:
+    name: Sync Steam Playtime
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger sync-steam-playtime (todos os usuários)
+        run: |
+          curl -s -X POST \
+            "$SUPABASE_URL/functions/v1/sync-steam-playtime" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"batch": true}'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+  sync-xbox-library:
+    name: Sync Xbox Libraries
+    runs-on: ubuntu-latest
+    # Xbox roda uma vez por dia (offset de 1h para não sobrecarregar junto com Steam)
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && contains(github.event.schedule, '0 1'))
+    steps:
+      - name: Trigger sync-xbox-library (todos os usuários)
+        run: |
+          curl -s -X POST \
+            "$SUPABASE_URL/functions/v1/sync-xbox-library" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"batch": true}'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+  sync-psn-trophies:
+    name: Sync PSN Trophies
+    runs-on: ubuntu-latest
+    # PSN roda uma vez por dia
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && contains(github.event.schedule, '0 1'))
+    steps:
+      - name: Trigger sync-psn-trophies (todos os usuários)
+        run: |
+          curl -s -X POST \
+            "$SUPABASE_URL/functions/v1/sync-psn-trophies" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"batch": true}'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
