@@ -48,7 +48,7 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
   const removeGame = useRemoveGame();
   const { t } = useTranslation();
 
-  const statusOptions = useMemo(
+  const statusOptions = useMemo<Array<{ value: UserGame["status"]; label: string; icon: string }>>(
     () => [
       { value: "wishlist", label: t("library.statusWishlist"), icon: "??" },
       { value: "playing", label: t("library.statusPlaying"), icon: "??" },

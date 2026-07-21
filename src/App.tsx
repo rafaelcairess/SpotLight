@@ -8,25 +8,27 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Explore from "@/features/explore/pages/Explore";
-import Collections from "@/features/collections/pages/Collections";
-import CollectionDetail from "@/features/collections/pages/CollectionDetail";
-import Search from "@/features/search/pages/Search";
-import Auth from "@/features/auth/pages/Auth";
-import Profile from "@/features/profile/pages/Profile";
-import Promotions from "@/features/promotions/pages/Promotions";
-import Community from "@/features/community/pages/Community";
-import PublicProfile from "@/features/profile/pages/PublicProfile";
-import TopGames from "@/features/top/pages/TopGames";
-import MostPlayed from "@/features/most-played/pages/MostPlayed";
-import Feedback from "@/features/feedback/pages/Feedback";
-import Alerts from "@/features/alerts/pages/Alerts";
-import NotFound from "@/pages/NotFound";
-import OnboardingModal from "@/features/onboarding/components/OnboardingModal";
-import WhatsNewModal from "@/features/onboarding/components/WhatsNewModal";
-import GamePage from "@/features/games/pages/GamePage";
-import ListPage from "@/features/lists/pages/ListPage";
-import Admin from "@/features/admin/pages/Admin";
+import { lazy, Suspense } from "react";
+
+const Explore = lazy(() => import("@/features/explore/pages/Explore"));
+const Collections = lazy(() => import("@/features/collections/pages/Collections"));
+const CollectionDetail = lazy(() => import("@/features/collections/pages/CollectionDetail"));
+const Search = lazy(() => import("@/features/search/pages/Search"));
+const Auth = lazy(() => import("@/features/auth/pages/Auth"));
+const Profile = lazy(() => import("@/features/profile/pages/Profile"));
+const Promotions = lazy(() => import("@/features/promotions/pages/Promotions"));
+const Community = lazy(() => import("@/features/community/pages/Community"));
+const PublicProfile = lazy(() => import("@/features/profile/pages/PublicProfile"));
+const TopGames = lazy(() => import("@/features/top/pages/TopGames"));
+const MostPlayed = lazy(() => import("@/features/most-played/pages/MostPlayed"));
+const Feedback = lazy(() => import("@/features/feedback/pages/Feedback"));
+const Alerts = lazy(() => import("@/features/alerts/pages/Alerts"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const OnboardingModal = lazy(() => import("@/features/onboarding/components/OnboardingModal"));
+const WhatsNewModal = lazy(() => import("@/features/onboarding/components/WhatsNewModal"));
+const GamePage = lazy(() => import("@/features/games/pages/GamePage"));
+const ListPage = lazy(() => import("@/features/lists/pages/ListPage"));
+const Admin = lazy(() => import("@/features/admin/pages/Admin"));
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <Suspense fallback={<div className="min-h-screen bg-background" aria-busy="true" />}>
           <Routes>
             <Route path="/" element={<Explore />} />
             <Route path="/auth" element={<Auth />} />
@@ -59,6 +62,7 @@ const App = () => (
           </Routes>
           <OnboardingModal />
           <WhatsNewModal />
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

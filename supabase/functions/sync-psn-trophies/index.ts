@@ -51,7 +51,7 @@ serve(async (req) => {
   }
 
   const authHeader = req.headers.get("Authorization") || "";
-  if (!authHeader.includes(SUPABASE_SERVICE_ROLE_KEY)) {
+  if (authHeader.replace("Bearer ", "").trim() !== SUPABASE_SERVICE_ROLE_KEY) {
     return json(401, { error: "unauthorized" });
   }
 

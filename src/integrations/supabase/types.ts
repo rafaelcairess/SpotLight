@@ -468,6 +468,60 @@ export type Database = {
         }
         Relationships: []
       }
+      user_list_games: {
+        Row: {
+          added_at: string
+          app_id: number
+          id: string
+          list_id: string
+          note: string | null
+        }
+        Insert: {
+          added_at?: string
+          app_id: number
+          id?: string
+          list_id: string
+          note?: string | null
+        }
+        Update: {
+          added_at?: string
+          app_id?: number
+          id?: string
+          list_id?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
+      user_lists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_top_games: {
         Row: {
           app_id: number

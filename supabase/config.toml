@@ -20,3 +20,23 @@ verify_jwt = false
 
 [functions.sync-steam-playtime]
 verify_jwt = false
+
+# User-facing functions rely on the gateway JWT check.
+[functions.delete-account]
+verify_jwt = true
+
+[functions.fetch-steam-details]
+verify_jwt = true
+
+[functions.search-steam]
+verify_jwt = true
+
+# Internal jobs validate the service-role credential inside the handler.
+[functions.send-price-alert-email]
+verify_jwt = false
+
+[functions.sync-xbox-library]
+verify_jwt = false
+
+[functions.sync-psn-trophies]
+verify_jwt = false

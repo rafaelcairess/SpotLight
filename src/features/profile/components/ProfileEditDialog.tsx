@@ -549,7 +549,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
                     disabled={deleteConfirm !== "EXCLUIR" || deleteAccount.isPending}
                     onClick={async () => {
                       try {
-                        await deleteAccount.mutateAsync();
+                        await deleteAccount.mutateAsync(undefined);
                         await signOut();
                         navigate("/");
                       } catch {

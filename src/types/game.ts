@@ -18,6 +18,7 @@ export interface GameData {
   developer?: string;
   publisher?: string;
   platforms?: string[];
+  hasDetails?: boolean;
 }
 
 export interface CategoryData {

@@ -7,7 +7,7 @@ import { useLocalStorageState } from "@/hooks/useLocalStorageState";
 import { STORAGE_KEYS } from "@/config/storageKeys";
 
 export const useLayoutPreference = (
-  storageKey = STORAGE_KEYS.layoutMode.base,
+  storageKey: string = STORAGE_KEYS.layoutMode.base,
   defaultMode: LayoutMode = "standard"
 ) => {
   return useLocalStorageState<LayoutMode>(

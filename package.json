@@ -8,6 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "preview": "vite preview",
     "sync:steam": "node scripts/steam-sync-popular.mjs",
     "sync:applist": "tsx scripts/steam-sync-applist.ts",

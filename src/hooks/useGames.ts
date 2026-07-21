@@ -115,7 +115,7 @@ const localizeGames = async (games: GameData[], locale: SupportedLocale) => {
 
 // Helper padrao para consultas de jogos com localizacoes e filtro de nao-jogos.
 const fetchGamesWithLocalization = async (
-  fetcher: () => Promise<{ data: GameRow[] | null; error: unknown }>,
+  fetcher: () => PromiseLike<{ data: GameRow[] | null; error: unknown }>,
   locale: SupportedLocale
 ) => {
   const { data, error } = await fetcher();
