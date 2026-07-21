@@ -21,8 +21,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useMaturePreference } from "@/hooks/useMaturePreference";
 import { STORAGE_KEYS } from "@/config/storageKeys";
 
-const STORAGE_KEY = STORAGE_KEYS.onboarding;
-
 const LANGUAGE_OPTIONS = [
   { value: "pt", short: "PT" },
   { value: "en", short: "EN" },
@@ -60,15 +58,18 @@ export default function OnboardingModal() {
   const { data: results = [], isLoading: searchLoading } = useSearchGames(search, 20);
 
   const isSteamUser = !!profile?.username?.startsWith("steam_");
+  const storageKey = `${STORAGE_KEYS.onboarding}.${user?.id ?? "guest"}`;
 
   useEffect(() => {
     if (loading) return;
     if (typeof window === "undefined") return;
-    const done = window.localStorage.getItem(STORAGE_KEY);
+    const done = window.localStorage.getItem(storageKey);
     if (done !== "done") {
       setOpen(true);
+    } else {
+      setOpen(false);
     }
-  }, [loading]);
+  }, [loading, storageKey]);
 
   useEffect(() => {
     if (profile && isSteamUser) {
@@ -85,7 +86,7 @@ export default function OnboardingModal() {
 
   const closeOnboarding = () => {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, "done");
+      window.localStorage.setItem(storageKey, "done");
     }
     setOpen(false);
   };

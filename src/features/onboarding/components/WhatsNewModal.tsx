@@ -92,20 +92,21 @@ const TYPE_COLORS: Record<ChangelogItem["type"], string> = {
 };
 
 export default function WhatsNewModal() {
-  const { loading } = useAuth();
+  const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (loading) return;
     if (typeof window === "undefined") return;
-    const onboardingDone = window.localStorage.getItem(STORAGE_KEYS.onboarding) === "done";
+    const onboardingKey = `${STORAGE_KEYS.onboarding}.${user?.id ?? "guest"}`;
+    const onboardingDone = window.localStorage.getItem(onboardingKey) === "done";
     const changelogSeen = window.localStorage.getItem(CHANGELOG_KEY) === "seen";
     if (onboardingDone && !changelogSeen) {
       // Pequeno delay para não competir com outros modais
       const timer = setTimeout(() => setOpen(true), 600);
       return () => clearTimeout(timer);
     }
-  }, [loading]);
+  }, [loading, user?.id]);
 
   const handleClose = () => {
     window.localStorage.setItem(CHANGELOG_KEY, "seen");

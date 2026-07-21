@@ -551,7 +551,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
                       try {
                         await deleteAccount.mutateAsync(undefined);
                         await signOut();
-                        navigate("/");
+                        navigate("/", { replace: true });
                       } catch {
                         toast({ title: t("profileEdit.deleteError"), variant: "destructive" });
                       }

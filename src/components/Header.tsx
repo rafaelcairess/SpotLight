@@ -42,7 +42,7 @@ const Header = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   const handleSearch = (e: React.FormEvent) => {

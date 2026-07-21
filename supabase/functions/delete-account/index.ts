@@ -67,27 +67,82 @@ serve(async (req) => {
     }
   }
 
-  // Delete all user-owned data in safe order
-  await adminSupabase.from("price_alerts").delete().eq("user_id", targetUserId);
-  await adminSupabase.from("notifications").delete().eq("user_id", targetUserId);
-  await adminSupabase.from("review_reactions").delete().eq("user_id", targetUserId);
-  await adminSupabase.from("follows").delete().or(`follower_id.eq.${targetUserId},following_id.eq.${targetUserId}`);
-  await adminSupabase.from("friend_requests").delete().or(`requester_id.eq.${targetUserId},requestee_id.eq.${targetUserId}`);
-  await adminSupabase.from("reviews").delete().eq("user_id", targetUserId);
-  await adminSupabase.from("user_top_games").delete().eq("user_id", targetUserId);
+  try {
+    const ensureSuccess = (label: string, error: { message?: string } | null) => {
+      if (error) throw new Error(`${label}: ${error.message || "database_error"}`);
+    };
 
-  // Delete list games before lists
-  const { data: userLists } = await adminSupabase
-    .from("user_lists")
-    .select("id")
-    .eq("user_id", targetUserId);
-  if (userLists && userLists.length > 0) {
-    const listIds = userLists.map((l) => l.id);
-    await adminSupabase.from("user_list_games").delete().in("list_id", listIds);
+    // O avatar fica fora do banco e precisa ser removido explicitamente.
+    const { data: avatarFiles, error: avatarListError } = await adminSupabase.storage
+      .from("avatars")
+      .list(targetUserId, { limit: 100 });
+    ensureSuccess("avatar_list", avatarListError);
+    if (avatarFiles?.length) {
+      const { error } = await adminSupabase.storage
+        .from("avatars")
+        .remove(avatarFiles.map((file) => `${targetUserId}/${file.name}`));
+      ensureSuccess("avatar_remove", error);
+    }
+
+    // Remove também reações de terceiros nas avaliações pertencentes à conta.
+    const { data: userReviews, error: reviewLookupError } = await adminSupabase
+      .from("reviews")
+      .select("id")
+      .eq("user_id", targetUserId);
+    ensureSuccess("reviews_lookup", reviewLookupError);
+
+    if (userReviews?.length) {
+      const { error } = await adminSupabase
+        .from("review_reactions")
+        .delete()
+        .in("review_id", userReviews.map((review) => review.id));
+      ensureSuccess("review_reactions_received", error);
+    }
+
+    const directDeletes = [
+      ["price_alerts", adminSupabase.from("price_alerts").delete().eq("user_id", targetUserId)],
+      ["notifications", adminSupabase.from("notifications").delete().eq("user_id", targetUserId)],
+      ["review_reactions", adminSupabase.from("review_reactions").delete().eq("user_id", targetUserId)],
+      ["follows", adminSupabase.from("follows").delete().or(`follower_id.eq.${targetUserId},following_id.eq.${targetUserId}`)],
+      ["friend_requests", adminSupabase.from("friend_requests").delete().or(`requester_id.eq.${targetUserId},requestee_id.eq.${targetUserId}`)],
+      ["reviews", adminSupabase.from("reviews").delete().eq("user_id", targetUserId)],
+      ["user_top_games", adminSupabase.from("user_top_games").delete().eq("user_id", targetUserId)],
+    ] as const;
+
+    for (const [label, operation] of directDeletes) {
+      const { error } = await operation;
+      ensureSuccess(label, error);
+    }
+
+    // Delete list games before lists.
+    const { data: userLists, error: listLookupError } = await adminSupabase
+      .from("user_lists")
+      .select("id")
+      .eq("user_id", targetUserId);
+    ensureSuccess("user_lists_lookup", listLookupError);
+
+    if (userLists?.length) {
+      const { error } = await adminSupabase
+        .from("user_list_games")
+        .delete()
+        .in("list_id", userLists.map((list) => list.id));
+      ensureSuccess("user_list_games", error);
+    }
+
+    for (const [label, operation] of [
+      ["user_lists", adminSupabase.from("user_lists").delete().eq("user_id", targetUserId)],
+      ["user_games", adminSupabase.from("user_games").delete().eq("user_id", targetUserId)],
+      ["profiles", adminSupabase.from("profiles").delete().eq("user_id", targetUserId)],
+    ] as const) {
+      const { error } = await operation;
+      ensureSuccess(label, error);
+    }
+
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error("account_cleanup_failed:", detail);
+    return json(500, { error: "account_cleanup_failed", detail });
   }
-  await adminSupabase.from("user_lists").delete().eq("user_id", targetUserId);
-  await adminSupabase.from("user_games").delete().eq("user_id", targetUserId);
-  await adminSupabase.from("profiles").delete().eq("user_id", targetUserId);
 
   // Delete the auth user
   const deleteRes = await fetch(

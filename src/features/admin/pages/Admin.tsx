@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Shield, Search, Trash2, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,6 @@ import { useDeleteAccount } from "@/hooks/useDeleteAccount";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Admin() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,8 +22,7 @@ export default function Admin() {
   if (!user || profileLoading) return null;
 
   if (!profile?.is_admin) {
-    navigate("/");
-    return null;
+    return <Navigate to="/" replace />;
   }
 
   const handleDelete = async (targetUserId: string, username: string) => {

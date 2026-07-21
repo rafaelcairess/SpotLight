@@ -2,7 +2,8 @@
  * Arquivo do projeto (AuthContext).
  */
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -24,29 +25,46 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const activeUserId = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
+    let authEventReceived = false;
+
+    const applySession = (nextSession: Session | null) => {
+      const nextUserId = nextSession?.user.id ?? null;
+      if (activeUserId.current !== undefined && activeUserId.current !== nextUserId) {
+        // Nunca reutiliza dados privados quando a conta muda no mesmo navegador.
+        queryClient.clear();
+      }
+      activeUserId.current = nextUserId;
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+      setLoading(false);
+    };
+
     // Configura o listener de auth primeiro
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+        authEventReceived = true;
+        applySession(session);
       }
     );
 
     // Depois, checa a sessao existente
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (!authEventReceived) applySession(session);
+      })
+      .catch(() => {
+        if (!authEventReceived) applySession(null);
+      });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   const signUp = async (email: string, password: string, displayName?: string) => {
     const { error } = await supabase.auth.signUp({
@@ -129,7 +147,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      // A conta pode já ter sido apagada no servidor; ainda assim remove a sessão local.
+      await supabase.auth.signOut({ scope: 'local' });
+    }
+    activeUserId.current = null;
+    setSession(null);
+    setUser(null);
+    queryClient.clear();
   };
 
   return (
