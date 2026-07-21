@@ -51,6 +51,8 @@ export function useMostPlayedGames(limit = 50) {
       const { data, error } = await supabase
         .from("games")
         .select("*")
+        .not("active_players", "is", null)
+        .gt("active_players", 0)
         .order("active_players", { ascending: false })
         .limit(limit);
 

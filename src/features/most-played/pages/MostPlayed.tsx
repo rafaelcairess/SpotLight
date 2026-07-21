@@ -7,6 +7,7 @@ import { Flame, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import SectionHeader from "@/components/SectionHeader";
 import LayoutToggle from "@/components/LayoutToggle";
+import { Button } from "@/components/ui/button";
 import GameCard from "@/features/games/components/GameCard";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
@@ -26,7 +27,7 @@ export default function MostPlayed() {
   const { t } = useTranslation();
   const { locale } = useLanguage();
   const numberFormatter = new Intl.NumberFormat(locale);
-  const { data: games = [], isLoading, isFetching } = useMostPlayedGames(50);
+  const { data: games = [], isLoading, isFetching, isError, refetch } = useMostPlayedGames(50);
 
   const handleOpenGame = (game: GameData) => {
     setSelectedGame(game);
@@ -66,6 +67,13 @@ export default function MostPlayed() {
                   className="h-20 rounded-xl border border-border/40 bg-card/50 animate-pulse"
                 />
               ))}
+            </div>
+          ) : isError ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-8 text-center">
+              <p className="mb-4 text-muted-foreground">{t("common.status.error")}</p>
+              <Button type="button" variant="outline" onClick={() => refetch()}>
+                {t("common.actions.update")}
+              </Button>
             </div>
           ) : games.length === 0 ? (
             <div className="rounded-xl border border-border/40 bg-card/50 p-8 text-center text-muted-foreground">
