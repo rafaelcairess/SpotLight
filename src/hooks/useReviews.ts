@@ -75,7 +75,7 @@ export function useReviewsByGame(appId: number) {
 }
 
 // Busca todas as reviews de um usuário (perfil próprio ou público).
-export function useReviewsByUser(userId?: string, useAuthFallback = true) {
+export function useReviewsByUser(userId?: string, useAuthFallback = true, enabled = true) {
   const { user } = useAuth();
   const targetUserId = userId ?? (useAuthFallback ? user?.id : undefined);
 
@@ -93,7 +93,7 @@ export function useReviewsByUser(userId?: string, useAuthFallback = true) {
       if (error) throw error;
       return data as Review[];
     },
-    enabled: !!targetUserId,
+    enabled: enabled && !!targetUserId,
     staleTime: 2 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });

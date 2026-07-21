@@ -9,7 +9,11 @@ import {
   Heart,
   Trophy,
   BookOpen,
+  MessageSquare,
+  Users,
   UserPlus,
+  UserCheck,
+  Clock3,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -32,8 +36,9 @@ import { ProfileLibrarySections } from "@/features/profile/components/ProfileLib
 import { GameLibrary } from "@/features/profile/components/GameLibrary";
 import { ProfileReviews } from "@/features/profile/components/ProfileReviews";
 import { FollowListDialog } from "@/features/profile/components/FollowListDialog";
-import { TrophyShowcase } from "@/features/profile/components/TrophyShowcase";
-import { ProfileTopGames } from "@/features/profile/components/ProfileTopGames";
+import { ProfileComments } from "@/features/profile/components/ProfileComments";
+import { useAcceptFriendRequest, useFriends, useFriendship, useRemoveFriendship, useSendFriendRequest, getFriendshipState } from "@/hooks/useFriendships";
+import { useProfileCounts } from "@/hooks/useProfileCounts";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
@@ -55,27 +60,40 @@ const PublicProfile = () => {
   const { data: followingIds = [] } = useFollowingIds(profileIds);
   const isFollowing = userId ? followingIds.includes(userId) : false;
   const isSelf = userId && user?.id === userId;
+  const { data: friendship } = useFriendship(userId);
+  const friendshipState = getFriendshipState(friendship, user?.id);
+  const isFriend = friendshipState === "friends";
+  const { data: friends = [], isLoading: friendsLoading } = useFriends(userId);
+  const sendFriendRequest = useSendFriendRequest();
+  const acceptFriendRequest = useAcceptFriendRequest();
+  const removeFriendship = useRemoveFriendship();
+  const [activeTab, setActiveTab] = useState("overview");
 
-  const isPublicVisibility = (value?: string) =>
-    value === "public" || value === "friends";
+  const canView = (value?: string) => value === "public" || (value === "friends" && isFriend);
 
   const canViewProfile =
-    !!profile && (isSelf || isPublicVisibility(profile.profile_visibility));
+    !!profile && (isSelf || canView(profile.profile_visibility));
 
   const canViewLibrary =
-    !!profile && (isSelf || isPublicVisibility(profile.library_visibility));
+    !!profile && (isSelf || canView(profile.library_visibility));
 
   const canViewReviews =
-    !!profile && (isSelf || isPublicVisibility(profile.reviews_visibility));
+    !!profile && (isSelf || canView(profile.reviews_visibility));
+
+  const shouldLoadGames = ["library", "favorites", "platinum"].includes(activeTab);
+  const shouldLoadReviews = activeTab === "reviews";
 
   const { data: userGames = [], isLoading: gamesLoading } = useUserGames(
     canViewLibrary ? userId : undefined,
-    false
+    false,
+    shouldLoadGames
   );
   const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByUser(
     canViewReviews ? userId : undefined,
-    false
+    false,
+    shouldLoadReviews
   );
+  const { data: contentCounts } = useProfileCounts(userId, canViewLibrary, canViewReviews);
 
   const followUser = useFollowUser();
   const unfollowUser = useUnfollowUser();
@@ -151,6 +169,14 @@ const PublicProfile = () => {
     }
   };
 
+  const handleFriendAction = () => {
+    if (!userId) return;
+    if (!user) return navigate("/auth");
+    if (friendshipState === "none") sendFriendRequest.mutate({ otherUserId: userId });
+    if (friendshipState === "incoming") acceptFriendRequest.mutate({ otherUserId: userId, friendship });
+    if (friendshipState === "outgoing" || friendshipState === "friends") removeFriendship.mutate({ otherUserId: userId, friendship });
+  };
+
   const handleOpenGame = (game: GameData) => {
     setSelectedGame(game);
     setIsModalOpen(true);
@@ -191,6 +217,16 @@ const PublicProfile = () => {
               {!isSelf && (
                 <div className="flex flex-wrap gap-2">
                   <Button
+                    variant={friendshipState === "friends" ? "secondary" : "outline"}
+                    size="sm"
+                    className="gap-2"
+                    onClick={handleFriendAction}
+                    disabled={sendFriendRequest.isPending || acceptFriendRequest.isPending || removeFriendship.isPending}
+                  >
+                    {friendshipState === "friends" ? <UserCheck className="w-4 h-4" /> : friendshipState === "outgoing" ? <Clock3 className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+                    {friendshipState === "friends" ? "Amigos" : friendshipState === "incoming" ? "Aceitar amizade" : friendshipState === "outgoing" ? "Pedido enviado" : "Adicionar amigo"}
+                  </Button>
+                  <Button
                     variant={isFollowing ? "secondary" : "glow"}
                     size="sm"
                     className="gap-2"
@@ -210,10 +246,10 @@ const PublicProfile = () => {
 
             {/* Estatisticas */}
             <ProfileStats
-              totalGames={userGames.length}
-              favorites={favoriteGames.length}
-              platinums={platinumGames.length}
-              reviews={reviews.length}
+              totalGames={contentCounts?.games ?? 0}
+              favorites={contentCounts?.favorites ?? 0}
+              platinums={contentCounts?.platinums ?? 0}
+              reviews={contentCounts?.reviews ?? 0}
               followers={followCounts?.followers ?? 0}
               following={followCounts?.following ?? 0}
               onFollowersClick={() => setIsFollowersOpen(true)}
@@ -222,57 +258,76 @@ const PublicProfile = () => {
           </div>
         </div>
 
-        <div className="mb-8">
-          <TrophyShowcase games={platinumGames} isLoading={gamesLoading} />
-        </div>
-        <div className="mb-8">
-          {canViewLibrary ? (
-            <ProfileTopGames
-              userId={userId}
-              games={userGames}
-              isLoading={gamesLoading}
-              readOnly
-              onGameSelect={handleOpenGame}
-            />
-          ) : (
-            <div className="rounded-xl border border-border/50 bg-card p-4 text-sm text-muted-foreground">
-              {t("profile.privateTop")}
-            </div>
-          )}
-        </div>
-
         {/* Abas */}
-        <Tabs defaultValue="library" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full justify-start border-b border-border/50 rounded-none bg-transparent h-auto p-0 mb-6 overflow-x-auto flex-nowrap">
+            <TabsTrigger value="overview" className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">
+              Visão geral
+            </TabsTrigger>
             <TabsTrigger
               value="library"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <GamepadIcon className="w-4 h-4" />
-              {t("profile.library")} ({userGames.length})
+              {t("profile.library")} ({contentCounts?.games ?? 0})
             </TabsTrigger>
             <TabsTrigger
               value="favorites"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <Heart className="w-4 h-4" />
-              {t("profile.favorites")} ({favoriteGames.length})
+              {t("profile.favorites")} ({contentCounts?.favorites ?? 0})
             </TabsTrigger>
             <TabsTrigger
               value="platinum"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <Trophy className="w-4 h-4" />
-              {t("profile.platinums")} ({platinumGames.length})
+              {t("profile.platinums")} ({contentCounts?.platinums ?? 0})
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <BookOpen className="w-4 h-4" />
-              {t("profile.reviews")} ({reviews.length})
+              {t("profile.reviews")} ({contentCounts?.reviews ?? 0})
+            </TabsTrigger>
+            <TabsTrigger value="friends" className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">
+              <Users className="w-4 h-4" /> Amigos ({friends.length})
+            </TabsTrigger>
+            <TabsTrigger value="comments" className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">
+              <MessageSquare className="w-4 h-4" /> Comentários
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="overview">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Sobre</p>
+                <p className="mt-3 whitespace-pre-wrap text-foreground/85">{profile.bio || "Este jogador ainda não escreveu uma apresentação."}</p>
+                <div className="mt-6 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  {profile.steam_id && <span className="rounded-full bg-secondary px-3 py-1.5">Steam conectada</span>}
+                  {profile.xbox_id && <span className="rounded-full bg-secondary px-3 py-1.5">Xbox conectada</span>}
+                  {profile.psn_id && <span className="rounded-full bg-secondary px-3 py-1.5">PlayStation conectada</span>}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border/50 bg-card/70 p-5">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="font-semibold">Amigos</h2>
+                  <button className="text-xs text-primary hover:underline" onClick={() => setActiveTab("friends")}>Ver todos</button>
+                </div>
+                <div className="grid grid-cols-4 gap-3">
+                  {friends.slice(0, 8).map((friend) => (
+                    <button key={friend.user_id} onClick={() => navigate(`/u/${friend.username}`)} className="group text-center">
+                      <UserAvatar src={friend.avatar_url} displayName={friend.display_name} username={friend.username} size="sm" />
+                      <p className="mt-1 truncate text-[11px] text-muted-foreground group-hover:text-foreground">{friend.display_name || friend.username}</p>
+                    </button>
+                  ))}
+                </div>
+                {!friends.length && <p className="text-sm text-muted-foreground">Nenhuma amizade pública ainda.</p>}
+              </div>
+            </div>
+          </TabsContent>
 
           <TabsContent value="library">
             {canViewLibrary ? (
@@ -332,6 +387,27 @@ const PublicProfile = () => {
                 {t("profile.privateReviews")}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="friends">
+            {friendsLoading ? (
+              <div className="py-12 text-center text-muted-foreground">Carregando amigos...</div>
+            ) : friends.length ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {friends.map((friend) => (
+                  <button key={friend.user_id} onClick={() => navigate(`/u/${friend.username}`)} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/70 p-4 text-left transition-colors hover:border-primary/40">
+                    <UserAvatar src={friend.avatar_url} displayName={friend.display_name} username={friend.username} size="md" />
+                    <div className="min-w-0"><p className="truncate font-medium">{friend.display_name || friend.username}</p><p className="truncate text-xs text-muted-foreground">@{friend.username}</p></div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center text-muted-foreground">Nenhum amigo para mostrar.</div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="comments">
+            <ProfileComments profileUserId={userId!} permission={profile.comments_permission || "public"} isFriend={isFriend} isOwner={!!isSelf} />
           </TabsContent>
         </Tabs>
       </main>

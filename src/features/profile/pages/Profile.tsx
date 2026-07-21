@@ -15,6 +15,8 @@ import {
   Download,
   List,
   EyeOff,
+  MessageSquare,
+  Users,
 } from "lucide-react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -33,11 +35,10 @@ import { ProfileLibrarySections } from "@/features/profile/components/ProfileLib
 import { GameLibrary } from "@/features/profile/components/GameLibrary";
 import { ProfileReviews } from "@/features/profile/components/ProfileReviews";
 import { ProfileEditDialog } from "@/features/profile/components/ProfileEditDialog";
-import { TrophyShowcase } from "@/features/profile/components/TrophyShowcase";
-import { AchievementsBadges } from "@/features/profile/components/AchievementsBadges";
 import { UserListsTab } from "@/features/profile/components/UserListsTab";
-import { ProfileTopGames } from "@/features/profile/components/ProfileTopGames";
-import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
+import { ProfileComments } from "@/features/profile/components/ProfileComments";
+import { useFriends } from "@/hooks/useFriendships";
+import { useProfileCounts } from "@/hooks/useProfileCounts";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
@@ -48,12 +49,16 @@ const Profile = () => {
   const { user, loading: authLoading } = useAuth();
   const { locale } = useLanguage();
   const { data: profile, isLoading: profileLoading } = useProfile();
-  const { data: userGames = [], isLoading: gamesLoading } = useUserGames();
-  const { data: hiddenGames = [], isLoading: hiddenLoading } = useHiddenGames();
-  const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByUser();
+  const [activeTab, setActiveTab] = useState("overview");
+  const shouldLoadGames = ["library", "favorites", "platinum"].includes(activeTab);
+  const { data: userGames = [], isLoading: gamesLoading } = useUserGames(undefined, true, shouldLoadGames);
+  const { data: hiddenGames = [], isLoading: hiddenLoading } = useHiddenGames(activeTab === "hidden");
+  const { data: reviews = [], isLoading: reviewsLoading } = useReviewsByUser(undefined, true, activeTab === "reviews");
   const { data: followCounts } = useFollowCounts(profile?.user_id);
   const { data: followersList = [], isLoading: followersLoading } = useFollowers(profile?.user_id);
   const { data: followingList = [], isLoading: followingLoading } = useFollowing(profile?.user_id);
+  const { data: friends = [], isLoading: friendsLoading } = useFriends(profile?.user_id);
+  const { data: contentCounts } = useProfileCounts(profile?.user_id, true, true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isFollowersOpen, setIsFollowersOpen] = useState(false);
   const [isFollowingOpen, setIsFollowingOpen] = useState(false);
@@ -210,10 +215,10 @@ const Profile = () => {
             </div>
 
             <ProfileStats
-              totalGames={userGames.length}
-              favorites={favoriteGames.length}
-              platinums={platinumGames.length}
-              reviews={reviews.length}
+              totalGames={contentCounts?.games ?? 0}
+              favorites={contentCounts?.favorites ?? 0}
+              platinums={contentCounts?.platinums ?? 0}
+              reviews={contentCounts?.reviews ?? 0}
               followers={followCounts?.followers ?? 0}
               following={followCounts?.following ?? 0}
               onFollowersClick={() => setIsFollowersOpen(true)}
@@ -222,56 +227,38 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="mb-8">
-          <SectionErrorBoundary code="TROPHY_SHOWCASE_ERROR">
-            <TrophyShowcase games={platinumGames} isLoading={gamesLoading} />
-          </SectionErrorBoundary>
-        </div>
-        <div className="mb-8">
-          <SectionErrorBoundary code="ACHIEVEMENTS_ERROR">
-            <AchievementsBadges
-              games={userGames}
-              reviewsCount={reviews.length}
-              followersCount={followCounts?.followers ?? 0}
-              followingCount={followCounts?.following ?? 0}
-            />
-          </SectionErrorBoundary>
-        </div>
-        <div className="mb-8">
-          <SectionErrorBoundary code="TOP_GAMES_ERROR">
-            <ProfileTopGames games={userGames} isLoading={gamesLoading} onGameSelect={handleOpenGame} />
-          </SectionErrorBoundary>
-        </div>
-
-        <Tabs defaultValue="library" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full justify-start border-b border-border/50 rounded-none bg-transparent h-auto p-0 mb-6 overflow-x-auto flex-nowrap">
+            <TabsTrigger value="overview" className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">
+              Visão geral
+            </TabsTrigger>
             <TabsTrigger
               value="library"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <GamepadIcon className="w-4 h-4" />
-              {t("profile.library")} ({userGames.length})
+              {t("profile.library")} ({contentCounts?.games ?? 0})
             </TabsTrigger>
             <TabsTrigger
               value="favorites"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <Heart className="w-4 h-4" />
-              {t("profile.favorites")} ({favoriteGames.length})
+              {t("profile.favorites")} ({contentCounts?.favorites ?? 0})
             </TabsTrigger>
             <TabsTrigger
               value="platinum"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <Trophy className="w-4 h-4" />
-              {t("profile.platinums")} ({platinumGames.length})
+              {t("profile.platinums")} ({contentCounts?.platinums ?? 0})
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
               <BookOpen className="w-4 h-4" />
-              {t("profile.reviews")} ({reviews.length})
+              {t("profile.reviews")} ({contentCounts?.reviews ?? 0})
             </TabsTrigger>
             <TabsTrigger
               value="lists"
@@ -287,7 +274,29 @@ const Profile = () => {
               <EyeOff className="w-4 h-4" />
               {t("profile.hiddenTab")} ({hiddenGames.length})
             </TabsTrigger>
+            <TabsTrigger value="friends" className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">
+              <Users className="w-4 h-4" /> Amigos ({friends.length})
+            </TabsTrigger>
+            <TabsTrigger value="comments" className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">
+              <MessageSquare className="w-4 h-4" /> Comentários
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="overview">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Seu perfil</p>
+                <h2 className="mt-3 text-xl font-semibold">Uma vitrine, não uma planilha de jogos.</h2>
+                <p className="mt-2 text-sm text-muted-foreground">Sua biblioteca só é carregada quando alguém abre a aba Jogos. Use os favoritos e listas para escolher o que merece destaque.</p>
+                <Button variant="outline" size="sm" className="mt-5" onClick={() => setIsEditOpen(true)}>Personalizar perfil</Button>
+              </div>
+              <div className="rounded-2xl border border-border/50 bg-card/70 p-5">
+                <div className="mb-4 flex items-center justify-between"><h2 className="font-semibold">Amigos</h2><button className="text-xs text-primary hover:underline" onClick={() => setActiveTab("friends")}>Ver todos</button></div>
+                <div className="grid grid-cols-4 gap-3">{friends.slice(0, 8).map((friend) => <button key={friend.user_id} onClick={() => navigate(`/u/${friend.username}`)}><UserAvatar src={friend.avatar_url} displayName={friend.display_name} username={friend.username} size="sm" /><p className="mt-1 truncate text-[11px] text-muted-foreground">{friend.display_name || friend.username}</p></button>)}</div>
+                {!friends.length && <p className="text-sm text-muted-foreground">Você ainda não adicionou amigos.</p>}
+              </div>
+            </div>
+          </TabsContent>
 
           <TabsContent value="library">
             <ProfileLibrarySections games={userGames} isLoading={gamesLoading} onGameSelect={handleOpenGame} />
@@ -330,6 +339,16 @@ const Profile = () => {
               showHidden
               onGameSelect={handleOpenGame}
             />
+          </TabsContent>
+
+          <TabsContent value="friends">
+            {friendsLoading ? <div className="py-12 text-center text-muted-foreground">Carregando amigos...</div> : friends.length ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{friends.map((friend) => <button key={friend.user_id} onClick={() => navigate(`/u/${friend.username}`)} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/70 p-4 text-left transition-colors hover:border-primary/40"><UserAvatar src={friend.avatar_url} displayName={friend.display_name} username={friend.username} size="md" /><div className="min-w-0"><p className="truncate font-medium">{friend.display_name || friend.username}</p><p className="truncate text-xs text-muted-foreground">@{friend.username}</p></div></button>)}</div>
+            ) : <div className="py-12 text-center text-muted-foreground">Nenhum amigo para mostrar.</div>}
+          </TabsContent>
+
+          <TabsContent value="comments">
+            {profile?.user_id && <ProfileComments profileUserId={profile.user_id} permission={profile.comments_permission || "public"} isFriend={false} isOwner />}
           </TabsContent>
         </Tabs>
       </main>

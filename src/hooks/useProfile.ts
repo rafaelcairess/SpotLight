@@ -26,6 +26,7 @@ export interface Profile {
   profile_visibility: string;
   reviews_visibility: string;
   library_visibility: string;
+  comments_permission: 'public' | 'friends' | 'disabled';
   is_admin: boolean;
   created_at: string;
   updated_at: string;
@@ -95,6 +96,7 @@ export function useUpdateProfile() {
           | 'profile_visibility'
           | 'reviews_visibility'
           | 'library_visibility'
+          | 'comments_permission'
         >
       >
     ) => {

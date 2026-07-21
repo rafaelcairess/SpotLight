@@ -291,10 +291,38 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_comments: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          profile_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          profile_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          profile_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
+          comments_permission: string
           created_at: string
           display_name: string | null
           id: string
@@ -311,6 +339,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          comments_permission?: string
           created_at?: string
           display_name?: string | null
           id?: string
@@ -327,6 +356,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          comments_permission?: string
           created_at?: string
           display_name?: string | null
           id?: string

@@ -27,7 +27,7 @@ export interface UserGame {
 }
 
 // Busca a biblioteca de um usuário (próprio ou público).
-export function useUserGames(userId?: string, useAuthFallback = true) {
+export function useUserGames(userId?: string, useAuthFallback = true, enabled = true) {
   const { user } = useAuth();
   const targetUserId = userId ?? (useAuthFallback ? user?.id : undefined);
 
@@ -46,7 +46,7 @@ export function useUserGames(userId?: string, useAuthFallback = true) {
       if (error) throw error;
       return data as UserGame[];
     },
-    enabled: !!targetUserId,
+    enabled: enabled && !!targetUserId,
     staleTime: 2 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
@@ -211,7 +211,7 @@ export function useUpdateGame() {
 }
 
 // Busca jogos ocultos do usuário logado.
-export function useHiddenGames() {
+export function useHiddenGames(enabled = true) {
   const { user } = useAuth();
 
   return useQuery({
@@ -229,7 +229,7 @@ export function useHiddenGames() {
       if (error) throw error;
       return data as UserGame[];
     },
-    enabled: !!user?.id,
+    enabled: enabled && !!user?.id,
     staleTime: 2 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });

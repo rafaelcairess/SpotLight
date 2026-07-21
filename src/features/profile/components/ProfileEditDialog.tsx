@@ -35,8 +35,7 @@ interface ProfileEditDialogProps {
 }
 
 const normalizeVisibility = (value?: string) => {
-  if (!value || value === "friends") return "public";
-  return value;
+  return value === "friends" || value === "private" ? value : "public";
 };
 
 const BANNED_WORDS = [
@@ -81,6 +80,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
   const [profileVisibility, setProfileVisibility] = useState(normalizeVisibility(profile?.profile_visibility));
   const [reviewsVisibility, setReviewsVisibility] = useState(normalizeVisibility(profile?.reviews_visibility));
   const [libraryVisibility, setLibraryVisibility] = useState(normalizeVisibility(profile?.library_visibility));
+  const [commentsPermission, setCommentsPermission] = useState(profile?.comments_permission || "public");
   const [isUploading, setIsUploading] = useState(false);
   const [isSyncingSteam, setIsSyncingSteam] = useState(false);
   const [matureEnabled, setMatureEnabled] = useMaturePreference();
@@ -93,6 +93,11 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
         value: "public",
         label: t("profileEdit.publicLabel"),
         description: t("profileEdit.publicDesc"),
+      },
+      {
+        value: "friends",
+        label: "Somente amigos",
+        description: "Apenas amizades aceitas podem acessar.",
       },
       {
         value: "private",
@@ -113,6 +118,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
       setProfileVisibility(normalizeVisibility(profile.profile_visibility));
       setReviewsVisibility(normalizeVisibility(profile.reviews_visibility));
       setLibraryVisibility(normalizeVisibility(profile.library_visibility));
+      setCommentsPermission(profile.comments_permission || "public");
     }
   }, [profile]);
 
@@ -121,12 +127,13 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
     setIsSyncingSteam(true);
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Not authenticated");
       const res = await fetch(`${supabaseUrl}/functions/v1/sync-steam-playtime`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${supabaseKey}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ user_id: user.id }),
       });
@@ -208,6 +215,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
         profile_visibility: profileVisibility,
         reviews_visibility: reviewsVisibility,
         library_visibility: libraryVisibility,
+        comments_permission: commentsPermission as "public" | "friends" | "disabled",
       });
       toast({ title: t("profileEdit.saveSuccess") });
       onOpenChange(false);
@@ -501,6 +509,20 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
               <p className="text-xs text-muted-foreground">
                 {visibilityOptions.find((o) => o.value === reviewsVisibility)?.description}
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Quem pode comentar no perfil</Label>
+              <select
+                value={commentsPermission}
+                onChange={(e) => setCommentsPermission(e.target.value as "public" | "friends" | "disabled")}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="public">Todos os usuários conectados</option>
+                <option value="friends">Somente amigos</option>
+                <option value="disabled">Comentários desativados</option>
+              </select>
+              <p className="text-xs text-muted-foreground">Você sempre poderá excluir qualquer comentário publicado no seu perfil.</p>
             </div>
           </div>
 
