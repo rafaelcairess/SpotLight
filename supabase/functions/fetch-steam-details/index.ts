@@ -122,7 +122,7 @@ serve(async (req) => {
   }
 
   const appId = Number(payload.app_id);
-  if (!Number.isFinite(appId)) {
+  if (!Number.isSafeInteger(appId) || appId <= 0) {
     return json(400, { error: "invalid_app_id" });
   }
 

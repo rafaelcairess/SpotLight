@@ -375,9 +375,8 @@ serve(async (req) => {
   });
 
   if (!generateLinkRes.ok) {
-    const errBody = await generateLinkRes.text();
-    console.error("magiclink_failed status:", generateLinkRes.status, "body:", errBody, "redirectTo:", safeRedirect);
-    return json(500, { error: "magiclink_failed", detail: errBody });
+    console.error("magiclink_failed status:", generateLinkRes.status);
+    return json(500, { error: "magiclink_failed" });
   }
 
   const generateLinkData = await generateLinkRes.json();
@@ -398,6 +397,6 @@ serve(async (req) => {
   });
   } catch (err) {
     console.error("unhandled_exception:", err instanceof Error ? err.message : String(err));
-    return json(500, { error: "unhandled_exception", detail: err instanceof Error ? err.message : String(err) });
+    return json(500, { error: "unhandled_exception" });
   }
 });

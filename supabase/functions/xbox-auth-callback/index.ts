@@ -270,9 +270,8 @@ serve(async (req) => {
   });
 
   if (!generateLinkRes.ok) {
-    const errBody = await generateLinkRes.text();
-    console.error("magiclink_failed:", generateLinkRes.status, errBody);
-    return json(500, { error: "magiclink_failed", detail: errBody });
+    console.error("magiclink_failed status:", generateLinkRes.status);
+    return json(500, { error: "magiclink_failed" });
   }
 
   const generateLinkData = await generateLinkRes.json();

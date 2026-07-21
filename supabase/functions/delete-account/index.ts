@@ -54,15 +54,10 @@ serve(async (req) => {
     ? rawBody.target_user_id
     : user.id;
 
-  // If deleting someone else, verify caller is admin
+  // app_metadata is controlled by the server; profile fields are user data and
+  // must never be treated as authorization claims.
   if (targetUserId !== user.id) {
-    const { data: callerProfile } = await adminSupabase
-      .from("profiles")
-      .select("is_admin")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (!callerProfile?.is_admin) {
+    if (user.app_metadata?.role !== "admin") {
       return json(403, { error: "forbidden", detail: "admin only" });
     }
   }
@@ -157,9 +152,8 @@ serve(async (req) => {
   );
 
   if (!deleteRes.ok) {
-    const errText = await deleteRes.text();
-    console.error("auth_delete_failed:", deleteRes.status, errText);
-    return json(500, { error: "auth_delete_failed", detail: errText });
+    console.error("auth_delete_failed status:", deleteRes.status);
+    return json(500, { error: "auth_delete_failed" });
   }
 
   return json(200, { success: true, deleted_user_id: targetUserId });

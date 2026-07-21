@@ -154,7 +154,7 @@ serve(async (req) => {
 
   const { data: { user }, error: authError } = await userSupabase.auth.getUser();
   if (authError || !user) {
-    console.error("auth_error:", authError?.message, "token_prefix:", token.slice(0, 20));
+    console.error("auth_error:", authError?.message);
     return json(401, { error: "unauthorized", detail: authError?.message });
   }
 

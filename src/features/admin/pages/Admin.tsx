@@ -6,22 +6,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/features/profile/components/UserAvatar";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile, useSearchProfiles } from "@/hooks/useProfile";
+import { useSearchProfiles } from "@/hooks/useProfile";
 import { useDeleteAccount } from "@/hooks/useDeleteAccount";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Admin() {
   const { user } = useAuth();
-  const { data: profile, isLoading: profileLoading } = useProfile();
   const [searchTerm, setSearchTerm] = useState("");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const { data: results = [], isLoading: searching } = useSearchProfiles(searchTerm.trim());
   const deleteAccount = useDeleteAccount();
   const { toast } = useToast();
 
-  if (!user || profileLoading) return null;
+  if (!user) return null;
 
-  if (!profile?.is_admin) {
+  if (user.app_metadata?.role !== "admin") {
     return <Navigate to="/" replace />;
   }
 
