@@ -5,28 +5,16 @@
 import { useMemo } from "react";
 import { Sparkles } from "lucide-react";
 import { READY_LISTS } from "@/features/explore/data/readyLists";
-import { useAllGames, useGamesByIds } from "@/hooks/useGames";
+import { useGamesByIds } from "@/hooks/useGames";
 import GameCard from "@/features/games/components/GameCard";
 import SectionHeader from "@/components/SectionHeader";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
-import { sortByPopularity } from "@/lib/sort";
 
 interface ReadyListsSectionProps {
   onGameClick: (game: GameData) => void;
 }
-
-const normalizeToken = (value: string) => value.trim().toLowerCase();
-
-const gameTokens = (game: GameData) => {
-  const genreTokens = (game.genre || "")
-    .split(",")
-    .map(normalizeToken)
-    .filter(Boolean);
-  const tagTokens = (game.tags || []).map(normalizeToken).filter(Boolean);
-  return Array.from(new Set([...genreTokens, ...tagTokens]));
-};
 
 export default function ReadyListsSection({ onGameClick }: ReadyListsSectionProps) {
   const { t } = useTranslation();
@@ -35,7 +23,6 @@ export default function ReadyListsSection({ onGameClick }: ReadyListsSectionProp
     []
   );
 
-  const { data: allGames = [], isLoading: allGamesLoading } = useAllGames(400);
   const { data: manualGames = [], isLoading: manualLoading } = useGamesByIds(allManualIds);
 
   const manualGameMap = useMemo(
@@ -49,28 +36,14 @@ export default function ReadyListsSection({ onGameClick }: ReadyListsSectionProp
         .map((appId) => manualGameMap.get(appId))
         .filter((game): game is GameData => Boolean(game));
 
-      const selectedIds = new Set(pinned.map((game) => game.app_id));
-      const fallbackKeywords = list.fallbackKeywords.map(normalizeToken);
-
-      const fallback = sortByPopularity(
-        allGames
-        .filter((game) => !selectedIds.has(game.app_id))
-        .filter((game) => {
-          const tokens = gameTokens(game);
-          return fallbackKeywords.some((keyword) =>
-            tokens.some((token) => token.includes(keyword))
-          );
-        })
-      ).slice(0, Math.max(0, 10 - pinned.length));
-
       return {
         ...list,
-        games: [...pinned, ...fallback],
+        games: pinned,
       };
     });
-  }, [allGames, manualGameMap]);
+  }, [manualGameMap]);
 
-  if (allGamesLoading || manualLoading) {
+  if (manualLoading) {
     return (
       <section className="container mx-auto px-4 pb-12 md:pb-16">
         <SectionHeader

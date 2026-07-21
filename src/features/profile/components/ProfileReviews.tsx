@@ -71,7 +71,7 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
           <div key={review.id} className="bg-card rounded-lg border border-border/50 overflow-hidden">
             <div className="flex items-center gap-3 p-4 border-b border-border/50 bg-secondary/30">
               {gameInfo && (
-                <img src={gameInfo.image} alt={gameInfo.title} className="w-16 h-10 object-cover rounded" />
+                <img src={gameInfo.image} alt={gameInfo.title} loading="lazy" decoding="async" className="w-16 h-10 object-cover rounded" />
               )}
               <div className="flex-1">
                 <h3 className="font-semibold">{gameInfo?.title || `App ID: ${review.app_id}`}</h3>

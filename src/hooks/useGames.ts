@@ -184,28 +184,7 @@ export function usePopularGames(limit = 10) {
   });
 }
 
-export function useTopRatedGames(limit = 12) {
-  const { locale } = useLanguage();
-
-  return useQuery({
-    queryKey: ["games", "top-rated", locale, limit],
-    queryFn: async () => {
-      return fetchGamesWithLocalization(
-        () =>
-          supabase
-            .from("games")
-            .select("*")
-            .order("community_rating", { ascending: false })
-            .limit(limit),
-        locale
-      );
-    },
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-  });
-}
-
-export function useAllGames(limit = 200) {
+export function useAllGames(limit = 200, enabled = true) {
   const { locale } = useLanguage();
 
   return useQuery({
@@ -221,28 +200,7 @@ export function useAllGames(limit = 200) {
         locale
       );
     },
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-  });
-}
-
-export function useDiscountedGames(limit = 30) {
-  const { locale } = useLanguage();
-
-  return useQuery({
-    queryKey: ["games", "discounted", locale, limit],
-    queryFn: async () => {
-      return fetchGamesWithLocalization(
-        () =>
-          supabase
-            .from("games")
-            .select("*")
-            .gt("discount_percent", 0)
-            .order("active_players", { ascending: false })
-            .limit(limit),
-        locale
-      );
-    },
+    enabled,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
@@ -388,31 +346,6 @@ export function useSearchCatalog(query: string, limit = 20) {
     enabled: normalized.length >= 2,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-  });
-}
-
-export function useGameLocalization(appId?: number) {
-  const { locale } = useLanguage();
-  const validId = Number.isFinite(appId) && (appId ?? 0) > 0;
-
-  return useQuery({
-    queryKey: ["games", "localization", locale, appId],
-    queryFn: async () => {
-      if (!validId) return null;
-
-      const { data, error } = await supabase
-        .from("game_localizations")
-        .select("app_id, locale, title, short_description, genre, tags, updated_at")
-        .eq("locale", locale)
-        .eq("app_id", appId as number)
-        .maybeSingle();
-
-      if (error) throw error;
-      return (data ?? null) as GameLocalizationRow | null;
-    },
-    enabled: validId,
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
   });
 }
 

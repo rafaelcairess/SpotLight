@@ -83,7 +83,7 @@ Além de centralizar o que você já tem, o SpotLight ajuda a descobrir o próxi
 | Deploy | Vercel |
 | CI/CD | GitHub Actions |
 | Internacionalização | react-i18next (PT, EN, ES) |
-| Monitoramento | Sentry |
+| Tratamento de erros | React Error Boundaries |
 
 ### Edge Functions (Deno)
 
@@ -195,7 +195,7 @@ src/
 ├── hooks/               # Hooks de dados (React Query)
 ├── i18n/                # Traduções PT/EN/ES
 ├── integrations/        # Cliente Supabase e tipos gerados
-├── lib/                 # Utilitários (playtime, Sentry…)
+├── lib/                 # Utilitários de domínio
 └── types/               # Types globais TypeScript
 
 supabase/

@@ -4,11 +4,20 @@
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
+
+const loadWhenIdle = <T,>(loader: () => Promise<T>): Promise<T> =>
+  new Promise((resolve, reject) => {
+    const load = () => loader().then(resolve, reject);
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(load, { timeout: 1500 });
+    } else {
+      globalThis.setTimeout(load, 300);
+    }
+  });
 
 const Explore = lazy(() => import("@/features/explore/pages/Explore"));
 const Collections = lazy(() => import("@/features/collections/pages/Collections"));
@@ -24,8 +33,8 @@ const MostPlayed = lazy(() => import("@/features/most-played/pages/MostPlayed"))
 const Feedback = lazy(() => import("@/features/feedback/pages/Feedback"));
 const Alerts = lazy(() => import("@/features/alerts/pages/Alerts"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
-const OnboardingModal = lazy(() => import("@/features/onboarding/components/OnboardingModal"));
-const WhatsNewModal = lazy(() => import("@/features/onboarding/components/WhatsNewModal"));
+const OnboardingModal = lazy(() => loadWhenIdle(() => import("@/features/onboarding/components/OnboardingModal")));
+const WhatsNewModal = lazy(() => loadWhenIdle(() => import("@/features/onboarding/components/WhatsNewModal")));
 const GamePage = lazy(() => import("@/features/games/pages/GamePage"));
 const ListPage = lazy(() => import("@/features/lists/pages/ListPage"));
 const Admin = lazy(() => import("@/features/admin/pages/Admin"));
@@ -35,7 +44,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
+      <>
         <Toaster />
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -64,7 +73,7 @@ const App = () => (
           <WhatsNewModal />
           </Suspense>
         </BrowserRouter>
-      </TooltipProvider>
+      </>
     </AuthProvider>
   </QueryClientProvider>
 );

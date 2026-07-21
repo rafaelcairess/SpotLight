@@ -113,31 +113,6 @@ export function useCreateUserList() {
   });
 }
 
-// Atualiza uma lista existente.
-export function useUpdateUserList() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      id,
-      ...updates
-    }: Partial<Pick<UserList, "name" | "description" | "is_public">> & { id: string }) => {
-      const { data, error } = await supabase
-        .from("user_lists")
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq("id", id)
-        .select()
-        .single();
-      if (error) throw error;
-      return data as UserList;
-    },
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["user_lists"] });
-      queryClient.invalidateQueries({ queryKey: ["user_list", id] });
-    },
-  });
-}
-
 // Remove uma lista.
 export function useDeleteUserList() {
   const queryClient = useQueryClient();

@@ -81,6 +81,7 @@ const Header = () => {
               <img
                 src={logoSpotlight}
                 alt="SpotLight"
+                decoding="async"
                 className="w-[5.25rem] h-[5.25rem] md:w-[6rem] md:h-[6rem] object-contain transition-transform group-hover:scale-110"
               />
               <div className="absolute inset-0 blur-lg bg-primary/20 group-hover:bg-primary/40 transition-colors" />

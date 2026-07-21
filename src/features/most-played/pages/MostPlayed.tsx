@@ -97,7 +97,7 @@ export default function MostPlayed() {
                     <div className="w-10 text-center">
                       <span className="text-lg font-bold text-primary">#{index + 1}</span>
                     </div>
-                    <img src={game.image} alt={game.title} className="w-24 h-14 rounded object-cover" />
+                    <img src={game.image} alt={game.title} loading="lazy" decoding="async" className="w-24 h-14 rounded object-cover" />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold truncate">{game.title}</p>
                       <p className="text-xs text-muted-foreground truncate">

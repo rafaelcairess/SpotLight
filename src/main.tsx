@@ -9,13 +9,12 @@ import "./index.css";
 import i18n from "@/i18n";
 import { I18nextProvider } from "react-i18next";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import { initSentry, Sentry } from "@/lib/sentry";
-
-initSentry();
+import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <Sentry.ErrorBoundary
+    <SectionErrorBoundary
+      code="APP_ERROR"
       fallback={
         <div className="min-h-screen bg-background flex items-center justify-center text-sm text-muted-foreground">
           {i18n.t("common.status.error", { defaultValue: "Algo deu errado." })}
@@ -27,6 +26,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <App />
         </LanguageProvider>
       </I18nextProvider>
-    </Sentry.ErrorBoundary>
+    </SectionErrorBoundary>
   </React.StrictMode>
 );

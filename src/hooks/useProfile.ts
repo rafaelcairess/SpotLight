@@ -77,25 +77,6 @@ export function useProfileByUsername(username: string | undefined) {
   });
 }
 
-// Perfis recentes para seções de descoberta.
-export function useCommunityProfiles(limit = 24) {
-  return useQuery({
-    queryKey: ['profiles', 'community', limit],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(limit);
-
-      if (error) throw error;
-      return data as Profile[];
-    },
-    staleTime: 2 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-  });
-}
-
 // Atualiza campos do perfil (username, bio, visibilidade, avatar).
 export function useUpdateProfile() {
   const queryClient = useQueryClient();

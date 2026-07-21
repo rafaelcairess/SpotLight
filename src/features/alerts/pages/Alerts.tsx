@@ -76,7 +76,7 @@ export default function Alerts() {
                   >
                     <div className="w-full sm:w-40 h-24 rounded-lg overflow-hidden bg-secondary/40">
                       {game?.image && (
-                        <img src={game.image} alt={game.title} className="w-full h-full object-cover" />
+                        <img src={game.image} alt={game.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                       )}
                     </div>
                     <div className="flex-1 space-y-2">

@@ -34,6 +34,7 @@ const Explore = () => {
   const PAGE_SIZE = 24;
   const { user } = useAuth();
   const { t } = useTranslation();
+  const [showMature] = useMaturePreference();
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [discoverLimit, setDiscoverLimit] = useState(PAGE_SIZE);
@@ -43,7 +44,7 @@ const Explore = () => {
     isLoading: popularLoading,
     isFetching: popularFetching,
   } = usePopularGames(popularLimit);
-  const { data: allGames = [], isLoading: allGamesLoading } = useAllGames(300);
+  const { data: allGames = [], isLoading: allGamesLoading } = useAllGames(300, showMature);
   const { data: recommendedGames = [], isLoading: recommendationsLoading } = useRecommendations(12);
   const [layoutMode, setLayoutMode] = useLayoutPreference(
     STORAGE_KEYS.layoutMode.explore,
@@ -54,7 +55,6 @@ const Explore = () => {
 
   const { data: dailyFeaturedGame, isLoading: dailyFeaturedLoading } = useDailyFeaturedGame();
   const featuredGame = dailyFeaturedGame || popularGames[0] || null;
-  const [showMature] = useMaturePreference();
 
   const matureGames = useMemo(() => {
     const keywords = [

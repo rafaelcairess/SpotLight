@@ -13,7 +13,6 @@ export const normalizeLocale = (value?: string | null): SupportedLocale => {
   if (normalized.startsWith("es")) return "es";
   return "pt";
 };
-
 export const getDateLocale = (locale: SupportedLocale) => {
   switch (locale) {
     case "en":
@@ -22,16 +21,5 @@ export const getDateLocale = (locale: SupportedLocale) => {
       return es;
     default:
       return ptBR;
-  }
-};
-
-export const mapToSteamLanguage = (locale: SupportedLocale) => {
-  switch (locale) {
-    case "en":
-      return "english";
-    case "es":
-      return "spanish";
-    default:
-      return "brazilian";
   }
 };

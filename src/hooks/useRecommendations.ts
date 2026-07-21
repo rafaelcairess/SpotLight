@@ -43,6 +43,17 @@ type ReviewRow = {
   score: number | null;
 };
 
+type CandidateGameRow = Pick<
+  GameRow,
+  "app_id" | "title" | "image" | "genre" | "tags" | "active_players" | "community_rating"
+>;
+
+type ScoredCandidate = {
+  game: CandidateGameRow;
+  recommendationScore: number;
+  matchedTags: string[];
+};
+
 export interface RecommendedGame extends GameData {
   recommendationScore: number;
   matchedTags: string[];
@@ -117,16 +128,16 @@ export function useRecommendations(limit = 12) {
           : Promise.resolve({ data: [], error: null }),
         supabase
           .from("games")
-          .select("*")
+          .select("app_id, title, image, genre, tags, active_players, community_rating")
           .order("community_rating", { ascending: false })
-          .limit(500),
+          .limit(300),
       ]);
 
       if (ownedGamesResult.error) throw ownedGamesResult.error;
       if (candidateGamesResult.error) throw candidateGamesResult.error;
 
       const ownedGames = (ownedGamesResult.data || []) as Pick<GameRow, "app_id" | "genre" | "tags">[];
-      const candidateGames = (candidateGamesResult.data || []) as GameRow[];
+      const candidateGames = (candidateGamesResult.data || []) as CandidateGameRow[];
 
       const ownedGameMap = new Map(ownedGames.map((game) => [game.app_id, game]));
       // Tabela de pesos por tag/genre com base no historico do usuario.
@@ -168,7 +179,7 @@ export function useRecommendations(limit = 12) {
       }
 
       // Scora candidatos que o usuario ainda nao tem.
-      const recommendations: RecommendedGame[] = [];
+      const recommendations: ScoredCandidate[] = [];
       for (const game of candidateGames) {
         if (ownedAppIds.has(game.app_id)) continue;
         const tokens = gameToTokens(game);
@@ -194,28 +205,45 @@ export function useRecommendations(limit = 12) {
           : 0;
 
         recommendations.push({
-          ...mapGameRow(game),
+          game,
           recommendationScore: tagScore + ratingScore + popularityScore,
           matchedTags: Array.from(new Set(matchedTags)).slice(0, 3),
         });
       }
 
-      // Se nao houver recomendacoes personalizadas, volta para populares.
-      if (recommendations.length === 0) {
-        return candidateGames
+      // Se não houver recomendações personalizadas, volta para populares.
+      const selected = recommendations.length === 0
+        ? candidateGames
           .filter((game) => !ownedAppIds.has(game.app_id))
           .sort((a, b) => (b.active_players || 0) - (a.active_players || 0))
           .slice(0, limit)
           .map((game) => ({
-            ...mapGameRow(game),
+            game,
             recommendationScore: 0,
             matchedTags: [],
-          }));
-      }
+          }))
+        : recommendations
+          .sort((a, b) => b.recommendationScore - a.recommendationScore)
+          .slice(0, limit);
 
-      return recommendations
-        .sort((a, b) => b.recommendationScore - a.recommendationScore)
-        .slice(0, limit);
+      if (selected.length === 0) return [];
+
+      // Busca registros completos apenas para os cards que serão exibidos.
+      const { data: detailedGames, error: detailedGamesError } = await supabase
+        .from("games")
+        .select("*")
+        .in("app_id", selected.map(({ game }) => game.app_id));
+
+      if (detailedGamesError) throw detailedGamesError;
+      const detailsById = new Map(
+        ((detailedGames || []) as GameRow[]).map((game) => [game.app_id, game]),
+      );
+
+      return selected.map(({ game, recommendationScore, matchedTags }) => ({
+        ...mapGameRow(detailsById.get(game.app_id) || game as GameRow),
+        recommendationScore,
+        matchedTags,
+      }));
     },
     enabled: !!user?.id,
     staleTime: 10 * 60 * 1000,
