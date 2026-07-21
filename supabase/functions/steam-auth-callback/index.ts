@@ -36,6 +36,31 @@ const fetchJson = async (url: string) => {
 
 const minutesToHours = (minutes: number) => Math.round((minutes / 60) * 100) / 100;
 
+type SteamPlayerSummary = {
+  personaname?: string;
+  avatarfull?: string;
+};
+
+const fetchSteamPlayerSummary = async (
+  apiKey: string,
+  steamId: string,
+): Promise<SteamPlayerSummary | null> => {
+  if (!apiKey) return null;
+
+  try {
+    const summaryUrl =
+      `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${encodeURIComponent(apiKey)}` +
+      `&steamids=${encodeURIComponent(steamId)}`;
+    const data = await fetchJson(summaryUrl);
+    const player = data?.response?.players?.[0];
+    return player && typeof player === "object" ? player as SteamPlayerSummary : null;
+  } catch (error) {
+    // Uma falha na foto/nome da Steam não deve impedir o login.
+    console.error("steam_profile_fetch_error:", error);
+    return null;
+  }
+};
+
 /** Extrai o valor de um cookie pelo nome */
 const getCookie = (cookieHeader: string | null, name: string): string | null => {
   if (!cookieHeader) return null;
@@ -111,6 +136,10 @@ serve(async (req) => {
     return json(400, { error: "steam_id_missing" });
   }
 
+  const steamPlayer = await fetchSteamPlayerSummary(STEAM_API_KEY, steamId);
+  const steamDisplayName = steamPlayer?.personaname?.trim() || `Steam ${steamId.slice(-4)}`;
+  const steamAvatarUrl = steamPlayer?.avatarfull?.trim() || null;
+
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
   });
@@ -138,7 +167,14 @@ serve(async (req) => {
     await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
       method: "PUT",
       headers: adminHeaders,
-      body: JSON.stringify({ user_metadata: { steam_id: steamId, provider: "steam" } }),
+      body: JSON.stringify({
+        user_metadata: {
+          steam_id: steamId,
+          provider: "steam",
+          display_name: steamDisplayName,
+          avatar_url: steamAvatarUrl,
+        },
+      }),
     });
   } else {
     // Cria novo usuário
@@ -148,7 +184,12 @@ serve(async (req) => {
       body: JSON.stringify({
         email,
         email_confirm: true,
-        user_metadata: { steam_id: steamId, provider: "steam" },
+        user_metadata: {
+          steam_id: steamId,
+          provider: "steam",
+          display_name: steamDisplayName,
+          avatar_url: steamAvatarUrl,
+        },
       }),
     });
     const createdUser = await createRes.json();
@@ -163,12 +204,24 @@ serve(async (req) => {
     return json(500, { error: "user_missing" });
   }
 
-  // Primeiro tenta atualizar o perfil existente (criado pelo trigger)
+  const { data: existingProfile } = await supabase
+    .from("profiles")
+    .select("display_name, avatar_url")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const generatedDisplayName = `Steam ${steamId.slice(-4)}`;
+  const shouldImportDisplayName =
+    !existingProfile?.display_name || existingProfile.display_name === generatedDisplayName;
+  const shouldImportAvatar = !existingProfile?.avatar_url;
+
+  // Atualiza identidade Steam sem sobrescrever personalizações feitas no SpotLight.
   const { data: updatedRows, error: updateErr } = await supabase
     .from("profiles")
     .update({
       steam_id: steamId,
-      display_name: `Steam ${steamId.slice(-4)}`,
+      ...(shouldImportDisplayName ? { display_name: steamDisplayName } : {}),
+      ...(shouldImportAvatar && steamAvatarUrl ? { avatar_url: steamAvatarUrl } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq("user_id", userId)
@@ -183,7 +236,8 @@ serve(async (req) => {
       profile_visibility: "public",
       library_visibility: "public",
       reviews_visibility: "public",
-      display_name: `Steam ${steamId.slice(-4)}`,
+      display_name: steamDisplayName,
+      avatar_url: steamAvatarUrl,
     });
   }
   if (updateErr) console.error("profile_update_error:", JSON.stringify(updateErr));
