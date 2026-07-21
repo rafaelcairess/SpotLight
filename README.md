@@ -214,14 +214,6 @@ supabase/
 
 ---
 
-## Roadmap
-
-- [ ] Feed de atividade de amigos
-- [ ] Integração completa com PSN (Trophy API)
-- [ ] Recomendações por IA com base na biblioteca
-- [ ] Sincronização automática periódica de playtime (pg_cron)
-- [ ] App mobile (PWA)
-
 ---
 
 <div align="center">
