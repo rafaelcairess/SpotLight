@@ -69,9 +69,14 @@ export const resources = {
       home: {
         featuredEmpty:
           "Nenhum jogo encontrado. Rode o sync da Steam para popular o catálogo.",
-        popularTitle: "Mais Vendidos",
-        popularSubtitle:
-          "Os jogos mais populares na Steam agora (atualiza a cada 6 horas)",
+        popularTitle: "Em alta agora",
+        popularSubtitle: "Muita gente jogando e aprovação consistente na Steam",
+        viewRanking: "Ver ranking completo",
+        newWorthPlayingTitle: "Novidades que valem atenção",
+        newWorthPlayingSubtitle: "Lançamentos recentes que já conquistaram jogadores e boas avaliações",
+        newWorthPlayingEmpty: "Ainda não há novidades com dados suficientes para recomendar.",
+        acclaimedTitle: "Aclamados pelos jogadores",
+        acclaimedSubtitle: "Jogos com avaliação forte e uma comunidade realmente ativa",
         exploreCollectionsTitle: "Explorar Coleções",
         exploreCollectionsSubtitle: "Descubra jogos por categoria",
         viewAll: "Ver Todas",
@@ -453,22 +458,6 @@ export const resources = {
         matureStepTitle: "Conteúdo adulto",
         matureStepDescription: "Você tem jogos 18+ na biblioteca Steam? Ative para ver e organizar esse conteúdo no seu perfil.",
       },
-      readyLists: {
-        sectionTitle: "Seleções prontas",
-        sectionSubtitle: "Pra quando você não quer ficar 20 minutos escolhendo",
-        "quick-30": {
-          title: "Jogos rápidos até 30 min",
-          subtitle: "Partidas curtas para entrar e sair rápido",
-        },
-        "coop-today": {
-          title: "Co-op pra jogar hoje",
-          subtitle: "Seleção pronta para fechar squad agora",
-        },
-        "relax-after-work": {
-          title: "Jogos relaxantes pra quem trabalha muito",
-          subtitle: "Baixa pressão, boa progressão e clima tranquilo",
-        },
-      },
       categories: {
         "coop-2-couch": {
           name: "Dupla no Sofá",
@@ -723,9 +712,14 @@ export const resources = {
       home: {
         featuredEmpty:
           "No games found. Run the Steam sync to populate the catalog.",
-        popularTitle: "Best Sellers",
-        popularSubtitle:
-          "Most popular games on Steam right now (updates every 6 hours)",
+        popularTitle: "Trending now",
+        popularSubtitle: "Strong player activity and consistently positive Steam reviews",
+        viewRanking: "View full ranking",
+        newWorthPlayingTitle: "New releases worth your time",
+        newWorthPlayingSubtitle: "Recent games already earning players and strong reviews",
+        newWorthPlayingEmpty: "There are no new releases with enough data to recommend yet.",
+        acclaimedTitle: "Player acclaimed",
+        acclaimedSubtitle: "Highly rated games backed by an active community",
         exploreCollectionsTitle: "Explore Collections",
         exploreCollectionsSubtitle: "Discover games by category",
         viewAll: "View all",
@@ -1106,22 +1100,6 @@ export const resources = {
         matureStepTitle: "Adult content",
         matureStepDescription: "Do you have 18+ games in your Steam library? Enable to view and organize adult content in your profile.",
       },
-      readyLists: {
-        sectionTitle: "Ready lists",
-        sectionSubtitle: "For when you don't want to spend 20 minutes choosing",
-        "quick-30": {
-          title: "Quick games up to 30 min",
-          subtitle: "Short sessions to jump in and out",
-        },
-        "coop-today": {
-          title: "Co-op for today",
-          subtitle: "Ready picks to squad up now",
-        },
-        "relax-after-work": {
-          title: "Relaxing games after work",
-          subtitle: "Low pressure, good progression and chill vibes",
-        },
-      },
       categories: {
         "coop-2-couch": {
           name: "Couch co-op (2)",
@@ -1375,9 +1353,14 @@ export const resources = {
       home: {
         featuredEmpty:
           "No se encontraron juegos. Ejecuta el sync de Steam para llenar el catálogo.",
-        popularTitle: "Más vendidos",
-        popularSubtitle:
-          "Los juegos más populares en Steam ahora (actualiza cada 6 horas)",
+        popularTitle: "En tendencia ahora",
+        popularSubtitle: "Muchos jugadores activos y valoraciones positivas consistentes en Steam",
+        viewRanking: "Ver ranking completo",
+        newWorthPlayingTitle: "Novedades que valen la pena",
+        newWorthPlayingSubtitle: "Lanzamientos recientes que ya conquistaron jugadores y buenas valoraciones",
+        newWorthPlayingEmpty: "Aún no hay novedades con datos suficientes para recomendar.",
+        acclaimedTitle: "Aclamados por los jugadores",
+        acclaimedSubtitle: "Juegos muy bien valorados con una comunidad realmente activa",
         exploreCollectionsTitle: "Explorar colecciones",
         exploreCollectionsSubtitle: "Descubre juegos por categoría",
         viewAll: "Ver todo",
@@ -1757,22 +1740,6 @@ export const resources = {
         profileError: "No se pudo guardar el perfil.",
         matureStepTitle: "Contenido adulto",
         matureStepDescription: "¿Tienes juegos 18+ en tu biblioteca de Steam? Actívalo para ver y organizar contenido adulto en tu perfil.",
-      },
-      readyLists: {
-        sectionTitle: "Selecciones listas",
-        sectionSubtitle: "Para cuando no querés pasar 20 minutos eligiendo",
-        "quick-30": {
-          title: "Juegos rápidos hasta 30 min",
-          subtitle: "Sesiones cortas para entrar y salir rápido",
-        },
-        "coop-today": {
-          title: "Co-op para hoy",
-          subtitle: "Selección lista para armar squad ahora",
-        },
-        "relax-after-work": {
-          title: "Juegos relajantes después del trabajo",
-          subtitle: "Baja presión, buen progreso y clima tranquilo",
-        },
       },
       categories: {
         "coop-2-couch": {

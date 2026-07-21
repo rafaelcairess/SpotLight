@@ -43,8 +43,10 @@ const run = async () => {
   const { data: games, error: gamesError } = await supabase
     .from("games")
     .select("app_id")
+    .gte("community_rating", 82)
+    .gt("active_players", 200)
     .order("active_players", { ascending: false })
-    .limit(200);
+    .limit(50);
 
   if (gamesError) throw gamesError;
   if (!games || games.length === 0) {

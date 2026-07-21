@@ -52,7 +52,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 });
 
 const appIdsPath = path.join(__dirname, "steam-popular-appids.json");
-const appIds = JSON.parse(fs.readFileSync(appIdsPath, "utf8"));
+const curatedAppIds = JSON.parse(fs.readFileSync(appIdsPath, "utf8"));
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -62,6 +62,26 @@ const fetchJson = async (url) => {
     throw new Error(`HTTP ${res.status} for ${url}`);
   }
   return res.json();
+};
+
+const getDiscoveryAppIds = async () => {
+  try {
+    const featured = await fetchJson(
+      `https://store.steampowered.com/api/featuredcategories?cc=br&l=${STEAM_STORE_LANGUAGE}`,
+    );
+    const storePicks = [
+      ...(featured?.top_sellers?.items ?? []),
+      ...(featured?.new_releases?.items ?? []),
+    ]
+      .map((item) => Number(item?.id))
+      .filter(Number.isFinite);
+
+    // A lista da loja traz relevância atual; a curadoria mantém clássicos fortes.
+    return Array.from(new Set([...storePicks, ...curatedAppIds.slice(0, 100)])).slice(0, 160);
+  } catch (error) {
+    console.warn(`Steam discovery feed failed: ${error.message || error}`);
+    return curatedAppIds.slice(0, 150);
+  }
 };
 
 const getAppDetails = async (appId) => {
@@ -139,6 +159,9 @@ const normalizePriceInfo = (details) => {
 
 let successCount = 0;
 let failCount = 0;
+const appIds = await getDiscoveryAppIds();
+
+console.log(`Syncing ${appIds.length} relevant Steam games.`);
 
 for (const appId of appIds) {
   try {

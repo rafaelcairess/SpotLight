@@ -11,6 +11,7 @@
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "preview": "vite preview",
     "sync:steam": "node scripts/steam-sync-popular.mjs",
+    "refresh:rankings": "node scripts/steam-refresh-players.mjs",
     "sync:applist": "tsx scripts/steam-sync-applist.ts",
     "check:alerts": "tsx scripts/check_price_alerts.ts",
     "set:featured": "tsx scripts/set_daily_featured.ts",

@@ -174,6 +174,8 @@ export function usePopularGames(limit = 10) {
           supabase
             .from("games")
             .select("*")
+            .gte("community_rating", 72)
+            .gt("active_players", 0)
             .order("active_players", { ascending: false })
             .limit(limit),
         locale

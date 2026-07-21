@@ -2,8 +2,7 @@ name: Steam Daily Sync
 
 on:
   schedule:
-    # Atualiza o ranking às 00h, 06h, 12h e 18h UTC.
-    - cron: "0 */6 * * *"
+    - cron: "0 3 * * *"
   workflow_dispatch:
 
 jobs:
