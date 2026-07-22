@@ -1,4 +1,3 @@
-import { Star } from "lucide-react";
 import { useFavoriteGame } from "@/hooks/useFavoriteGame";
 import { useMaturePreference } from "@/hooks/useMaturePreference";
 import { isMatureGame } from "@/lib/matureFilter";
@@ -10,18 +9,22 @@ export function FavoriteGameShowcase({ userId, appId }: { userId?: string; appId
   if (!favorite || (!showMature && isMatureGame(favorite))) return null;
 
   return (
-    <section className="overflow-hidden rounded-xl border border-border/50 bg-card/70">
-      <header className="flex items-center gap-2 px-5 py-4">
-        <Star className="h-4 w-4 fill-current text-amber-400" />
-        <h2 className="font-semibold">Jogo favorito</h2>
+    <section className="overflow-hidden rounded-lg bg-black/15">
+      <header className="border-b border-white/5 bg-primary/10 px-4 py-2.5">
+        <h2 className="text-sm font-medium">Jogo favorito</h2>
       </header>
-      <div className="relative aspect-[16/6] overflow-hidden">
-        <img src={favorite.image} alt={favorite.title} className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 p-5">
-          <p className="text-lg font-bold text-white">{favorite.title}</p>
-          <p className="text-xs text-white/70">{favorite.genre || "Em destaque no perfil"}</p>
-          {favorite.hoursPlayed != null && <p className="mt-2 text-sm text-white/85">{favorite.hoursPlayed.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} horas jogadas</p>}
+      <div className="p-4">
+        <div className="flex flex-col gap-4 rounded-md bg-black/20 p-3 sm:flex-row sm:items-start">
+          <img src={favorite.image} alt={favorite.title} className="aspect-[460/215] w-full rounded object-cover sm:w-44" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-lg font-medium">{favorite.title}</p>
+            {favorite.hoursPlayed != null && (
+              <div className="mt-5">
+                <p className="text-3xl font-light leading-none">{favorite.hoursPlayed.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}</p>
+                <p className="mt-1 text-sm text-muted-foreground">Horas de jogo</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>

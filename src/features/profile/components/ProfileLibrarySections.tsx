@@ -20,7 +20,6 @@ export function ProfileLibrarySections({ games, isLoading, readOnly = false, onG
     <section className="space-y-4">
       <div>
         <h2 className="text-lg font-semibold">Biblioteca</h2>
-        <p className="text-sm text-muted-foreground">Jogos recentes primeiro. Sem classificações automáticas.</p>
       </div>
       <GameLibrary games={orderedGames} isLoading={isLoading} emptyMessage="Nenhum jogo para mostrar." readOnly={readOnly} onGameSelect={onGameSelect} />
     </section>
