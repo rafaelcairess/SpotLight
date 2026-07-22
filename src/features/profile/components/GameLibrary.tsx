@@ -24,6 +24,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { getPosterImage } from "@/lib/steam";
 import { getEffectiveHours, hasManualOverride } from "@/lib/playtime";
+import { useMaturePreference } from "@/hooks/useMaturePreference";
+import { isMatureGame } from "@/lib/matureFilter";
 
 interface GameLibraryProps {
   games: UserGame[];
@@ -36,19 +38,12 @@ interface GameLibraryProps {
   onGameSelect?: (game: GameData) => void;
 }
 
-const cardToneStyles: Record<NonNullable<GameLibraryProps["cardTone"]>, string> = {
-  default: "border-white/5 bg-card/40",
-  completed: "border-emerald-500/20 bg-emerald-500/5",
-  dropped: "border-rose-500/20 bg-rose-500/5",
-};
-
 export function GameLibrary({
   games,
   isLoading,
   emptyMessage,
   readOnly = false,
   highlightPlatinum = false,
-  cardTone = "default",
   showHidden = false,
   onGameSelect,
 }: GameLibraryProps) {
@@ -65,13 +60,14 @@ export function GameLibrary({
   const [editingGame, setEditingGame] = useState<UserGame | null>(null);
   const [manualHours, setManualHours] = useState("");
   const [manualOverride, setManualOverride] = useState(false);
-
-  const statusLabels: Record<string, { label: string; color: string }> = {
-    wishlist: { label: t("library.statusWishlist"), color: "bg-blue-500/10 text-blue-500" },
-    playing: { label: t("library.statusPlaying"), color: "bg-emerald-500/10 text-emerald-500" },
-    completed: { label: t("library.statusCompleted"), color: "bg-purple-500/10 text-purple-500" },
-    dropped: { label: t("library.statusDropped"), color: "bg-rose-500/10 text-rose-500" },
-  };
+  const [showMature] = useMaturePreference();
+  const visibleGames = useMemo(
+    () => showMature ? games : games.filter((entry) => {
+      const details = gameMap.get(entry.app_id);
+      return details ? !isMatureGame(details) : false;
+    }),
+    [games, gameMap, showMature]
+  );
 
   const handleToggleFavorite = async (game: UserGame) => {
     try {
@@ -96,18 +92,6 @@ export function GameLibrary({
       toast({
         title: game.is_platinumed ? t("library.platinumRemoved") : t("library.platinumAdded"),
       });
-    } catch (error) {
-      toast({ title: t("library.updateError"), variant: "destructive" });
-    }
-  };
-
-  const handleChangeStatus = async (game: UserGame, status: UserGame["status"]) => {
-    try {
-      await updateGame.mutateAsync({
-        id: game.id,
-        updates: { status },
-      });
-      toast({ title: t("library.statusChanged", { status: statusLabels[status].label }) });
     } catch (error) {
       toast({ title: t("library.updateError"), variant: "destructive" });
     }
@@ -277,7 +261,7 @@ export function GameLibrary({
     );
   }
 
-  if (games.length === 0) {
+  if (visibleGames.length === 0) {
     return (
       <>
         <div className="text-center py-12">
@@ -290,22 +274,21 @@ export function GameLibrary({
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-        {games.map((userGame) => {
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {visibleGames.map((userGame) => {
           const gameInfo = gameMap.get(userGame.app_id);
           if (!gameInfo) return null;
           const handleSelect = () => onGameSelect?.(gameInfo);
           const effectiveHours = getEffectiveHours(userGame);
           const playtimeLabel = formatPlaytime(effectiveHours);
           const isManual = hasManualOverride(userGame);
-          const portraitImage = getPosterImage(gameInfo.app_id);
+          const coverImage = gameInfo.image || `https://cdn.cloudflare.steamstatic.com/steam/apps/${gameInfo.app_id}/header.jpg`;
 
           return (
             <div
               key={userGame.id}
               className={cn(
-                "group relative rounded-xl overflow-hidden border hover:border-primary/40 transition-all",
-                cardToneStyles[cardTone],
+                "group overflow-hidden rounded-lg border border-white/5 bg-black/20 transition-all hover:border-primary/40 hover:bg-black/30",
                 highlightPlatinum &&
                   userGame.is_platinumed &&
                   "ring-2 ring-amber-400/40 shadow-[0_0_20px_rgba(251,191,36,0.35)]"
@@ -324,17 +307,14 @@ export function GameLibrary({
                   : undefined
               }
             >
-            <div className="aspect-[2/3] relative">
+            <div className="relative aspect-[460/215]">
               <img
-                src={portraitImage}
+                src={coverImage}
                 alt={gameInfo.title}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"
                 onError={(event) => {
-                  const target = event.currentTarget;
-                  if (target.src !== gameInfo.image) {
-                    target.src = gameInfo.image;
-                  }
+                  event.currentTarget.src = getPosterImage(gameInfo.app_id);
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -351,23 +331,6 @@ export function GameLibrary({
                       </span>
                     )}
                   </span>
-                )}
-              </div>
-              {highlightPlatinum && userGame.is_platinumed && (
-                <div className="absolute bottom-2 left-2 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-amber-400 text-black rounded-full shadow">
-                  {t("library.platinumBadge")}
-                </div>
-              )}
-              <div className="absolute bottom-12 right-2 flex items-center gap-1">
-                {userGame.is_favorite && (
-                  <div className="p-1.5 rounded-full bg-rose-500/90">
-                    <Heart className="w-3 h-3 fill-current text-white" />
-                  </div>
-                )}
-                {userGame.is_platinumed && (
-                  <div className="p-1.5 rounded-full bg-amber-500/90">
-                    <Trophy className="w-3 h-3 text-white" />
-                  </div>
                 )}
               </div>
 
@@ -436,39 +399,6 @@ export function GameLibrary({
                         {t("library.editHours")}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleChangeStatus(userGame, "wishlist");
-                        }}
-                      >
-                        {t("library.statusWishlist")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleChangeStatus(userGame, "playing");
-                        }}
-                      >
-                        {t("library.statusPlaying")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleChangeStatus(userGame, "completed");
-                        }}
-                      >
-                        {t("library.statusCompleted")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleChangeStatus(userGame, "dropped");
-                        }}
-                      >
-                        {t("library.statusDropped")}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
                       {showHidden ? (
                         <DropdownMenuItem
                           onClick={(event) => {
@@ -507,13 +437,13 @@ export function GameLibrary({
               )}
             </div>
 
-            <div className="absolute inset-x-0 bottom-0 p-3">
-              <div className="flex items-end justify-between gap-2">
-                <div className="min-w-0">
-                  <h3 className="text-sm font-semibold text-white truncate">{gameInfo.title}</h3>
-                  <p className="text-[11px] text-white/70 truncate">{statusLabels[userGame.status].label}</p>
-                </div>
+            <div className="flex items-center gap-3 p-3">
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-sm font-semibold">{gameInfo.title}</h3>
+                {playtimeLabel && <p className="mt-1 text-xs text-muted-foreground">{playtimeLabel}</p>}
               </div>
+              {userGame.is_favorite && <Heart className="h-4 w-4 fill-current text-rose-500" />}
+              {userGame.is_platinumed && <Trophy className="h-4 w-4 text-amber-500" />}
             </div>
           </div>
         );

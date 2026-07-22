@@ -1,6 +1,8 @@
 import { Clock3 } from "lucide-react";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
 import { useGamesByIds } from "@/hooks/useGames";
+import { useMaturePreference } from "@/hooks/useMaturePreference";
+import { isMatureGame } from "@/lib/matureFilter";
 
 const formatHours = (value: number | null) =>
   (value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 });
@@ -9,10 +11,15 @@ export function RecentActivity({ userId }: { userId?: string }) {
   const { data: activity = [], isLoading } = useRecentActivity(userId);
   const { data: games = [] } = useGamesByIds(activity.map((item) => item.app_id));
   const gamesById = new Map(games.map((game) => [game.app_id, game]));
-  const recentHours = activity.reduce((total, item) => total + Number(item.playtime_2weeks || 0), 0);
+  const [showMature] = useMaturePreference();
+  const visibleActivity = activity.filter((item) => {
+    const game = gamesById.get(item.app_id);
+    return game && (showMature || !isMatureGame(game));
+  });
+  const recentHours = visibleActivity.reduce((total, item) => total + Number(item.playtime_2weeks || 0), 0);
 
   if (isLoading) return <div className="h-40 animate-pulse rounded-lg bg-black/15" />;
-  if (!activity.length) return null;
+  if (!visibleActivity.length) return null;
 
   return (
     <section className="overflow-hidden rounded-lg bg-black/15">
@@ -21,7 +28,7 @@ export function RecentActivity({ userId }: { userId?: string }) {
         {recentHours > 0 && <span className="text-xs text-muted-foreground">{formatHours(recentHours)} horas nas últimas 2 semanas</span>}
       </header>
       <div className="divide-y divide-white/5 px-4">
-        {activity.map((item) => {
+        {visibleActivity.map((item) => {
           const game = gamesById.get(item.app_id);
           const playedAt = item.last_played_at ? new Date(item.last_played_at) : null;
           return (

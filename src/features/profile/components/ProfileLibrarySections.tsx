@@ -1,16 +1,6 @@
-/**
- * Componente da feature profile.
- */
-
-import { useMemo } from "react";
-import { GamepadIcon, CheckCircle2, XCircle } from "lucide-react";
 import { GameLibrary } from "@/features/profile/components/GameLibrary";
 import { UserGame } from "@/hooks/useUserGames";
 import { GameData } from "@/types/game";
-import { useTranslation } from "react-i18next";
-import { useGamesByIds } from "@/hooks/useGames";
-import { useMaturePreference } from "@/hooks/useMaturePreference";
-import { isMatureGame } from "@/lib/matureFilter";
 
 interface ProfileLibrarySectionsProps {
   games: UserGame[];
@@ -19,108 +9,20 @@ interface ProfileLibrarySectionsProps {
   onGameSelect?: (game: GameData) => void;
 }
 
-export function ProfileLibrarySections({
-  games,
-  isLoading,
-  readOnly = false,
-  onGameSelect,
-}: ProfileLibrarySectionsProps) {
-  const { t } = useTranslation();
-  const [showMature] = useMaturePreference();
-
-  const appIds = useMemo(() => games.map((g) => g.app_id), [games]);
-  const { data: catalogGames = [] } = useGamesByIds(appIds);
-
-  const matureAppIds = useMemo(() => {
-    if (showMature) return new Set<number>();
-    return new Set(catalogGames.filter(isMatureGame).map((g) => g.app_id));
-  }, [catalogGames, showMature]);
-
-  const visibleGames = useMemo(
-    () => (matureAppIds.size > 0 ? games.filter((g) => !matureAppIds.has(g.app_id)) : games),
-    [games, matureAppIds]
-  );
-
-  const completedGames = visibleGames.filter((g) => g.status === "completed");
-  const droppedGames = visibleGames.filter((g) => g.status === "dropped");
-  const activeGames = visibleGames.filter(
-    (g) => g.status === "playing" || g.status === "wishlist"
-  );
+export function ProfileLibrarySections({ games, isLoading, readOnly = false, onGameSelect }: ProfileLibrarySectionsProps) {
+  const orderedGames = [...games].sort((a, b) => {
+    const recent = (b.last_played_at ? new Date(b.last_played_at).getTime() : 0) - (a.last_played_at ? new Date(a.last_played_at).getTime() : 0);
+    if (recent !== 0) return recent;
+    return Number(b.hours_played || 0) - Number(a.hours_played || 0);
+  });
 
   return (
-    <div className="space-y-10">
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-emerald-500/10">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-          </div>
-          <div>
-            <h3 className="text-base font-semibold">
-              {t("profileLibrarySections.completed.title")}
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {t("profileLibrarySections.completed.subtitle")}
-            </p>
-          </div>
-        </div>
-        <GameLibrary
-          games={completedGames}
-          isLoading={isLoading}
-          emptyMessage={t("profileLibrarySections.completed.empty")}
-          readOnly={readOnly}
-          highlightPlatinum
-          cardTone="completed"
-          onGameSelect={onGameSelect}
-        />
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-rose-500/10">
-            <XCircle className="w-4 h-4 text-rose-500" />
-          </div>
-          <div>
-            <h3 className="text-base font-semibold">
-              {t("profileLibrarySections.dropped.title")}
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {t("profileLibrarySections.dropped.subtitle")}
-            </p>
-          </div>
-        </div>
-        <GameLibrary
-          games={droppedGames}
-          isLoading={isLoading}
-          emptyMessage={t("profileLibrarySections.dropped.empty")}
-          readOnly={readOnly}
-          cardTone="dropped"
-          onGameSelect={onGameSelect}
-        />
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <GamepadIcon className="w-4 h-4 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-base font-semibold">
-              {t("profileLibrarySections.active.title")}
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {t("profileLibrarySections.active.subtitle")}
-            </p>
-          </div>
-        </div>
-        <GameLibrary
-          games={activeGames}
-          isLoading={isLoading}
-          emptyMessage={t("profileLibrarySections.active.empty")}
-          readOnly={readOnly}
-          highlightPlatinum
-          onGameSelect={onGameSelect}
-        />
-      </section>
-    </div>
+    <section className="space-y-4">
+      <div>
+        <h2 className="text-lg font-semibold">Biblioteca</h2>
+        <p className="text-sm text-muted-foreground">Jogos recentes primeiro. Sem classificações automáticas.</p>
+      </div>
+      <GameLibrary games={orderedGames} isLoading={isLoading} emptyMessage="Nenhum jogo para mostrar." readOnly={readOnly} onGameSelect={onGameSelect} />
+    </section>
   );
 }

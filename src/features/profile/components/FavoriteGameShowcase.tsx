@@ -1,10 +1,13 @@
 import { Star } from "lucide-react";
 import { useFavoriteGame } from "@/hooks/useFavoriteGame";
+import { useMaturePreference } from "@/hooks/useMaturePreference";
+import { isMatureGame } from "@/lib/matureFilter";
 
 export function FavoriteGameShowcase({ userId, appId }: { userId?: string; appId?: number | null }) {
   const { data: favorite } = useFavoriteGame(userId, appId);
+  const [showMature] = useMaturePreference();
 
-  if (!favorite) return null;
+  if (!favorite || (!showMature && isMatureGame(favorite))) return null;
 
   return (
     <section className="overflow-hidden rounded-xl border border-border/50 bg-card/70">
