@@ -42,6 +42,7 @@ import { PresenceBadge } from "@/features/profile/components/PresenceBadge";
 import { ProfileProgressCard } from "@/features/profile/components/ProfileProgress";
 import { FavoriteGameShowcase } from "@/features/profile/components/FavoriteGameShowcase";
 import { ProfileSidePanel } from "@/features/profile/components/ProfileSidePanel";
+import { RecentActivity } from "@/features/profile/components/RecentActivity";
 
 const PublicProfile = () => {
   const { username } = useParams<{ username: string }>();
@@ -298,6 +299,7 @@ const PublicProfile = () => {
             <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
               <div className="space-y-6">
                 <FavoriteGameShowcase userId={userId} appId={profile.favorite_game_app_id} />
+                <RecentActivity userId={userId} />
                 <div className="rounded-lg bg-black/15 p-5">
                   <ProfileComments profileUserId={userId!} permission={profile.comments_permission || "public"} isFriend={isFriend} isOwner={!!isSelf} />
                 </div>

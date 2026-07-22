@@ -35,6 +35,7 @@ import { PresenceSelector } from "@/features/profile/components/PresenceSelector
 import { ProfileProgressCard } from "@/features/profile/components/ProfileProgress";
 import { FavoriteGameShowcase } from "@/features/profile/components/FavoriteGameShowcase";
 import { ProfileSidePanel } from "@/features/profile/components/ProfileSidePanel";
+import { RecentActivity } from "@/features/profile/components/RecentActivity";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
@@ -203,6 +204,7 @@ const Profile = () => {
             <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
               <div className="space-y-6">
                 {profile?.favorite_game_app_id && <FavoriteGameShowcase userId={profile.user_id} appId={profile.favorite_game_app_id} />}
+                <RecentActivity userId={profile?.user_id} />
                 {profile?.user_id && <div className="rounded-lg bg-black/15 p-5"><ProfileComments profileUserId={profile.user_id} permission={profile.comments_permission || "public"} isFriend={false} isOwner /></div>}
               </div>
               <ProfileSidePanel

@@ -18,6 +18,7 @@ export function FavoriteGameShowcase({ userId, appId }: { userId?: string; appId
         <div className="absolute inset-x-0 bottom-0 p-5">
           <p className="text-lg font-bold text-white">{favorite.title}</p>
           <p className="text-xs text-white/70">{favorite.genre || "Em destaque no perfil"}</p>
+          {favorite.hoursPlayed != null && <p className="mt-2 text-sm text-white/85">{favorite.hoursPlayed.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} horas jogadas</p>}
         </div>
       </div>
     </section>

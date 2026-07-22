@@ -23,6 +23,8 @@ export interface UserGame {
   is_hidden: boolean;
   is_private: boolean;
   is_platinumed: boolean;
+  last_played_at: string | null;
+  playtime_2weeks: number | null;
   added_at: string;
   updated_at: string;
 }

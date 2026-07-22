@@ -112,7 +112,7 @@ serve(async (req) => {
         const res = await fetch(ownedUrl);
         if (!res.ok) continue;
         const data = await res.json();
-        const games: Array<{ appid: number; playtime_forever?: number }> =
+        const games: Array<{ appid: number; playtime_forever?: number; playtime_2weeks?: number; rtime_last_played?: number }> =
           Array.isArray(data?.response?.games) ? data.response.games : [];
 
         const { data: userGames } = await adminSupabase
@@ -130,9 +130,15 @@ serve(async (req) => {
             const id = byAppId.get(game.appid);
             if (!id) return null;
             const hours = minutesToHoursLocal(game.playtime_forever || 0);
-            return { id, hours_played: hours, updated_at: now };
+            return {
+              id,
+              hours_played: hours,
+              playtime_2weeks: minutesToHoursLocal(game.playtime_2weeks || 0),
+              last_played_at: game.rtime_last_played ? new Date(game.rtime_last_played * 1000).toISOString() : null,
+              updated_at: now,
+            };
           })
-          .filter(Boolean) as Array<{ id: string; hours_played: number; updated_at: string }>;
+          .filter(Boolean) as Array<{ id: string; hours_played: number; playtime_2weeks: number; last_played_at: string | null; updated_at: string }>;
 
         if (updates.length) {
           await adminSupabase.from("user_games").upsert(updates, { onConflict: "id" });
@@ -205,7 +211,7 @@ serve(async (req) => {
     return rt < twelveMonthsAgoUnix ? "dropped" : "playing";
   };
 
-  let games: Array<{ appid: number; playtime_forever?: number; name?: string; rtime_last_played?: number }> = [];
+  let games: Array<{ appid: number; playtime_forever?: number; playtime_2weeks?: number; name?: string; rtime_last_played?: number }> = [];
   try {
     const data = await fetchJson(ownedUrl);
     games = Array.isArray(data?.response?.games) ? data.response.games : [];
@@ -233,6 +239,8 @@ serve(async (req) => {
     app_id: number;
     status: "wishlist" | "playing" | "dropped";
     hours_played: number;
+    playtime_2weeks: number;
+    last_played_at: string | null;
     added_at: string;
     updated_at: string;
   }> = [];
@@ -253,7 +261,13 @@ serve(async (req) => {
       const hours = minutesToHours(minutes);
 
       if (id) {
-        return { id, hours_played: hours, updated_at: now };
+        return {
+          id,
+          hours_played: hours,
+          playtime_2weeks: minutesToHours(game.playtime_2weeks || 0),
+          last_played_at: game.rtime_last_played ? new Date(game.rtime_last_played * 1000).toISOString() : null,
+          updated_at: now,
+        };
       }
 
       if (importAll) {
@@ -263,6 +277,8 @@ serve(async (req) => {
           app_id: game.appid,
           status,
           hours_played: hours,
+          playtime_2weeks: minutesToHours(game.playtime_2weeks || 0),
+          last_played_at: game.rtime_last_played ? new Date(game.rtime_last_played * 1000).toISOString() : null,
           added_at: now,
           updated_at: now,
         });
@@ -284,7 +300,7 @@ serve(async (req) => {
 
       return null;
     })
-    .filter((row): row is { id: string; hours_played: number; updated_at: string } => !!row);
+    .filter((row): row is { id: string; hours_played: number; playtime_2weeks: number; last_played_at: string | null; updated_at: string } => !!row);
 
   if (updates.length) {
     const { error: updateError } = await adminSupabase
