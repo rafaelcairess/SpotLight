@@ -23,19 +23,14 @@ import { useProfileByUsername } from "@/hooks/useProfile";
 import { useUserGames } from "@/hooks/useUserGames";
 import { useReviewsByUser } from "@/hooks/useReviews";
 import {
-  useFollowCounts,
   useFollowUser,
-  useFollowing,
-  useFollowers,
   useFollowingIds,
   useUnfollowUser,
 } from "@/hooks/useFollows";
 import { UserAvatar } from "@/features/profile/components/UserAvatar";
-import { ProfileStats } from "@/features/profile/components/ProfileStats";
 import { ProfileLibrarySections } from "@/features/profile/components/ProfileLibrarySections";
 import { GameLibrary } from "@/features/profile/components/GameLibrary";
 import { ProfileReviews } from "@/features/profile/components/ProfileReviews";
-import { FollowListDialog } from "@/features/profile/components/FollowListDialog";
 import { ProfileComments } from "@/features/profile/components/ProfileComments";
 import { useAcceptFriendRequest, useFriends, useFriendship, useRemoveFriendship, useSendFriendRequest, getFriendshipState } from "@/hooks/useFriendships";
 import { useProfileCounts } from "@/hooks/useProfileCounts";
@@ -46,6 +41,7 @@ import NotFound from "@/pages/NotFound";
 import { PresenceBadge } from "@/features/profile/components/PresenceBadge";
 import { ProfileProgressCard } from "@/features/profile/components/ProfileProgress";
 import { FavoriteGameShowcase } from "@/features/profile/components/FavoriteGameShowcase";
+import { ProfileSidePanel } from "@/features/profile/components/ProfileSidePanel";
 
 const PublicProfile = () => {
   const { username } = useParams<{ username: string }>();
@@ -55,9 +51,6 @@ const PublicProfile = () => {
   const { data: profile, isLoading: profileLoading, error } = useProfileByUsername(username);
 
   const userId = profile?.user_id;
-  const { data: followCounts } = useFollowCounts(userId);
-  const { data: followersList = [], isLoading: followersLoading } = useFollowers(userId);
-  const { data: followingList = [], isLoading: followingLoading } = useFollowing(userId);
 
   const profileIds = useMemo(() => (userId ? [userId] : []), [userId]);
   const { data: followingIds = [] } = useFollowingIds(profileIds);
@@ -101,8 +94,6 @@ const PublicProfile = () => {
   const followUser = useFollowUser();
   const unfollowUser = useUnfollowUser();
 
-  const [isFollowersOpen, setIsFollowersOpen] = useState(false);
-  const [isFollowingOpen, setIsFollowingOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -194,15 +185,18 @@ const PublicProfile = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-24 pb-12 container mx-auto px-4">
+      <main className="mx-auto max-w-6xl px-4 pb-12 pt-24">
+        <section className="overflow-hidden rounded-xl border border-primary/10 bg-gradient-to-br from-primary/10 via-card/80 to-background shadow-2xl shadow-black/20">
         {/* Cabecalho do perfil */}
-        <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
+        <div className="grid gap-6 p-5 md:grid-cols-[10rem_minmax(0,1fr)] md:p-7">
           <div className="relative">
             <UserAvatar
               src={profile.avatar_url}
               displayName={profile.display_name}
               username={profile.username}
               size="xl"
+              shape="square"
+              className="h-40 w-40 rounded-md ring-primary/40"
             />
           </div>
 
@@ -214,13 +208,13 @@ const PublicProfile = () => {
                 </h1>
                 <p className="text-muted-foreground">@{profile.username}</p>
                 <div className="mt-2"><PresenceBadge status={profile.presence_status} lastSeenAt={profile.last_seen_at} /></div>
-                <div className="mt-3"><ProfileProgressCard userId={userId} /></div>
                 {profile.bio && (
                   <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>
                 )}
               </div>
-              {!isSelf && (
-                <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col items-start gap-3 sm:items-end">
+                <ProfileProgressCard userId={userId} />
+                {!isSelf && <div className="flex flex-wrap gap-2">
                   <Button
                     variant={friendshipState === "friends" ? "secondary" : "outline"}
                     size="sm"
@@ -245,27 +239,16 @@ const PublicProfile = () => {
 
 
 
-                </div>
-              )}
+                </div>}
+              </div>
             </div>
 
-            {/* Estatisticas */}
-            <ProfileStats
-              totalGames={contentCounts?.games ?? 0}
-              favorites={contentCounts?.favorites ?? 0}
-              platinums={contentCounts?.platinums ?? 0}
-              reviews={contentCounts?.reviews ?? 0}
-              followers={followCounts?.followers ?? 0}
-              following={followCounts?.following ?? 0}
-              onFollowersClick={() => setIsFollowersOpen(true)}
-              onFollowingClick={() => setIsFollowingOpen(true)}
-            />
           </div>
         </div>
 
         {/* Abas */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full justify-start border-b border-border/50 rounded-none bg-transparent h-auto p-0 mb-6 overflow-x-auto flex-nowrap">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full px-5 pb-7 md:px-7">
+          <TabsList className="sr-only">
             <TabsTrigger value="overview" className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">
               Visão geral
             </TabsTrigger>
@@ -305,18 +288,21 @@ const PublicProfile = () => {
             </TabsTrigger>
           </TabsList>
 
+          {activeTab !== "overview" && (
+            <Button variant="ghost" size="sm" className="mb-4" onClick={() => setActiveTab("overview")}>
+              ← Voltar ao perfil
+            </Button>
+          )}
+
           <TabsContent value="overview">
-            <div className="mx-auto flex max-w-4xl flex-col gap-6">
-              <FavoriteGameShowcase userId={userId} appId={profile.favorite_game_app_id} />
-              <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Sobre</p>
-                <p className="mt-3 whitespace-pre-wrap text-foreground/85">{profile.bio || "Este jogador ainda não escreveu uma apresentação."}</p>
-                <div className="mt-6 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  {profile.steam_id && <span className="rounded-full bg-secondary px-3 py-1.5">Steam conectada</span>}
-                  {profile.xbox_id && <span className="rounded-full bg-secondary px-3 py-1.5">Xbox conectada</span>}
-                  {profile.psn_id && <span className="rounded-full bg-secondary px-3 py-1.5">PlayStation conectada</span>}
+            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
+              <div className="space-y-6">
+                <FavoriteGameShowcase userId={userId} appId={profile.favorite_game_app_id} />
+                <div className="rounded-lg bg-black/15 p-5">
+                  <ProfileComments profileUserId={userId!} permission={profile.comments_permission || "public"} isFriend={isFriend} isOwner={!!isSelf} />
                 </div>
               </div>
+              <ProfileSidePanel games={contentCounts?.games ?? 0} favorites={contentCounts?.favorites ?? 0} platinums={contentCounts?.platinums ?? 0} reviews={contentCounts?.reviews ?? 0} friends={friends.length} onSelect={setActiveTab} />
             </div>
           </TabsContent>
 
@@ -401,24 +387,9 @@ const PublicProfile = () => {
             <ProfileComments profileUserId={userId!} permission={profile.comments_permission || "public"} isFriend={isFriend} isOwner={!!isSelf} />
           </TabsContent>
         </Tabs>
+        </section>
       </main>
 
-      <FollowListDialog
-        open={isFollowersOpen}
-        onOpenChange={setIsFollowersOpen}
-        title={t("profile.followers")}
-        profiles={followersList}
-        isLoading={followersLoading}
-        emptyMessage={t("profile.emptyFollowers")}
-      />
-      <FollowListDialog
-        open={isFollowingOpen}
-        onOpenChange={setIsFollowingOpen}
-        title={t("profile.following")}
-        profiles={followingList}
-        isLoading={followingLoading}
-        emptyMessage={t("profile.emptyFollowing")}
-      />
 
       <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />
     </div>
