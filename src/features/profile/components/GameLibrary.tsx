@@ -3,7 +3,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { Heart, Trophy, Clock, Trash2, MoreVertical, PencilLine, EyeOff, Eye, Lock, Unlock } from "lucide-react";
+import { Trophy, Clock, Trash2, MoreVertical, PencilLine, EyeOff, Eye, Lock, Unlock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -68,20 +68,6 @@ export function GameLibrary({
     }),
     [games, gameMap, showMature]
   );
-
-  const handleToggleFavorite = async (game: UserGame) => {
-    try {
-      await updateGame.mutateAsync({
-        id: game.id,
-        updates: { is_favorite: !game.is_favorite },
-      });
-      toast({
-        title: game.is_favorite ? t("library.favoriteRemoved") : t("library.favoriteAdded"),
-      });
-    } catch (error) {
-      toast({ title: t("library.updateError"), variant: "destructive" });
-    }
-  };
 
   const handleTogglePlatinum = async (game: UserGame) => {
     try {
@@ -360,22 +346,6 @@ export function GameLibrary({
                       <DropdownMenuItem
                         onClick={(event) => {
                           event.stopPropagation();
-                          handleToggleFavorite(userGame);
-                        }}
-                      >
-                        <Heart
-                          className={cn(
-                            "w-4 h-4 mr-2",
-                            userGame.is_favorite && "fill-current text-rose-500"
-                          )}
-                        />
-                        {userGame.is_favorite
-                          ? t("library.favoriteRemove")
-                          : t("library.favoriteAdd")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(event) => {
-                          event.stopPropagation();
                           handleTogglePlatinum(userGame);
                         }}
                       >
@@ -442,7 +412,6 @@ export function GameLibrary({
                 <h3 className="truncate text-sm font-semibold">{gameInfo.title}</h3>
                 {playtimeLabel && <p className="mt-1 text-xs text-muted-foreground">{playtimeLabel}</p>}
               </div>
-              {userGame.is_favorite && <Heart className="h-4 w-4 fill-current text-rose-500" />}
               {userGame.is_platinumed && <Trophy className="h-4 w-4 text-amber-500" />}
             </div>
           </div>

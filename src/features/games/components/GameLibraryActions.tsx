@@ -1,4 +1,4 @@
-import { BookOpen, Check, Heart, Loader2, Plus, Trash2, Trophy } from "lucide-react";
+import { BookOpen, Check, Loader2, Plus, Trash2, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserGameByAppId, useAddGame, useUpdateGame, useRemoveGame } from "@/hooks/useUserGames";
@@ -32,10 +32,13 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
     }
   };
 
-  const toggle = async (field: "is_favorite" | "is_platinumed", value: boolean) => {
+  const togglePlatinum = async () => {
     if (!userGame) return;
     try {
-      await updateGame.mutateAsync({ id: userGame.id, updates: { [field]: !value } });
+      await updateGame.mutateAsync({
+        id: userGame.id,
+        updates: { is_platinumed: !userGame.is_platinumed },
+      });
     } catch {
       toast({ title: t("library.updateError"), variant: "destructive" });
     }
@@ -64,8 +67,7 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
         </span>
       )}
 
-      {userGame && <Button variant={userGame.is_favorite ? "secondary" : "outline"} onClick={() => toggle("is_favorite", userGame.is_favorite)} disabled={busy} className="gap-2"><Heart className={`h-4 w-4 ${userGame.is_favorite ? "fill-current text-rose-400" : ""}`} />{userGame.is_favorite ? "Favorito" : "Favoritar"}</Button>}
-      {userGame && <Button variant={userGame.is_platinumed ? "secondary" : "outline"} onClick={() => toggle("is_platinumed", userGame.is_platinumed)} disabled={busy} className="gap-2"><Trophy className={`h-4 w-4 ${userGame.is_platinumed ? "text-amber-400" : ""}`} />{userGame.is_platinumed ? "Platinado" : "Marcar como platinado"}</Button>}
+      {userGame && <Button variant={userGame.is_platinumed ? "secondary" : "outline"} onClick={togglePlatinum} disabled={busy} className="gap-2"><Trophy className={`h-4 w-4 ${userGame.is_platinumed ? "text-amber-400" : ""}`} />{userGame.is_platinumed ? "Platinado" : "Marcar como platinado"}</Button>}
       {onWriteReview && <Button variant="outline" onClick={onWriteReview} disabled={busy} className="gap-2 border-primary/40 text-primary hover:bg-primary/10"><BookOpen className="h-4 w-4" />Escrever avaliação</Button>}
       {userGame && <Button variant="ghost" onClick={remove} disabled={busy} className="ml-auto gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" />Remover</Button>}
     </div>
