@@ -1,13 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Play, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
 import { GameData } from "@/types/game";
 
 export function GameModalMedia({ game, loading = false }: { game: GameData; loading?: boolean }) {
   const [playing, setPlaying] = useState(false);
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const screenshots = game.screenshots?.slice(0, 6) ?? [];
+  const screenshots = useMemo(() => game.screenshots?.slice(0, 6) ?? [], [game.screenshots]);
+  const selectedIndex = selectedScreenshot ? screenshots.indexOf(selectedScreenshot) : -1;
+  const moveScreenshot = useCallback((direction: number) => {
+    if (!screenshots.length || selectedIndex < 0) return;
+    setSelectedScreenshot(screenshots[(selectedIndex + direction + screenshots.length) % screenshots.length]);
+  }, [screenshots, selectedIndex]);
 
   useEffect(() => {
     if (!playing || !game.trailerUrl || !videoRef.current) return;
@@ -38,15 +43,17 @@ export function GameModalMedia({ game, loading = false }: { game: GameData; load
 
   useEffect(() => {
     if (!selectedScreenshot) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
+    const handleGalleryKey = (event: KeyboardEvent) => {
+      if (!["Escape", "ArrowLeft", "ArrowRight"].includes(event.key)) return;
       event.preventDefault();
       event.stopPropagation();
-      setSelectedScreenshot(null);
+      if (event.key === "Escape") setSelectedScreenshot(null);
+      if (event.key === "ArrowLeft") moveScreenshot(-1);
+      if (event.key === "ArrowRight") moveScreenshot(1);
     };
-    document.addEventListener("keydown", closeOnEscape, true);
-    return () => document.removeEventListener("keydown", closeOnEscape, true);
-  }, [selectedScreenshot]);
+    document.addEventListener("keydown", handleGalleryKey, true);
+    return () => document.removeEventListener("keydown", handleGalleryKey, true);
+  }, [selectedScreenshot, moveScreenshot]);
 
   if (loading && !game.trailerUrl && !screenshots.length) {
     return <section className="space-y-3" aria-busy="true"><h3 className="text-sm font-medium text-muted-foreground">Mídia</h3><div className="aspect-video animate-pulse rounded-lg bg-secondary/60" /><div className="grid grid-cols-3 gap-2">{[0, 1, 2].map((item) => <div key={item} className="aspect-video animate-pulse rounded-md bg-secondary/40" />)}</div></section>;
@@ -74,9 +81,12 @@ export function GameModalMedia({ game, loading = false }: { game: GameData; load
         </div>
       )}
       {selectedScreenshot && createPortal(
-        <div role="dialog" aria-modal="true" aria-label="Captura de tela ampliada" className="fixed inset-0 z-[100] grid place-items-center bg-black/75 p-4 backdrop-blur-sm" onClick={() => setSelectedScreenshot(null)}>
+        <div role="dialog" aria-modal="true" aria-label="Captura de tela ampliada" className="fixed inset-0 z-[100] grid place-items-center bg-black/40 p-4 backdrop-blur-[1px]" onClick={() => setSelectedScreenshot(null)}>
           <button type="button" onClick={() => setSelectedScreenshot(null)} className="absolute right-5 top-5 grid h-10 w-10 place-items-center rounded-full bg-black/70 text-white hover:bg-black" aria-label="Fechar imagem"><X className="h-5 w-5" /></button>
-          <img src={selectedScreenshot} alt="Captura de tela ampliada" className="max-h-[86vh] max-w-[92vw] rounded-lg object-contain shadow-2xl" onClick={(event) => event.stopPropagation()} />
+          {screenshots.length > 1 && <button type="button" onClick={(event) => { event.stopPropagation(); moveScreenshot(-1); }} className="absolute left-3 grid h-11 w-11 place-items-center rounded-full bg-black/65 text-white hover:bg-black sm:left-6" aria-label="Imagem anterior"><ChevronLeft className="h-6 w-6" /></button>}
+          <img src={selectedScreenshot} alt={`Captura de tela ${selectedIndex + 1} ampliada`} className="max-h-[82vh] max-w-[90vw] rounded-lg object-contain shadow-2xl ring-1 ring-white/20" onClick={(event) => event.stopPropagation()} />
+          {screenshots.length > 1 && <button type="button" onClick={(event) => { event.stopPropagation(); moveScreenshot(1); }} className="absolute right-3 grid h-11 w-11 place-items-center rounded-full bg-black/65 text-white hover:bg-black sm:right-6" aria-label="Próxima imagem"><ChevronRight className="h-6 w-6" /></button>}
+          <span className="absolute bottom-5 rounded-full bg-black/65 px-3 py-1 text-xs text-white">{selectedIndex + 1} / {screenshots.length}</span>
         </div>,
         document.body,
       )}
