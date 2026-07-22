@@ -198,7 +198,7 @@ const Profile = () => {
             <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
               <div className="space-y-6">
                 {profile?.favorite_game_app_id && <FavoriteGameShowcase userId={profile.user_id} appId={profile.favorite_game_app_id} onEdit={() => setIsEditOpen(true)} />}
-                <PlatinumShowcase userId={profile?.user_id} onViewAll={() => setActiveTab("platinum")} />
+                <PlatinumShowcase userId={profile?.user_id} selectedAppIds={profile?.platinum_showcase_app_ids} editable onViewAll={() => setActiveTab("platinum")} />
                 <RecentActivity userId={profile?.user_id} />
                 {profile?.user_id && <div className="rounded-lg bg-black/15 p-5"><ProfileComments profileUserId={profile.user_id} permission={profile.comments_permission || "public"} isFriend={false} isOwner /></div>}
               </div>

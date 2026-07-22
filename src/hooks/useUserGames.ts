@@ -141,6 +141,7 @@ export function useMarkGamePlatinum() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user_games"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-platinum-showcase"] });
     },
   });
 }

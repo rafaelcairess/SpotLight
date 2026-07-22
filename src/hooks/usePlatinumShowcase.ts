@@ -13,7 +13,7 @@ export function usePlatinumShowcase(userId?: string) {
         .eq("is_platinumed", true)
         .eq("is_hidden", false)
         .order("updated_at", { ascending: false })
-        .limit(6);
+        .limit(50);
       if (error) throw error;
       return data;
     },

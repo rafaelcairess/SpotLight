@@ -331,6 +331,7 @@ export type Database = {
           library_visibility: string
           last_seen_at: string | null
           presence_status: string
+          platinum_showcase_app_ids: number[]
           profile_visibility: string
           reviews_visibility: string
           steam_id: string | null
@@ -351,6 +352,7 @@ export type Database = {
           library_visibility?: string
           last_seen_at?: string | null
           presence_status?: string
+          platinum_showcase_app_ids?: number[]
           profile_visibility?: string
           reviews_visibility?: string
           steam_id?: string | null
@@ -371,6 +373,7 @@ export type Database = {
           library_visibility?: string
           last_seen_at?: string | null
           presence_status?: string
+          platinum_showcase_app_ids?: number[]
           profile_visibility?: string
           reviews_visibility?: string
           steam_id?: string | null

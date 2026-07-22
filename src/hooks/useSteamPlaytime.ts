@@ -102,6 +102,7 @@ export function useSyncSteamPlaytime() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user_games"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-platinum-showcase"] });
       queryClient.invalidateQueries({ queryKey: ["games"] });
     },
   });

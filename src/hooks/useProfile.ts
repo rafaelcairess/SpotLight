@@ -28,6 +28,7 @@ export interface Profile {
   library_visibility: string;
   comments_permission: 'public' | 'friends' | 'disabled';
   favorite_game_app_id: number | null;
+  platinum_showcase_app_ids: number[];
   presence_status: 'online' | 'away' | 'busy' | 'invisible';
   last_seen_at: string | null;
   is_admin: boolean;
@@ -101,6 +102,7 @@ export function useUpdateProfile() {
           | 'library_visibility'
           | 'comments_permission'
           | 'favorite_game_app_id'
+          | 'platinum_showcase_app_ids'
           | 'presence_status'
           | 'last_seen_at'
         >
