@@ -21,6 +21,7 @@ export interface UserGame {
   hours_override: boolean;
   is_favorite: boolean;
   is_hidden: boolean;
+  is_private: boolean;
   is_platinumed: boolean;
   added_at: string;
   updated_at: string;
@@ -189,7 +190,7 @@ export function useUpdateGame() {
       updates: Partial<
         Pick<
           UserGame,
-          "status" | "hours_played" | "hours_played_manual" | "hours_override" | "is_favorite" | "is_hidden" | "is_platinumed"
+          "status" | "hours_played" | "hours_played_manual" | "hours_override" | "is_favorite" | "is_hidden" | "is_private" | "is_platinumed"
         >
       >;
     }) => {

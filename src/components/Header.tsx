@@ -25,6 +25,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getDateLocale } from "@/i18n/utils";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import logoSpotlight from "@/assets/logospotlight.png";
+import { useFriendRequests } from "@/hooks/useFriendships";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,6 +35,7 @@ const Header = () => {
   const { user, signOut, loading: authLoading } = useAuth();
   const { data: profile } = useProfile();
   const { data: notifications = [], isLoading: notificationsLoading } = useNotifications();
+  const { data: friendRequests } = useFriendRequests();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
   const { t } = useTranslation();
@@ -133,6 +135,12 @@ const Header = () => {
                 <div className="flex items-center">
                   <div className="flex items-center gap-2">
                     <LanguageSwitcher />
+                    <Button variant="ghost" size="icon" className="relative" asChild>
+                      <Link to="/friends" aria-label="Pedidos de amizade">
+                        <Users className="w-5 h-5" />
+                        {!!friendRequests?.incoming.length && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">{friendRequests.incoming.length > 9 ? "9+" : friendRequests.incoming.length}</span>}
+                      </Link>
+                    </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="relative">
@@ -304,6 +312,7 @@ const Header = () => {
               {!authLoading && (
                 user ? (
                   <div className="space-y-2">
+                    <Link to="/friends" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary"><Users className="w-4 h-4" />Amigos{!!friendRequests?.incoming.length && <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">{friendRequests.incoming.length}</span>}</Link>
                     <Link
                       to="/profile"
                       onClick={() => setIsMobileMenuOpen(false)}

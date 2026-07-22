@@ -3,7 +3,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { Heart, Trophy, Clock, Trash2, MoreVertical, PencilLine, EyeOff, Eye } from "lucide-react";
+import { Heart, Trophy, Clock, Trash2, MoreVertical, PencilLine, EyeOff, Eye, Lock, Unlock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -135,6 +135,15 @@ export function GameLibrary({
     try {
       await updateGame.mutateAsync({ id: game.id, updates: { is_hidden: false } });
       toast({ title: t("library.showGameSuccess") });
+    } catch {
+      toast({ title: t("library.updateError"), variant: "destructive" });
+    }
+  };
+
+  const handleTogglePrivate = async (game: UserGame) => {
+    try {
+      await updateGame.mutateAsync({ id: game.id, updates: { is_private: !game.is_private } });
+      toast({ title: game.is_private ? "Jogo visível no perfil." : "Jogo privado. Só você pode vê-lo." });
     } catch {
       toast({ title: t("library.updateError"), variant: "destructive" });
     }
@@ -331,6 +340,7 @@ export function GameLibrary({
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
               <div className="absolute top-2 left-2 flex items-center gap-2">
+                {userGame.is_private && <span className="inline-flex items-center gap-1 rounded-full bg-black/80 px-2 py-0.5 text-[10px] font-semibold text-white"><Lock className="h-3 w-3" />Privado</span>}
                 {playtimeLabel && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-black/70 text-white text-[11px] px-2 py-0.5">
                     <Clock className="w-3 h-3" />
@@ -375,6 +385,15 @@ export function GameLibrary({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleTogglePrivate(userGame);
+                        }}
+                      >
+                        {userGame.is_private ? <Unlock className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
+                        {userGame.is_private ? "Tornar público" : "Marcar como privado"}
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={(event) => {
                           event.stopPropagation();

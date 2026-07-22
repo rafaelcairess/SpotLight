@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
+import { PresenceHeartbeat } from "@/hooks/usePresence";
 
 const loadWhenIdle = <T,>(loader: () => Promise<T>): Promise<T> =>
   new Promise((resolve, reject) => {
@@ -38,6 +39,7 @@ const WhatsNewModal = lazy(() => loadWhenIdle(() => import("@/features/onboardin
 const GamePage = lazy(() => import("@/features/games/pages/GamePage"));
 const ListPage = lazy(() => import("@/features/lists/pages/ListPage"));
 const Admin = lazy(() => import("@/features/admin/pages/Admin"));
+const Friends = lazy(() => import("@/features/friends/pages/Friends"));
 
 const queryClient = new QueryClient();
 
@@ -45,6 +47,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <>
+        <PresenceHeartbeat />
         <Toaster />
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -66,6 +69,7 @@ const App = () => (
             <Route path="/game/:appId" element={<GamePage />} />
             <Route path="/lists/:listId" element={<ListPage />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/friends" element={<Friends />} />
             {/* Adicione todas as rotas acima do catch-all "*" */}
             <Route path="*" element={<NotFound />} />
           </Routes>

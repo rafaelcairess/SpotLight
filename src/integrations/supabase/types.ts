@@ -325,9 +325,12 @@ export type Database = {
           comments_permission: string
           created_at: string
           display_name: string | null
+          favorite_game_app_id: number | null
           id: string
           is_admin: boolean
           library_visibility: string
+          last_seen_at: string | null
+          presence_status: string
           profile_visibility: string
           reviews_visibility: string
           steam_id: string | null
@@ -342,9 +345,12 @@ export type Database = {
           comments_permission?: string
           created_at?: string
           display_name?: string | null
+          favorite_game_app_id?: number | null
           id?: string
           is_admin?: boolean
           library_visibility?: string
+          last_seen_at?: string | null
+          presence_status?: string
           profile_visibility?: string
           reviews_visibility?: string
           steam_id?: string | null
@@ -359,9 +365,12 @@ export type Database = {
           comments_permission?: string
           created_at?: string
           display_name?: string | null
+          favorite_game_app_id?: number | null
           id?: string
           is_admin?: boolean
           library_visibility?: string
+          last_seen_at?: string | null
+          presence_status?: string
           profile_visibility?: string
           reviews_visibility?: string
           steam_id?: string | null
@@ -463,6 +472,7 @@ export type Database = {
           id: string
           is_favorite: boolean
           is_hidden: boolean
+          is_private: boolean
           is_platinumed: boolean
           status: Database["public"]["Enums"]["game_status"]
           updated_at: string
@@ -477,6 +487,7 @@ export type Database = {
           id?: string
           is_favorite?: boolean
           is_hidden?: boolean
+          is_private?: boolean
           is_platinumed?: boolean
           status?: Database["public"]["Enums"]["game_status"]
           updated_at?: string
@@ -491,6 +502,7 @@ export type Database = {
           id?: string
           is_favorite?: boolean
           is_hidden?: boolean
+          is_private?: boolean
           is_platinumed?: boolean
           status?: Database["public"]["Enums"]["game_status"]
           updated_at?: string
@@ -584,7 +596,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_profile_progress: {
+        Args: { target_user_id: string }
+        Returns: {
+          completed_count: number
+          friends_count: number
+          games_count: number
+          hours_count: number
+          level: number
+          next_level_xp: number
+          platinum_count: number
+          reviews_count: number
+          xp: number
+        }[]
+      }
     }
     Enums: {
       friend_request_status: "pending" | "accepted" | "declined"

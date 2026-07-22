@@ -39,6 +39,9 @@ import { UserListsTab } from "@/features/profile/components/UserListsTab";
 import { ProfileComments } from "@/features/profile/components/ProfileComments";
 import { useFriends } from "@/hooks/useFriendships";
 import { useProfileCounts } from "@/hooks/useProfileCounts";
+import { PresenceSelector } from "@/features/profile/components/PresenceSelector";
+import { ProfileProgressCard } from "@/features/profile/components/ProfileProgress";
+import { FavoriteGameShowcase } from "@/features/profile/components/FavoriteGameShowcase";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
@@ -167,6 +170,7 @@ const Profile = () => {
                   {profile?.display_name || t("profile.defaultName")}
                 </h1>
                 <p className="text-muted-foreground">@{profile?.username}</p>
+                {profile && <div className="mt-2"><PresenceSelector value={profile.presence_status || "online"} lastSeenAt={profile.last_seen_at} /></div>}
                 {profile?.bio && <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>}
               </div>
               <div className="flex flex-col items-start sm:items-end gap-2">
@@ -283,7 +287,9 @@ const Profile = () => {
           </TabsList>
 
           <TabsContent value="overview">
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <FavoriteGameShowcase userId={profile?.user_id} appId={profile?.favorite_game_app_id} editable />
+              <ProfileProgressCard userId={profile?.user_id} />
               <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Seu perfil</p>
                 <h2 className="mt-3 text-xl font-semibold">Uma vitrine, não uma planilha de jogos.</h2>

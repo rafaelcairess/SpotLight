@@ -43,6 +43,9 @@ import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
 import NotFound from "@/pages/NotFound";
+import { PresenceBadge } from "@/features/profile/components/PresenceBadge";
+import { ProfileProgressCard } from "@/features/profile/components/ProfileProgress";
+import { FavoriteGameShowcase } from "@/features/profile/components/FavoriteGameShowcase";
 
 const PublicProfile = () => {
   const { username } = useParams<{ username: string }>();
@@ -210,6 +213,7 @@ const PublicProfile = () => {
                   {profile.display_name || t("profile.defaultName")}
                 </h1>
                 <p className="text-muted-foreground">@{profile.username}</p>
+                <div className="mt-2"><PresenceBadge status={profile.presence_status} lastSeenAt={profile.last_seen_at} /></div>
                 {profile.bio && (
                   <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>
                 )}
@@ -301,7 +305,9 @@ const PublicProfile = () => {
           </TabsList>
 
           <TabsContent value="overview">
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <FavoriteGameShowcase userId={userId} appId={profile.favorite_game_app_id} />
+              <ProfileProgressCard userId={userId} />
               <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Sobre</p>
                 <p className="mt-3 whitespace-pre-wrap text-foreground/85">{profile.bio || "Este jogador ainda não escreveu uma apresentação."}</p>

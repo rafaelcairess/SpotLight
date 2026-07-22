@@ -18,6 +18,8 @@ export interface ProfileSummary {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
+  presence_status?: string | null;
+  last_seen_at?: string | null;
 }
 
 export function useFollowingIds(userIds: string[]) {
@@ -142,7 +144,7 @@ export function useFollowers(userId?: string) {
 
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, username, display_name, avatar_url')
+        .select('user_id, username, display_name, avatar_url, presence_status, last_seen_at')
         .in('user_id', ids);
 
       if (profilesError) throw profilesError;
@@ -172,7 +174,7 @@ export function useFollowing(userId?: string) {
 
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, username, display_name, avatar_url')
+        .select('user_id, username, display_name, avatar_url, presence_status, last_seen_at')
         .in('user_id', ids);
 
       if (profilesError) throw profilesError;

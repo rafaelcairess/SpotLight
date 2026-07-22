@@ -42,7 +42,7 @@ type GameLocalizationRow = {
 };
 
 // Mapeia o formato do banco para o formato usado pela UI.
-const mapGameRow = (row: GameRow): GameData => ({
+export const mapGameRow = (row: GameRow): GameData => ({
   app_id: row.app_id,
   title: row.title,
   image: row.image || "",

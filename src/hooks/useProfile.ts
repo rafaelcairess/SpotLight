@@ -27,6 +27,9 @@ export interface Profile {
   reviews_visibility: string;
   library_visibility: string;
   comments_permission: 'public' | 'friends' | 'disabled';
+  favorite_game_app_id: number | null;
+  presence_status: 'online' | 'away' | 'busy' | 'invisible';
+  last_seen_at: string | null;
   is_admin: boolean;
   created_at: string;
   updated_at: string;
@@ -97,6 +100,9 @@ export function useUpdateProfile() {
           | 'reviews_visibility'
           | 'library_visibility'
           | 'comments_permission'
+          | 'favorite_game_app_id'
+          | 'presence_status'
+          | 'last_seen_at'
         >
       >
     ) => {
