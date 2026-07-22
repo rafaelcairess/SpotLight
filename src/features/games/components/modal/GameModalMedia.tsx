@@ -81,12 +81,12 @@ export function GameModalMedia({ game, loading = false }: { game: GameData; load
         </div>
       )}
       {selectedScreenshot && createPortal(
-        <div role="dialog" aria-modal="true" aria-label="Captura de tela ampliada" className="fixed inset-0 z-[100] grid place-items-center bg-black/40 p-4 backdrop-blur-[1px]" onClick={() => setSelectedScreenshot(null)}>
-          <button type="button" onClick={() => setSelectedScreenshot(null)} className="absolute right-5 top-5 grid h-10 w-10 place-items-center rounded-full bg-black/70 text-white hover:bg-black" aria-label="Fechar imagem"><X className="h-5 w-5" /></button>
-          {screenshots.length > 1 && <button type="button" onClick={(event) => { event.stopPropagation(); moveScreenshot(-1); }} className="absolute left-3 grid h-11 w-11 place-items-center rounded-full bg-black/65 text-white hover:bg-black sm:left-6" aria-label="Imagem anterior"><ChevronLeft className="h-6 w-6" /></button>}
+        <div role="dialog" aria-modal="true" aria-label="Captura de tela ampliada" className="pointer-events-auto fixed inset-0 z-[100] grid place-items-center bg-black/40 p-4 backdrop-blur-[1px]" onClick={() => setSelectedScreenshot(null)}>
+          <button type="button" onClick={() => setSelectedScreenshot(null)} className="absolute right-5 top-5 z-20 grid h-12 w-12 place-items-center rounded-full bg-black/75 text-white shadow-lg hover:bg-black" aria-label="Fechar imagem"><X className="h-6 w-6" /></button>
+          {screenshots.length > 1 && <button type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); moveScreenshot(-1); }} className="absolute left-3 z-20 grid h-16 w-16 place-items-center rounded-full bg-black/75 text-white shadow-xl hover:scale-105 hover:bg-black sm:left-8" aria-label="Imagem anterior"><ChevronLeft className="h-10 w-10" /></button>}
           <img src={selectedScreenshot} alt={`Captura de tela ${selectedIndex + 1} ampliada`} className="max-h-[82vh] max-w-[90vw] rounded-lg object-contain shadow-2xl ring-1 ring-white/20" onClick={(event) => event.stopPropagation()} />
-          {screenshots.length > 1 && <button type="button" onClick={(event) => { event.stopPropagation(); moveScreenshot(1); }} className="absolute right-3 grid h-11 w-11 place-items-center rounded-full bg-black/65 text-white hover:bg-black sm:right-6" aria-label="Próxima imagem"><ChevronRight className="h-6 w-6" /></button>}
-          <span className="absolute bottom-5 rounded-full bg-black/65 px-3 py-1 text-xs text-white">{selectedIndex + 1} / {screenshots.length}</span>
+          {screenshots.length > 1 && <button type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); moveScreenshot(1); }} className="absolute right-3 z-20 grid h-16 w-16 place-items-center rounded-full bg-black/75 text-white shadow-xl hover:scale-105 hover:bg-black sm:right-8" aria-label="Próxima imagem"><ChevronRight className="h-10 w-10" /></button>}
+          <span className="absolute bottom-5 z-20 rounded-full bg-black/70 px-3 py-1 text-xs text-white">{selectedIndex + 1} / {screenshots.length}</span>
         </div>,
         document.body,
       )}
