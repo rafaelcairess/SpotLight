@@ -76,7 +76,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
             </div>
           )}
 
-          <GameModalMedia game={displayGame} />
+          <GameModalMedia game={displayGame} loading={ensureDetails.isPending} />
 
           {/* Acoes de biblioteca + review */}
           <div className="pt-4 border-t border-border/50 space-y-4">
