@@ -214,6 +214,7 @@ const PublicProfile = () => {
                 </h1>
                 <p className="text-muted-foreground">@{profile.username}</p>
                 <div className="mt-2"><PresenceBadge status={profile.presence_status} lastSeenAt={profile.last_seen_at} /></div>
+                <div className="mt-3"><ProfileProgressCard userId={userId} /></div>
                 {profile.bio && (
                   <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>
                 )}
@@ -305,9 +306,8 @@ const PublicProfile = () => {
           </TabsList>
 
           <TabsContent value="overview">
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="mx-auto flex max-w-4xl flex-col gap-6">
               <FavoriteGameShowcase userId={userId} appId={profile.favorite_game_app_id} />
-              <ProfileProgressCard userId={userId} />
               <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Sobre</p>
                 <p className="mt-3 whitespace-pre-wrap text-foreground/85">{profile.bio || "Este jogador ainda não escreveu uma apresentação."}</p>
@@ -316,21 +316,6 @@ const PublicProfile = () => {
                   {profile.xbox_id && <span className="rounded-full bg-secondary px-3 py-1.5">Xbox conectada</span>}
                   {profile.psn_id && <span className="rounded-full bg-secondary px-3 py-1.5">PlayStation conectada</span>}
                 </div>
-              </div>
-              <div className="rounded-2xl border border-border/50 bg-card/70 p-5">
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="font-semibold">Amigos</h2>
-                  <button className="text-xs text-primary hover:underline" onClick={() => setActiveTab("friends")}>Ver todos</button>
-                </div>
-                <div className="grid grid-cols-4 gap-3">
-                  {friends.slice(0, 8).map((friend) => (
-                    <button key={friend.user_id} onClick={() => navigate(`/u/${friend.username}`)} className="group text-center">
-                      <UserAvatar src={friend.avatar_url} displayName={friend.display_name} username={friend.username} size="sm" />
-                      <p className="mt-1 truncate text-[11px] text-muted-foreground group-hover:text-foreground">{friend.display_name || friend.username}</p>
-                    </button>
-                  ))}
-                </div>
-                {!friends.length && <p className="text-sm text-muted-foreground">Nenhuma amizade pública ainda.</p>}
               </div>
             </div>
           </TabsContent>

@@ -27,6 +27,8 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Switch } from "@/components/ui/switch";
 import { useMaturePreference } from "@/hooks/useMaturePreference";
 import { normalizeText } from "@/lib/text";
+import { useUserGames } from "@/hooks/useUserGames";
+import { useGamesByIds } from "@/hooks/useGames";
 
 interface ProfileEditDialogProps {
   open: boolean;
@@ -81,11 +83,15 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
   const [reviewsVisibility, setReviewsVisibility] = useState(normalizeVisibility(profile?.reviews_visibility));
   const [libraryVisibility, setLibraryVisibility] = useState(normalizeVisibility(profile?.library_visibility));
   const [commentsPermission, setCommentsPermission] = useState(profile?.comments_permission || "public");
+  const [favoriteGameAppId, setFavoriteGameAppId] = useState<number | null>(profile?.favorite_game_app_id || null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSyncingSteam, setIsSyncingSteam] = useState(false);
   const [matureEnabled, setMatureEnabled] = useMaturePreference();
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { data: library = [] } = useUserGames(undefined, true, open);
+  const visibleLibrary = useMemo(() => library.filter((game) => !game.is_private), [library]);
+  const { data: favoriteChoices = [] } = useGamesByIds(visibleLibrary.map((game) => game.app_id));
 
   const visibilityOptions = useMemo(
     () => [
@@ -119,6 +125,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
       setReviewsVisibility(normalizeVisibility(profile.reviews_visibility));
       setLibraryVisibility(normalizeVisibility(profile.library_visibility));
       setCommentsPermission(profile.comments_permission || "public");
+      setFavoriteGameAppId(profile.favorite_game_app_id || null);
     }
   }, [profile]);
 
@@ -216,6 +223,7 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
         reviews_visibility: reviewsVisibility,
         library_visibility: libraryVisibility,
         comments_permission: commentsPermission as "public" | "friends" | "disabled",
+        favorite_game_app_id: favoriteGameAppId,
       });
       toast({ title: t("profileEdit.saveSuccess") });
       onOpenChange(false);
@@ -524,6 +532,22 @@ export function ProfileEditDialog({ open, onOpenChange, profile }: ProfileEditDi
               </select>
               <p className="text-xs text-muted-foreground">Você sempre poderá excluir qualquer comentário publicado no seu perfil.</p>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="favoriteGame">Jogo favorito</Label>
+            <select
+              id="favoriteGame"
+              value={favoriteGameAppId ?? ""}
+              onChange={(event) => setFavoriteGameAppId(event.target.value ? Number(event.target.value) : null)}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Nenhum jogo em destaque</option>
+              {favoriteChoices
+                .slice()
+                .sort((a, b) => a.title.localeCompare(b.title))
+                .map((game) => <option key={game.app_id} value={game.app_id}>{game.title}</option>)}
+            </select>
           </div>
 
           {/* Zona de perigo */}

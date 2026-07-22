@@ -2,17 +2,14 @@
  * Página da feature profile.
  */
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   GamepadIcon,
   Heart,
   Trophy,
   BookOpen,
-  Bell,
   Settings,
-  RefreshCw,
-  Download,
   List,
   EyeOff,
   MessageSquare,
@@ -22,12 +19,10 @@ import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useUserGames, useHiddenGames } from "@/hooks/useUserGames";
 import { useReviewsByUser } from "@/hooks/useReviews";
 import { useFollowCounts, useFollowers, useFollowing } from "@/hooks/useFollows";
-import { useSyncSteamPlaytime } from "@/hooks/useSteamPlaytime";
 import { UserAvatar } from "@/features/profile/components/UserAvatar";
 import { ProfileStats } from "@/features/profile/components/ProfileStats";
 import { FollowListDialog } from "@/features/profile/components/FollowListDialog";
@@ -45,12 +40,10 @@ import { FavoriteGameShowcase } from "@/features/profile/components/FavoriteGame
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
-import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { locale } = useLanguage();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const [activeTab, setActiveTab] = useState("overview");
   const shouldLoadGames = ["library", "favorites", "platinum"].includes(activeTab);
@@ -67,24 +60,7 @@ const Profile = () => {
   const [isFollowingOpen, setIsFollowingOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { t, i18n } = useTranslation();
-  const { toast } = useToast();
-  const syncSteamPlaytime = useSyncSteamPlaytime();
-  const syncStatusLabel = useMemo(() => {
-    if (!profile?.steam_id) return t("profile.syncSteamNotLinked");
-    if (!profile?.steam_last_synced) return t("profile.syncSteamNever");
-    const parsed = new Date(profile.steam_last_synced);
-    if (Number.isNaN(parsed.getTime())) return t("profile.syncSteamNever");
-    const formatted = new Intl.DateTimeFormat(i18n.language, {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(parsed);
-    return t("profile.syncSteamLast", { date: formatted });
-  }, [profile?.steam_id, profile?.steam_last_synced, i18n.language, t]);
-
-  const isSyncing = syncSteamPlaytime.isPending;
-  const isUpdating = isSyncing && syncSteamPlaytime.variables?.mode === "update";
-  const isImporting = isSyncing && syncSteamPlaytime.variables?.mode === "import";
+  const { t } = useTranslation();
 
   if (!authLoading && !user) {
     navigate("/auth");
@@ -122,32 +98,6 @@ const Profile = () => {
     setIsModalOpen(false);
     setSelectedGame(null);
   };
-  const handleSyncSteam = async (mode: "update" | "import") => {
-    if (!profile?.steam_id) {
-      toast({ title: t("profile.syncSteamMissing"), variant: "destructive" });
-      setIsEditOpen(true);
-      return;
-    }
-
-    try {
-      const result = await syncSteamPlaytime.mutateAsync({
-        importAll: mode === "import",
-        enrichDetails: mode === "import",
-        language: locale,
-        mode,
-      });
-      const total = (result?.updated ?? 0) + (result?.inserted ?? 0);
-      toast({
-        title:
-          mode === "import"
-            ? t("profile.syncSteamImportSuccess", { count: total })
-            : t("profile.syncSteamUpdateSuccess", { count: total }),
-      });
-    } catch (error) {
-      toast({ title: t("profile.syncSteamError"), variant: "destructive" });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -171,50 +121,21 @@ const Profile = () => {
                 </h1>
                 <p className="text-muted-foreground">@{profile?.username}</p>
                 {profile && <div className="mt-2"><PresenceSelector value={profile.presence_status || "online"} lastSeenAt={profile.last_seen_at} /></div>}
+                <div className="mt-3"><ProfileProgressCard userId={profile?.user_id} /></div>
                 {profile?.bio && <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>}
               </div>
               <div className="flex flex-col items-start sm:items-end gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/alerts")}
-                  >
-                    <Bell className="w-4 h-4" />
-                    {t("profile.alerts")}
-                  </Button>
+                <div className="flex items-center">
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => handleSyncSteam("update")}
-                    disabled={isSyncing}
-                  >
-                    <RefreshCw className={isUpdating ? "w-4 h-4 animate-spin" : "w-4 h-4"} />
-                    {isUpdating
-                      ? t("profile.syncSteamUpdateLoading")
-                      : t("profile.syncSteamUpdate")}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => handleSyncSteam("import")}
-                    disabled={isSyncing}
-                  >
-                    <Download className={isImporting ? "w-4 h-4 animate-spin" : "w-4 h-4"} />
-                    {isImporting
-                      ? t("profile.syncSteamImportLoading")
-                      : t("profile.syncSteamImport")}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
+                    size="icon"
                     onClick={() => setIsEditOpen(true)}
+                    aria-label={t("profile.settings")}
                   >
                     <Settings className="w-4 h-4" />
-                    {t("profile.settings")}
+                    <span className="sr-only">{t("profile.settings")}</span>
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">{syncStatusLabel}</p>
               </div>
             </div>
 
@@ -287,20 +208,8 @@ const Profile = () => {
           </TabsList>
 
           <TabsContent value="overview">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <FavoriteGameShowcase userId={profile?.user_id} appId={profile?.favorite_game_app_id} editable />
-              <ProfileProgressCard userId={profile?.user_id} />
-              <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Seu perfil</p>
-                <h2 className="mt-3 text-xl font-semibold">Uma vitrine, não uma planilha de jogos.</h2>
-                <p className="mt-2 text-sm text-muted-foreground">Sua biblioteca só é carregada quando alguém abre a aba Jogos. Use os favoritos e listas para escolher o que merece destaque.</p>
-                <Button variant="outline" size="sm" className="mt-5" onClick={() => setIsEditOpen(true)}>Personalizar perfil</Button>
-              </div>
-              <div className="rounded-2xl border border-border/50 bg-card/70 p-5">
-                <div className="mb-4 flex items-center justify-between"><h2 className="font-semibold">Amigos</h2><button className="text-xs text-primary hover:underline" onClick={() => setActiveTab("friends")}>Ver todos</button></div>
-                <div className="grid grid-cols-4 gap-3">{friends.slice(0, 8).map((friend) => <button key={friend.user_id} onClick={() => navigate(`/u/${friend.username}`)}><UserAvatar src={friend.avatar_url} displayName={friend.display_name} username={friend.username} size="sm" /><p className="mt-1 truncate text-[11px] text-muted-foreground">{friend.display_name || friend.username}</p></button>)}</div>
-                {!friends.length && <p className="text-sm text-muted-foreground">Você ainda não adicionou amigos.</p>}
-              </div>
+            <div className="mx-auto flex max-w-4xl flex-col gap-6">
+              {profile?.favorite_game_app_id && <FavoriteGameShowcase userId={profile.user_id} appId={profile.favorite_game_app_id} />}
             </div>
           </TabsContent>
 
