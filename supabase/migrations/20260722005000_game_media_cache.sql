@@ -1,0 +1,6 @@
+ALTER TABLE public.games
+  ADD COLUMN IF NOT EXISTS background_image TEXT,
+  ADD COLUMN IF NOT EXISTS trailer_url TEXT,
+  ADD COLUMN IF NOT EXISTS trailer_thumbnail TEXT,
+  ADD COLUMN IF NOT EXISTS screenshot_urls TEXT[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS media_synced_at TIMESTAMPTZ;

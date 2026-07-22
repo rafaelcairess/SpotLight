@@ -15,6 +15,7 @@ import { GameModalFooter } from "@/features/games/components/modal/GameModalFoot
 import { useEnsureGameDetails, useGameById } from "@/hooks/useGames";
 import { useToast } from "@/hooks/use-toast";
 import { AddToListButton } from "@/features/games/components/AddToListButton";
+import { GameModalMedia } from "@/features/games/components/modal/GameModalMedia";
 
 interface GameModalProps {
   game: GameData | null;
@@ -40,7 +41,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
   // Se o jogo veio do catalogo sem detalhes, tenta buscar ao abrir o modal.
   useEffect(() => {
     if (!isOpen || !game) return;
-    if (game.hasDetails !== false) return;
+    if (game.hasDetails !== false && game.mediaSyncedAt) return;
     if (detailsRequested) return;
 
     setDetailsRequested(true);
@@ -73,6 +74,8 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
               <p className="text-foreground/90 leading-relaxed">{displayGame.short_description}</p>
             </div>
           )}
+
+          <GameModalMedia game={displayGame} />
 
           {/* Acoes de biblioteca + review */}
           <div className="pt-4 border-t border-border/50 space-y-4">

@@ -29,6 +29,11 @@ type GameRow = {
   platforms: string[] | null;
   steam_url: string | null;
   last_synced: string;
+  background_image: string | null;
+  trailer_url: string | null;
+  trailer_thumbnail: string | null;
+  screenshot_urls: string[] | null;
+  media_synced_at: string | null;
 };
 
 type GameLocalizationRow = {
@@ -58,6 +63,11 @@ export const mapGameRow = (row: GameRow): GameData => ({
   developer: row.developer || undefined,
   publisher: row.publisher || undefined,
   platforms: row.platforms || undefined,
+  backgroundImage: row.background_image || undefined,
+  trailerUrl: row.trailer_url || undefined,
+  trailerThumbnail: row.trailer_thumbnail || undefined,
+  screenshots: row.screenshot_urls || undefined,
+  mediaSyncedAt: row.media_synced_at || undefined,
 });
 
 type SteamAppRow = {
@@ -394,7 +404,7 @@ export function useEnsureGameDetails() {
     },
     // Revalida caches que dependem do detalhe do jogo.
     onSuccess: (_, appId) => {
-      queryClient.invalidateQueries({ queryKey: ["games", "by-id", appId] });
+      queryClient.invalidateQueries({ queryKey: ["games", "by-id"] });
       queryClient.invalidateQueries({ queryKey: ["games", "by-ids"] });
       queryClient.invalidateQueries({ queryKey: ["games", "catalog-search"] });
       queryClient.invalidateQueries({ queryKey: ["games", "localization"] });

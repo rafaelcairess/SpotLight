@@ -22,59 +22,74 @@ export type Database = {
         Row: {
           active_players: number | null
           app_id: number
+          background_image: string | null
           community_rating: number | null
           developer: string | null
           discount_percent: number | null
           genre: string | null
           image: string | null
           last_synced: string
+          media_synced_at: string | null
           platforms: string[] | null
           price: string | null
           price_original: string | null
           publisher: string | null
           release_date: string | null
           short_description: string | null
+          screenshot_urls: string[]
           steam_url: string | null
           tags: string[] | null
           title: string
+          trailer_thumbnail: string | null
+          trailer_url: string | null
         }
         Insert: {
           active_players?: number | null
           app_id: number
+          background_image?: string | null
           community_rating?: number | null
           developer?: string | null
           discount_percent?: number | null
           genre?: string | null
           image?: string | null
           last_synced?: string
+          media_synced_at?: string | null
           platforms?: string[] | null
           price?: string | null
           price_original?: string | null
           publisher?: string | null
           release_date?: string | null
           short_description?: string | null
+          screenshot_urls?: string[]
           steam_url?: string | null
           tags?: string[] | null
           title: string
+          trailer_thumbnail?: string | null
+          trailer_url?: string | null
         }
         Update: {
           active_players?: number | null
           app_id?: number
+          background_image?: string | null
           community_rating?: number | null
           developer?: string | null
           discount_percent?: number | null
           genre?: string | null
           image?: string | null
           last_synced?: string
+          media_synced_at?: string | null
           platforms?: string[] | null
           price?: string | null
           price_original?: string | null
           publisher?: string | null
           release_date?: string | null
           short_description?: string | null
+          screenshot_urls?: string[]
           steam_url?: string | null
           tags?: string[] | null
           title?: string
+          trailer_thumbnail?: string | null
+          trailer_url?: string | null
         }
         Relationships: []
       }

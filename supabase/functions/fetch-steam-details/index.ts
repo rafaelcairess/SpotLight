@@ -97,6 +97,18 @@ const fetchJson = async (url: string) => {
   return res.json();
 };
 
+const safeSteamUrl = (value: unknown) => {
+  if (typeof value !== "string" || !value.startsWith("https://")) return null;
+  try {
+    const url = new URL(value);
+    return url.hostname.endsWith("steamstatic.com") || url.hostname.endsWith("steampowered.com")
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -133,6 +145,25 @@ serve(async (req) => {
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
   });
+
+  const { data: cachedGame } = await supabase
+    .from("games")
+    .select("media_synced_at")
+    .eq("app_id", appId)
+    .maybeSingle();
+  const { data: cachedLocalization } = await supabase
+    .from("game_localizations")
+    .select("updated_at")
+    .eq("app_id", appId)
+    .eq("locale", locale)
+    .maybeSingle();
+  const cacheCutoff = Date.now() - 24 * 60 * 60 * 1000;
+  if (
+    cachedGame?.media_synced_at && Date.parse(cachedGame.media_synced_at) > cacheCutoff &&
+    cachedLocalization?.updated_at && Date.parse(cachedLocalization.updated_at) > cacheCutoff
+  ) {
+    return json(200, { status: "cached", app_id: appId, locale });
+  }
 
   try {
     const detailsUrl = `https://store.steampowered.com/api/appdetails?appids=${appId}&cc=br&l=${steam}`;
@@ -180,6 +211,12 @@ serve(async (req) => {
     const tags = normalizeTags(details.genres, details.categories);
     const genres = normalizeGenres(details.genres);
     const now = new Date().toISOString();
+    const screenshots = Array.isArray(details.screenshots)
+      ? details.screenshots.map((item: { path_full?: string }) => safeSteamUrl(item?.path_full)).filter(Boolean).slice(0, 8)
+      : [];
+    const movies = Array.isArray(details.movies) ? details.movies : [];
+    const movie = movies.find((item: { highlight?: boolean }) => item?.highlight) || movies[0];
+    const trailerUrl = safeSteamUrl(movie?.mp4?.max || movie?.webm?.max || movie?.mp4?.["480"] || movie?.webm?.["480"]);
 
     await supabase
       .from("game_localizations")
@@ -230,6 +267,11 @@ serve(async (req) => {
       developer: Array.isArray(details.developers) ? details.developers[0] ?? null : null,
       publisher: Array.isArray(details.publishers) ? details.publishers[0] ?? null : null,
       platforms: normalizePlatforms(details.platforms),
+      background_image: safeSteamUrl(details.background_raw || details.background),
+      trailer_url: trailerUrl,
+      trailer_thumbnail: safeSteamUrl(movie?.thumbnail),
+      screenshot_urls: screenshots,
+      media_synced_at: now,
       steam_url: `https://store.steampowered.com/app/${appId}`,
       last_synced: now,
     };

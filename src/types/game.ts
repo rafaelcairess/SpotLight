@@ -18,6 +18,11 @@ export interface GameData {
   developer?: string;
   publisher?: string;
   platforms?: string[];
+  backgroundImage?: string;
+  trailerUrl?: string;
+  trailerThumbnail?: string;
+  screenshots?: string[];
+  mediaSyncedAt?: string;
   hasDetails?: boolean;
 }
 
