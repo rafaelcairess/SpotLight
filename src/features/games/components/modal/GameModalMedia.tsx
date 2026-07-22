@@ -1,10 +1,38 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Play } from "lucide-react";
 import { GameData } from "@/types/game";
 
 export function GameModalMedia({ game }: { game: GameData }) {
   const [playing, setPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const screenshots = game.screenshots?.slice(0, 6) ?? [];
+
+  useEffect(() => {
+    if (!playing || !game.trailerUrl || !videoRef.current) return;
+    const video = videoRef.current;
+    const isHls = game.trailerUrl.includes(".m3u8");
+    let destroy: (() => void) | undefined;
+    let active = true;
+
+    if (!isHls || video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = game.trailerUrl;
+      void video.play().catch(() => undefined);
+    } else {
+      void import("hls.js").then(({ default: Hls }) => {
+        if (!active || !Hls.isSupported() || !videoRef.current) return;
+        const hls = new Hls({ enableWorker: true, lowLatencyMode: false });
+        hls.loadSource(game.trailerUrl!);
+        hls.attachMedia(videoRef.current);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => void videoRef.current?.play().catch(() => undefined));
+        destroy = () => hls.destroy();
+      });
+    }
+
+    return () => {
+      active = false;
+      destroy?.();
+    };
+  }, [playing, game.trailerUrl]);
   if (!game.trailerUrl && !screenshots.length) return null;
 
   return (
@@ -13,7 +41,7 @@ export function GameModalMedia({ game }: { game: GameData }) {
       {game.trailerUrl && (
         <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
           {playing ? (
-            <video src={game.trailerUrl} controls autoPlay playsInline preload="metadata" className="h-full w-full" poster={game.trailerThumbnail} />
+            <video ref={videoRef} controls playsInline preload="none" className="h-full w-full" poster={game.trailerThumbnail} />
           ) : (
             <button type="button" onClick={() => setPlaying(true)} className="group relative h-full w-full" aria-label="Reproduzir trailer">
               <img src={game.trailerThumbnail || game.image} alt="" loading="lazy" className="h-full w-full object-cover opacity-80 transition group-hover:opacity-60" />

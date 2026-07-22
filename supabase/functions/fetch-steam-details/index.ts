@@ -148,7 +148,7 @@ serve(async (req) => {
 
   const { data: cachedGame } = await supabase
     .from("games")
-    .select("media_synced_at")
+    .select("media_synced_at, trailer_url, trailer_thumbnail")
     .eq("app_id", appId)
     .maybeSingle();
   const { data: cachedLocalization } = await supabase
@@ -160,6 +160,7 @@ serve(async (req) => {
   const cacheCutoff = Date.now() - 24 * 60 * 60 * 1000;
   if (
     cachedGame?.media_synced_at && Date.parse(cachedGame.media_synced_at) > cacheCutoff &&
+    !(cachedGame.trailer_thumbnail && !cachedGame.trailer_url) &&
     cachedLocalization?.updated_at && Date.parse(cachedLocalization.updated_at) > cacheCutoff
   ) {
     return json(200, { status: "cached", app_id: appId, locale });
@@ -216,7 +217,9 @@ serve(async (req) => {
       : [];
     const movies = Array.isArray(details.movies) ? details.movies : [];
     const movie = movies.find((item: { highlight?: boolean }) => item?.highlight) || movies[0];
-    const trailerUrl = safeSteamUrl(movie?.mp4?.max || movie?.webm?.max || movie?.mp4?.["480"] || movie?.webm?.["480"]);
+    const trailerUrl = safeSteamUrl(
+      movie?.mp4?.max || movie?.webm?.max || movie?.mp4?.["480"] || movie?.webm?.["480"] || movie?.hls_h264,
+    );
 
     await supabase
       .from("game_localizations")

@@ -41,7 +41,8 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
   // Se o jogo veio do catalogo sem detalhes, tenta buscar ao abrir o modal.
   useEffect(() => {
     if (!isOpen || !game) return;
-    if (game.hasDetails !== false && game.mediaSyncedAt) return;
+    const mediaComplete = game.mediaSyncedAt && !(game.trailerThumbnail && !game.trailerUrl);
+    if (game.hasDetails !== false && mediaComplete) return;
     if (detailsRequested) return;
 
     setDetailsRequested(true);
