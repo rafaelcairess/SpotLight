@@ -164,7 +164,7 @@ serve(async (req) => {
     return json(401, { error: "unauthorized", detail: authError?.message });
   }
 
-  const payload: { steam_id?: string; import_all?: boolean; sync_platinums?: boolean } = rawPayload as { steam_id?: string; import_all?: boolean; sync_platinums?: boolean };
+  const payload: { steam_id?: string; import_all?: boolean; sync_platinums?: boolean; platinum_offset?: number } = rawPayload as { steam_id?: string; import_all?: boolean; sync_platinums?: boolean; platinum_offset?: number };
 
   const { data: profile, error: profileError } = await adminSupabase
     .from("profiles")
@@ -339,10 +339,15 @@ serve(async (req) => {
   }
 
   let platinumSynced = 0;
+  let platinumNextOffset: number | null = null;
+  let platinumCandidates = 0;
   if (payload.sync_platinums === true && STEAM_API_KEY && steamId) {
-    const candidates = games
+    const allCandidates = games
       .filter((game) => (game.playtime_forever || 0) > 0)
       .slice(0, 150);
+    const offset = Math.max(0, Number(payload.platinum_offset) || 0);
+    const candidates = allCandidates.slice(offset, offset + 20);
+    platinumCandidates = allCandidates.length;
     const platinumAppIds: number[] = [];
 
     for (let index = 0; index < candidates.length; index += 6) {
@@ -373,6 +378,8 @@ serve(async (req) => {
       if (platinumError) return json(500, { error: "platinum_sync_failed" });
     }
     platinumSynced = platinumAppIds.length;
+    const processed = offset + candidates.length;
+    platinumNextOffset = processed < allCandidates.length ? processed : null;
   }
 
   await adminSupabase
@@ -388,5 +395,7 @@ serve(async (req) => {
     inserted_app_ids: insertedAppIds,
     detail_app_ids: detailAppIds,
     platinum_synced: platinumSynced,
+    platinum_next_offset: platinumNextOffset,
+    platinum_candidates: platinumCandidates,
   });
 });

@@ -13,6 +13,8 @@ interface SteamPlaytimeSyncResult {
   inserted_app_ids?: number[];
   detail_app_ids?: number[];
   platinum_synced?: number;
+  platinum_next_offset?: number | null;
+  platinum_candidates?: number;
 }
 
 export interface SyncSteamPlaytimeOptions {
@@ -39,12 +41,26 @@ export function useSyncSteamPlaytime() {
 
   return useMutation({
     mutationFn: async (options?: SyncSteamPlaytimeOptions) => {
-      const { data, error } = await supabase.functions.invoke("sync-steam-playtime", {
-        body: { import_all: options?.importAll === true, sync_platinums: options?.syncPlatinums === true },
-      });
+      let offset: number | null = 0;
+      let platinumTotal = 0;
+      let result: SteamPlaytimeSyncResult | null = null;
 
-      if (error) throw error;
-      const result = data as SteamPlaytimeSyncResult;
+      do {
+        const { data, error } = await supabase.functions.invoke("sync-steam-playtime", {
+          body: {
+            import_all: options?.importAll === true,
+            sync_platinums: options?.syncPlatinums === true,
+            platinum_offset: options?.syncPlatinums ? offset : undefined,
+          },
+        });
+        if (error) throw error;
+        result = data as SteamPlaytimeSyncResult;
+        platinumTotal += result.platinum_synced || 0;
+        offset = options?.syncPlatinums ? result.platinum_next_offset ?? null : null;
+      } while (offset !== null);
+
+      if (!result) throw new Error("Steam sync returned no result");
+      result.platinum_synced = platinumTotal;
 
       const detailAppIds =
         result?.detail_app_ids && result.detail_app_ids.length > 0
