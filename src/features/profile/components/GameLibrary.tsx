@@ -73,7 +73,10 @@ export function GameLibrary({
     try {
       await updateGame.mutateAsync({
         id: game.id,
-        updates: { is_platinumed: !game.is_platinumed },
+        updates: {
+          is_platinumed: !game.is_platinumed,
+          platinum_platforms: game.is_platinumed ? [] : ["steam"],
+        },
       });
       toast({
         title: game.is_platinumed ? t("library.platinumRemoved") : t("library.platinumAdded"),

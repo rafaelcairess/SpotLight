@@ -477,6 +477,7 @@ export type Database = {
           is_hidden: boolean
           is_private: boolean
           is_platinumed: boolean
+          platinum_platforms: string[]
           last_played_at: string | null
           playtime_2weeks: number | null
           status: Database["public"]["Enums"]["game_status"]
@@ -494,6 +495,7 @@ export type Database = {
           is_hidden?: boolean
           is_private?: boolean
           is_platinumed?: boolean
+          platinum_platforms?: string[]
           last_played_at?: string | null
           playtime_2weeks?: number | null
           status?: Database["public"]["Enums"]["game_status"]
@@ -511,6 +513,7 @@ export type Database = {
           is_hidden?: boolean
           is_private?: boolean
           is_platinumed?: boolean
+          platinum_platforms?: string[]
           last_played_at?: string | null
           playtime_2weeks?: number | null
           status?: Database["public"]["Enums"]["game_status"]

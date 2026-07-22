@@ -37,7 +37,10 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
     try {
       await updateGame.mutateAsync({
         id: userGame.id,
-        updates: { is_platinumed: !userGame.is_platinumed },
+        updates: {
+          is_platinumed: !userGame.is_platinumed,
+          platinum_platforms: userGame.is_platinumed ? [] : ["steam"],
+        },
       });
     } catch {
       toast({ title: t("library.updateError"), variant: "destructive" });

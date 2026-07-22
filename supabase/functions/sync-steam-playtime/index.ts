@@ -221,7 +221,7 @@ serve(async (req) => {
 
   const { data: userGames, error: userGamesError } = await adminSupabase
     .from("user_games")
-    .select("id, app_id")
+    .select("id, app_id, platinum_platforms")
     .eq("user_id", user.id);
 
   if (userGamesError) {
@@ -229,8 +229,10 @@ serve(async (req) => {
   }
 
   const byAppId = new Map<number, string>();
+  const platformsByAppId = new Map<number, string[]>();
   for (const row of userGames || []) {
     byAppId.set(row.app_id, row.id);
+    platformsByAppId.set(row.app_id, row.platinum_platforms || []);
   }
 
   // Platinum sync is intentionally isolated from the full playtime sync. This
@@ -274,8 +276,14 @@ serve(async (req) => {
 
       const existingIds = platinumGames.map((game) => byAppId.get(game.appid)).filter((id): id is string => !!id);
       if (existingIds.length) {
-        const { error } = await adminSupabase.from("user_games").update({ is_platinumed: true }).in("id", existingIds);
-        if (error) return json(500, { error: "platinum_update_failed", detail: error.message });
+        const updates = await Promise.all(platinumGames.filter((game) => byAppId.has(game.appid)).map((game) =>
+          adminSupabase.from("user_games").update({
+            is_platinumed: true,
+            platinum_platforms: Array.from(new Set([...(platformsByAppId.get(game.appid) || []), "steam"])),
+          }).eq("id", byAppId.get(game.appid)!)
+        ));
+        const failed = updates.find((result) => result.error);
+        if (failed?.error) return json(500, { error: "platinum_update_failed", detail: failed.error.message });
       }
 
       const missing = platinumGames.filter((game) => !byAppId.has(game.appid));
@@ -285,6 +293,7 @@ serve(async (req) => {
           app_id: game.appid,
           status: "playing",
           is_platinumed: true,
+          platinum_platforms: ["steam"],
           hours_played: minutesToHours(game.playtime_forever || 0),
           playtime_2weeks: minutesToHours(game.playtime_2weeks || 0),
           last_played_at: game.rtime_last_played ? new Date(game.rtime_last_played * 1000).toISOString() : null,

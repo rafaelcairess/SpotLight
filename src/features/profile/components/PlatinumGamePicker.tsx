@@ -3,18 +3,19 @@ import { Loader2, Search, Trophy } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useSearchGames } from "@/hooks/useGames";
-import { useMarkGamePlatinum } from "@/hooks/useUserGames";
+import { PlatinumPlatform, useMarkGamePlatinum } from "@/hooks/useUserGames";
 import { useToast } from "@/hooks/use-toast";
 
 export function PlatinumGamePicker({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [search, setSearch] = useState("");
+  const [platform, setPlatform] = useState<PlatinumPlatform>("steam");
   const { data: games = [], isLoading } = useSearchGames(search, 20);
   const markPlatinum = useMarkGamePlatinum();
   const { toast } = useToast();
 
   const selectGame = async (appId: number, title: string) => {
     try {
-      await markPlatinum.mutateAsync(appId);
+      await markPlatinum.mutateAsync({ appId, platform });
       toast({ title: `${title} foi adicionado aos platinados.` });
       onOpenChange(false);
       setSearch("");
@@ -33,6 +34,11 @@ export function PlatinumGamePicker({ open, onOpenChange }: { open: boolean; onOp
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Digite o nome do jogo..." className="pl-9" autoFocus />
+        </div>
+        <div className="flex gap-2" aria-label="Plataforma da platina">
+          {([['steam', 'Steam'], ['xbox', 'Xbox'], ['playstation', 'PlayStation']] as const).map(([value, label]) => (
+            <button key={value} type="button" onClick={() => setPlatform(value)} className={`rounded-md border px-3 py-1.5 text-xs ${platform === value ? "border-primary bg-primary/10 text-primary" : "border-border/50 text-muted-foreground"}`}>{label}</button>
+          ))}
         </div>
         <div className="max-h-80 space-y-2 overflow-y-auto">
           {isLoading && <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin" /></div>}

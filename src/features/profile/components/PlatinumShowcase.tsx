@@ -9,6 +9,12 @@ import { useUpdateProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { isMatureGame } from "@/lib/matureFilter";
 
+const platformLabels: Record<string, { short: string; label: string }> = {
+  steam: { short: "S", label: "Steam" },
+  xbox: { short: "X", label: "Xbox" },
+  playstation: { short: "P", label: "PlayStation" },
+};
+
 interface PlatinumShowcaseProps {
   userId?: string;
   selectedAppIds?: number[] | null;
@@ -80,6 +86,7 @@ export function PlatinumShowcase({ userId, selectedAppIds, editable = false, onV
                 <div className="min-w-0 p-3">
                   <h3 className="truncate text-sm font-medium">{game.title}</h3>
                   {entry?.hours_played != null && <p className="mt-1 text-xs text-muted-foreground">{entry.hours_played.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} horas</p>}
+                  {!!entry?.platinum_platforms?.length && <div className="mt-2 flex gap-1.5">{entry.platinum_platforms.map((platform) => { const item = platformLabels[platform]; return item ? <span key={platform} title={item.label} aria-label={item.label} className="grid h-5 w-5 place-items-center rounded bg-white/10 text-[10px] font-semibold text-muted-foreground">{item.short}</span> : null; })}</div>}
                 </div>
               </article>
             );

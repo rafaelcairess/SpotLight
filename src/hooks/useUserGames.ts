@@ -23,6 +23,7 @@ export interface UserGame {
   is_hidden: boolean;
   is_private: boolean;
   is_platinumed: boolean;
+  platinum_platforms: string[];
   last_played_at: string | null;
   playtime_2weeks: number | null;
   added_at: string;
@@ -115,13 +116,15 @@ export function useAddGame() {
   });
 }
 
+export type PlatinumPlatform = "steam" | "xbox" | "playstation";
+
 export function useMarkGamePlatinum() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { locale } = useLanguage();
 
   return useMutation({
-    mutationFn: async (appId: number) => {
+    mutationFn: async ({ appId, platform }: { appId: number; platform: PlatinumPlatform }) => {
       if (!user?.id) throw new Error("Not authenticated");
       const { error: detailsError } = await supabase.functions.invoke("fetch-steam-details", {
         body: { app_id: appId, language: locale },
@@ -129,12 +132,13 @@ export function useMarkGamePlatinum() {
       if (detailsError) throw detailsError;
 
       const { data: existing, error: existingError } = await supabase
-        .from("user_games").select("id").eq("user_id", user.id).eq("app_id", appId).maybeSingle();
+        .from("user_games").select("id, platinum_platforms").eq("user_id", user.id).eq("app_id", appId).maybeSingle();
       if (existingError) throw existingError;
 
+      const platforms = Array.from(new Set([...(existing?.platinum_platforms || []), platform]));
       const query = existing
-        ? supabase.from("user_games").update({ is_platinumed: true }).eq("id", existing.id)
-        : supabase.from("user_games").insert({ user_id: user.id, app_id: appId, status: "playing", is_platinumed: true });
+        ? supabase.from("user_games").update({ is_platinumed: true, platinum_platforms: platforms }).eq("id", existing.id)
+        : supabase.from("user_games").insert({ user_id: user.id, app_id: appId, status: "playing", is_platinumed: true, platinum_platforms: platforms });
       const { error } = await query;
       if (error) throw error;
     },
@@ -223,7 +227,7 @@ export function useUpdateGame() {
       updates: Partial<
         Pick<
           UserGame,
-          "status" | "hours_played" | "hours_played_manual" | "hours_override" | "is_favorite" | "is_hidden" | "is_private" | "is_platinumed"
+          "status" | "hours_played" | "hours_played_manual" | "hours_override" | "is_favorite" | "is_hidden" | "is_private" | "is_platinumed" | "platinum_platforms"
         >
       >;
     }) => {

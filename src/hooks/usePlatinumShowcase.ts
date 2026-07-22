@@ -8,7 +8,7 @@ export function usePlatinumShowcase(userId?: string) {
       if (!userId) return [];
       const { data, error } = await supabase
         .from("user_games")
-        .select("app_id, hours_played")
+        .select("app_id, hours_played, platinum_platforms")
         .eq("user_id", userId)
         .eq("is_platinumed", true)
         .eq("is_hidden", false)
