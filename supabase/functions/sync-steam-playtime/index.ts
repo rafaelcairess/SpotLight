@@ -164,7 +164,7 @@ serve(async (req) => {
     return json(401, { error: "unauthorized", detail: authError?.message });
   }
 
-  const payload: { steam_id?: string; import_all?: boolean } = rawPayload as { steam_id?: string; import_all?: boolean };
+  const payload: { steam_id?: string; import_all?: boolean; sync_platinums?: boolean } = rawPayload as { steam_id?: string; import_all?: boolean; sync_platinums?: boolean };
 
   const { data: profile, error: profileError } = await adminSupabase
     .from("profiles")
@@ -336,32 +336,43 @@ serve(async (req) => {
       return !desc || desc.length === 0;
     });
 
-    // Sync Steam achievements → auto-set is_platinumed for 100% completion
-    if (STEAM_API_KEY && steamId) {
-      const candidateGames = inserts
-        .filter((g) => g.hours_played >= 1)
-        .slice(0, 50);
+  }
 
-      for (const g of candidateGames) {
+  let platinumSynced = 0;
+  if (payload.sync_platinums === true && STEAM_API_KEY && steamId) {
+    const candidates = games
+      .filter((game) => (game.playtime_forever || 0) > 0)
+      .slice(0, 150);
+    const platinumAppIds: number[] = [];
+
+    for (let index = 0; index < candidates.length; index += 6) {
+      const batch = candidates.slice(index, index + 6);
+      const results = await Promise.all(batch.map(async (game) => {
         try {
           const achieveUrl =
             `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?key=${STEAM_API_KEY}` +
-            `&steamid=${steamId}&appid=${g.app_id}&l=english`;
+            `&steamid=${steamId}&appid=${game.appid}&l=english`;
           const achieveData = await fetchJson(achieveUrl);
-          const achievements: Array<{ achieved: number }> =
-            achieveData?.playerstats?.achievements ?? [];
-          if (achievements.length > 0 && achievements.every((a) => a.achieved === 1)) {
-            await adminSupabase
-              .from("user_games")
-              .update({ is_platinumed: true })
-              .eq("user_id", user.id)
-              .eq("app_id", g.app_id);
-          }
+          const achievements: Array<{ achieved: number }> = achieveData?.playerstats?.achievements ?? [];
+          return achievements.length > 0 && achievements.every((achievement) => achievement.achieved === 1)
+            ? game.appid
+            : null;
         } catch {
-          // Best effort: skip on error
+          return null;
         }
-      }
+      }));
+      platinumAppIds.push(...results.filter((appId): appId is number => appId !== null));
     }
+
+    if (platinumAppIds.length) {
+      const { error: platinumError } = await adminSupabase
+        .from("user_games")
+        .update({ is_platinumed: true })
+        .eq("user_id", user.id)
+        .in("app_id", platinumAppIds);
+      if (platinumError) return json(500, { error: "platinum_sync_failed" });
+    }
+    platinumSynced = platinumAppIds.length;
   }
 
   await adminSupabase
@@ -376,5 +387,6 @@ serve(async (req) => {
     synced_at: now,
     inserted_app_ids: insertedAppIds,
     detail_app_ids: detailAppIds,
+    platinum_synced: platinumSynced,
   });
 });

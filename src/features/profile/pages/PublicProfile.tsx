@@ -6,10 +6,8 @@ import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   GamepadIcon,
-  Heart,
   Trophy,
   BookOpen,
-  MessageSquare,
   Users,
   UserPlus,
   UserCheck,
@@ -99,7 +97,6 @@ const PublicProfile = () => {
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const favoriteGames = userGames.filter((g) => g.is_favorite);
   const platinumGames = userGames.filter((g) => g.is_platinumed);
 
   if (profileLoading) {
@@ -262,13 +259,6 @@ const PublicProfile = () => {
               {t("profile.library")} ({contentCounts?.games ?? 0})
             </TabsTrigger>
             <TabsTrigger
-              value="favorites"
-              className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-            >
-              <Heart className="w-4 h-4" />
-              {t("profile.favorites")} ({contentCounts?.favorites ?? 0})
-            </TabsTrigger>
-            <TabsTrigger
               value="platinum"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
@@ -284,9 +274,6 @@ const PublicProfile = () => {
             </TabsTrigger>
             <TabsTrigger value="friends" className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">
               <Users className="w-4 h-4" /> Amigos ({friends.length})
-            </TabsTrigger>
-            <TabsTrigger value="comments" className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">
-              <MessageSquare className="w-4 h-4" /> Comentários
             </TabsTrigger>
           </TabsList>
 
@@ -306,7 +293,7 @@ const PublicProfile = () => {
                   <ProfileComments profileUserId={userId!} permission={profile.comments_permission || "public"} isFriend={isFriend} isOwner={!!isSelf} />
                 </div>
               </div>
-              <ProfileSidePanel games={contentCounts?.games ?? 0} favorites={contentCounts?.favorites ?? 0} platinums={contentCounts?.platinums ?? 0} reviews={contentCounts?.reviews ?? 0} friends={friends.length} onSelect={setActiveTab} />
+              <ProfileSidePanel games={contentCounts?.games ?? 0} platinums={contentCounts?.platinums ?? 0} reviews={contentCounts?.reviews ?? 0} friends={friends.length} onSelect={setActiveTab} />
             </div>
           </TabsContent>
 
@@ -321,23 +308,6 @@ const PublicProfile = () => {
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 {t("profile.privateLibrary")}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="favorites">
-            {canViewLibrary ? (
-              <GameLibrary
-                games={favoriteGames}
-                isLoading={gamesLoading}
-                emptyMessage={t("profile.publicFavoritesEmpty")}
-                readOnly
-                highlightPlatinum
-                onGameSelect={handleOpenGame}
-              />
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                {t("profile.privateFavorites")}
               </div>
             )}
           </TabsContent>
@@ -387,9 +357,6 @@ const PublicProfile = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="comments">
-            <ProfileComments profileUserId={userId!} permission={profile.comments_permission || "public"} isFriend={isFriend} isOwner={!!isSelf} />
-          </TabsContent>
         </Tabs>
         </section>
       </main>

@@ -6,13 +6,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   GamepadIcon,
-  Heart,
   Trophy,
   BookOpen,
   Settings,
   List,
   EyeOff,
-  MessageSquare,
   Users,
 } from "lucide-react";
 import Header from "@/components/Header";
@@ -40,6 +38,8 @@ import { PlatinumShowcase } from "@/features/profile/components/PlatinumShowcase
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
+import { useSyncSteamPlaytime } from "@/hooks/useSteamPlaytime";
+import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -56,6 +56,8 @@ const Profile = () => {
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const syncSteam = useSyncSteamPlaytime();
 
   if (!authLoading && !user) {
     navigate("/auth");
@@ -81,7 +83,6 @@ const Profile = () => {
     );
   }
 
-  const favoriteGames = userGames.filter((g) => g.is_favorite);
   const platinumGames = userGames.filter((g) => g.is_platinumed);
 
   const handleOpenGame = (game: GameData) => {
@@ -153,13 +154,6 @@ const Profile = () => {
               {t("profile.library")} ({contentCounts?.games ?? 0})
             </TabsTrigger>
             <TabsTrigger
-              value="favorites"
-              className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-            >
-              <Heart className="w-4 h-4" />
-              {t("profile.favorites")} ({contentCounts?.favorites ?? 0})
-            </TabsTrigger>
-            <TabsTrigger
               value="platinum"
               className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
             >
@@ -190,9 +184,6 @@ const Profile = () => {
             <TabsTrigger value="friends" className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">
               <Users className="w-4 h-4" /> Amigos ({friends.length})
             </TabsTrigger>
-            <TabsTrigger value="comments" className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3">
-              <MessageSquare className="w-4 h-4" /> Comentários
-            </TabsTrigger>
           </TabsList>
 
           {activeTab !== "overview" && (
@@ -211,7 +202,6 @@ const Profile = () => {
               </div>
               <ProfileSidePanel
                 games={contentCounts?.games ?? 0}
-                favorites={contentCounts?.favorites ?? 0}
                 platinums={contentCounts?.platinums ?? 0}
                 reviews={contentCounts?.reviews ?? 0}
                 friends={friends.length}
@@ -225,17 +215,22 @@ const Profile = () => {
             <ProfileLibrarySections games={userGames} isLoading={gamesLoading} onGameSelect={handleOpenGame} />
           </TabsContent>
 
-          <TabsContent value="favorites">
-            <GameLibrary
-              games={favoriteGames}
-              isLoading={gamesLoading}
-              emptyMessage={t("profile.emptyFavorites")}
-              highlightPlatinum
-              onGameSelect={handleOpenGame}
-            />
-          </TabsContent>
-
           <TabsContent value="platinum">
+            <div className="mb-5 rounded-lg bg-black/15 p-4">
+              <h2 className="font-medium">Jogos platinados</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Verifique jogos com 100% das conquistas na Steam ou marque manualmente pela biblioteca.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button size="sm" disabled={syncSteam.isPending} onClick={async () => {
+                  try {
+                    const result = await syncSteam.mutateAsync({ syncPlatinums: true });
+                    toast({ title: result.platinum_synced ? `${result.platinum_synced} platinado(s) encontrado(s) na Steam.` : "Nenhum jogo com 100% das conquistas foi encontrado." });
+                  } catch {
+                    toast({ title: "Não foi possível verificar os platinados da Steam.", variant: "destructive" });
+                  }
+                }}>{syncSteam.isPending ? "Verificando..." : "Verificar na Steam"}</Button>
+                <Button size="sm" variant="outline" onClick={() => setActiveTab("library")}>Escolher manualmente</Button>
+              </div>
+            </div>
             <GameLibrary
               games={platinumGames}
               isLoading={gamesLoading}
@@ -247,7 +242,13 @@ const Profile = () => {
           </TabsContent>
 
           <TabsContent value="reviews">
-            <ProfileReviews reviews={reviews} isLoading={reviewsLoading} />
+            {!reviewsLoading && reviews.length === 0 ? (
+              <div className="rounded-lg bg-black/15 py-12 text-center">
+                <h2 className="font-medium">Escreva sua primeira avaliação</h2>
+                <p className="mt-2 text-sm text-muted-foreground">Escolha um jogo da sua biblioteca e conte o que achou.</p>
+                <Button className="mt-4" size="sm" onClick={() => setActiveTab("library")}>Escolher um jogo</Button>
+              </div>
+            ) : <ProfileReviews reviews={reviews} isLoading={reviewsLoading} />}
           </TabsContent>
 
           <TabsContent value="lists">
@@ -270,9 +271,6 @@ const Profile = () => {
             ) : <div className="py-12 text-center text-muted-foreground">Nenhum amigo para mostrar.</div>}
           </TabsContent>
 
-          <TabsContent value="comments">
-            {profile?.user_id && <ProfileComments profileUserId={profile.user_id} permission={profile.comments_permission || "public"} isFriend={false} isOwner />}
-          </TabsContent>
         </Tabs>
         </section>
       </main>

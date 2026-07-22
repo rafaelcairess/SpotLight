@@ -1,8 +1,7 @@
-import { BookOpen, Gamepad2, Heart, List, MessageSquare, Trophy, Users } from "lucide-react";
+import { BookOpen, Gamepad2, List, Trophy, Users } from "lucide-react";
 
 interface ProfileSidePanelProps {
   games: number;
-  favorites: number;
   platinums: number;
   reviews: number;
   friends: number;
@@ -10,15 +9,13 @@ interface ProfileSidePanelProps {
   onSelect: (tab: string) => void;
 }
 
-export function ProfileSidePanel({ games, favorites, platinums, reviews, friends, lists, onSelect }: ProfileSidePanelProps) {
+export function ProfileSidePanel({ games, platinums, reviews, friends, lists, onSelect }: ProfileSidePanelProps) {
   const links = [
     { tab: "library", label: "Jogos", value: games, icon: Gamepad2 },
-    { tab: "favorites", label: "Favoritos", value: favorites, icon: Heart },
     { tab: "platinum", label: "Platinados", value: platinums, icon: Trophy },
     { tab: "reviews", label: "Avaliações", value: reviews, icon: BookOpen },
     ...(lists ? [{ tab: "lists", label: "Listas", value: undefined, icon: List }] : []),
     { tab: "friends", label: "Amigos", value: friends, icon: Users },
-    { tab: "comments", label: "Comentários", value: undefined, icon: MessageSquare },
   ];
 
   return (

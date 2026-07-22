@@ -12,6 +12,7 @@ interface SteamPlaytimeSyncResult {
   synced_at?: string;
   inserted_app_ids?: number[];
   detail_app_ids?: number[];
+  platinum_synced?: number;
 }
 
 export interface SyncSteamPlaytimeOptions {
@@ -19,6 +20,7 @@ export interface SyncSteamPlaytimeOptions {
   enrichDetails?: boolean;
   language?: string;
   mode?: "update" | "import";
+  syncPlatinums?: boolean;
 }
 
 const runBatches = async <T>(
@@ -38,7 +40,7 @@ export function useSyncSteamPlaytime() {
   return useMutation({
     mutationFn: async (options?: SyncSteamPlaytimeOptions) => {
       const { data, error } = await supabase.functions.invoke("sync-steam-playtime", {
-        body: { import_all: options?.importAll === true },
+        body: { import_all: options?.importAll === true, sync_platinums: options?.syncPlatinums === true },
       });
 
       if (error) throw error;
