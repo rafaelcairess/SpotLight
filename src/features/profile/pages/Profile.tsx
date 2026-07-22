@@ -36,6 +36,7 @@ import { ProfileProgressCard } from "@/features/profile/components/ProfileProgre
 import { FavoriteGameShowcase } from "@/features/profile/components/FavoriteGameShowcase";
 import { ProfileSidePanel } from "@/features/profile/components/ProfileSidePanel";
 import { RecentActivity } from "@/features/profile/components/RecentActivity";
+import { PlatinumShowcase } from "@/features/profile/components/PlatinumShowcase";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
@@ -203,7 +204,8 @@ const Profile = () => {
           <TabsContent value="overview">
             <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
               <div className="space-y-6">
-                {profile?.favorite_game_app_id && <FavoriteGameShowcase userId={profile.user_id} appId={profile.favorite_game_app_id} />}
+                {profile?.favorite_game_app_id && <FavoriteGameShowcase userId={profile.user_id} appId={profile.favorite_game_app_id} onEdit={() => setIsEditOpen(true)} />}
+                <PlatinumShowcase userId={profile?.user_id} onViewAll={() => setActiveTab("platinum")} />
                 <RecentActivity userId={profile?.user_id} />
                 {profile?.user_id && <div className="rounded-lg bg-black/15 p-5"><ProfileComments profileUserId={profile.user_id} permission={profile.comments_permission || "public"} isFriend={false} isOwner /></div>}
               </div>

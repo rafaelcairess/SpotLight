@@ -2,7 +2,7 @@ import { useFavoriteGame } from "@/hooks/useFavoriteGame";
 import { useMaturePreference } from "@/hooks/useMaturePreference";
 import { isMatureGame } from "@/lib/matureFilter";
 
-export function FavoriteGameShowcase({ userId, appId }: { userId?: string; appId?: number | null }) {
+export function FavoriteGameShowcase({ userId, appId, onEdit }: { userId?: string; appId?: number | null; onEdit?: () => void }) {
   const { data: favorite } = useFavoriteGame(userId, appId);
   const [showMature] = useMaturePreference();
 
@@ -10,8 +10,9 @@ export function FavoriteGameShowcase({ userId, appId }: { userId?: string; appId
 
   return (
     <section className="overflow-hidden rounded-lg bg-black/15">
-      <header className="border-b border-white/5 bg-primary/10 px-4 py-2.5">
+      <header className="flex items-center justify-between gap-3 border-b border-white/5 bg-primary/10 px-4 py-2.5">
         <h2 className="text-sm font-medium">Jogo favorito</h2>
+        {onEdit && <button type="button" onClick={onEdit} className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">Editar ou alterar destaque</button>}
       </header>
       <div className="p-4">
         <div className="flex flex-col gap-4 rounded-md bg-black/20 p-3 sm:flex-row sm:items-start">
