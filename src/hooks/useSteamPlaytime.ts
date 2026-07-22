@@ -36,6 +36,18 @@ const runBatches = async <T>(
   }
 };
 
+const getFunctionError = async (error: unknown) => {
+  const fallback = error instanceof Error ? error.message : "Falha desconhecida na sincronização";
+  const context = (error as { context?: Response } | null)?.context;
+  if (!context || typeof context.clone !== "function") return new Error(fallback);
+  try {
+    const body = await context.clone().json() as { error?: string; detail?: string };
+    return new Error([body.error, body.detail].filter(Boolean).join(": ") || fallback);
+  } catch {
+    return new Error(fallback);
+  }
+};
+
 export function useSyncSteamPlaytime() {
   const queryClient = useQueryClient();
 
@@ -56,7 +68,7 @@ export function useSyncSteamPlaytime() {
               platinum_offset: options?.syncPlatinums ? offset : undefined,
             },
           });
-          if (error) lastError = error;
+          if (error) lastError = await getFunctionError(error);
           else page = data as SteamPlaytimeSyncResult;
         }
         if (!page) throw lastError instanceof Error ? lastError : new Error("Steam sync page failed");

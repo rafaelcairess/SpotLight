@@ -35,6 +35,7 @@ import { FavoriteGameShowcase } from "@/features/profile/components/FavoriteGame
 import { ProfileSidePanel } from "@/features/profile/components/ProfileSidePanel";
 import { RecentActivity } from "@/features/profile/components/RecentActivity";
 import { PlatinumShowcase } from "@/features/profile/components/PlatinumShowcase";
+import { PlatinumGamePicker } from "@/features/profile/components/PlatinumGamePicker";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
@@ -55,6 +56,7 @@ const Profile = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPlatinumPickerOpen, setIsPlatinumPickerOpen] = useState(false);
   const { t } = useTranslation();
   const { toast } = useToast();
   const syncSteam = useSyncSteamPlaytime();
@@ -228,7 +230,7 @@ const Profile = () => {
                     toast({ title: "Não foi possível verificar os platinados da Steam.", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
                   }
                 }}>{syncSteam.isPending ? "Verificando..." : "Verificar na Steam"}</Button>
-                <Button size="sm" variant="outline" onClick={() => setActiveTab("library")}>Escolher manualmente</Button>
+                <Button size="sm" variant="outline" onClick={() => setIsPlatinumPickerOpen(true)}>Escolher qualquer jogo</Button>
               </div>
             </div>
             <GameLibrary
@@ -276,6 +278,7 @@ const Profile = () => {
       </main>
 
       <ProfileEditDialog open={isEditOpen} onOpenChange={setIsEditOpen} profile={profile} />
+      <PlatinumGamePicker open={isPlatinumPickerOpen} onOpenChange={setIsPlatinumPickerOpen} />
 
       <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />
     </div>

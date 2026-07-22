@@ -115,6 +115,36 @@ export function useAddGame() {
   });
 }
 
+export function useMarkGamePlatinum() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { locale } = useLanguage();
+
+  return useMutation({
+    mutationFn: async (appId: number) => {
+      if (!user?.id) throw new Error("Not authenticated");
+      const { error: detailsError } = await supabase.functions.invoke("fetch-steam-details", {
+        body: { app_id: appId, language: locale },
+      });
+      if (detailsError) throw detailsError;
+
+      const { data: existing, error: existingError } = await supabase
+        .from("user_games").select("id").eq("user_id", user.id).eq("app_id", appId).maybeSingle();
+      if (existingError) throw existingError;
+
+      const query = existing
+        ? supabase.from("user_games").update({ is_platinumed: true }).eq("id", existing.id)
+        : supabase.from("user_games").insert({ user_id: user.id, app_id: appId, status: "playing", is_platinumed: true });
+      const { error } = await query;
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user_games"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+}
+
 // Garante que o jogo esteja na biblioteca e marcado como favorito.
 export function useEnsureFavoriteGame() {
   const queryClient = useQueryClient();

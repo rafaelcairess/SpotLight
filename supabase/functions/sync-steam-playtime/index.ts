@@ -199,7 +199,7 @@ serve(async (req) => {
       .eq("user_id", user.id);
   }
 
-  const includeAppInfo = importAll ? 1 : 0;
+  const includeAppInfo = importAll || payload.sync_platinums === true ? 1 : 0;
   const ownedUrl =
     `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${STEAM_API_KEY}` +
     `&steamid=${steamId}&include_played_free_games=1&include_appinfo=${includeAppInfo}`;
@@ -231,6 +231,78 @@ serve(async (req) => {
   const byAppId = new Map<number, string>();
   for (const row of userGames || []) {
     byAppId.set(row.app_id, row.id);
+  }
+
+  // Platinum sync is intentionally isolated from the full playtime sync. This
+  // keeps each request short and prevents unrelated library writes from
+  // blocking achievement verification.
+  if (payload.sync_platinums === true) {
+    const allCandidates = games.filter((game) => (game.playtime_forever || 0) > 0).slice(0, 150);
+    const offset = Math.max(0, Number(payload.platinum_offset) || 0);
+    const candidates = allCandidates.slice(offset, offset + 5);
+    const platinumGames: typeof games = [];
+
+    const results = await Promise.all(candidates.map(async (game) => {
+      try {
+        const achieveUrl =
+          `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?key=${STEAM_API_KEY}` +
+          `&steamid=${steamId}&appid=${game.appid}&l=english`;
+        const achieveData = await fetchJson(achieveUrl);
+        const achievements: Array<{ achieved: number }> = achieveData?.playerstats?.achievements ?? [];
+        return achievements.length > 0 && achievements.every((achievement) => achievement.achieved === 1)
+          ? game
+          : null;
+      } catch {
+        return null;
+      }
+    }));
+    platinumGames.push(...results.filter((game): game is (typeof games)[number] => game !== null));
+
+    if (platinumGames.length) {
+      const syncedAt = new Date().toISOString();
+      const { error: catalogError } = await adminSupabase.from("games").upsert(
+        platinumGames.map((game) => ({
+          app_id: game.appid,
+          title: game.name?.trim() || `App ${game.appid}`,
+          image: `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`,
+          steam_url: `https://store.steampowered.com/app/${game.appid}`,
+          last_synced: syncedAt,
+        })),
+        { onConflict: "app_id" },
+      );
+      if (catalogError) return json(500, { error: "platinum_catalog_failed", detail: catalogError.message });
+
+      const existingIds = platinumGames.map((game) => byAppId.get(game.appid)).filter((id): id is string => !!id);
+      if (existingIds.length) {
+        const { error } = await adminSupabase.from("user_games").update({ is_platinumed: true }).in("id", existingIds);
+        if (error) return json(500, { error: "platinum_update_failed", detail: error.message });
+      }
+
+      const missing = platinumGames.filter((game) => !byAppId.has(game.appid));
+      if (missing.length) {
+        const { error } = await adminSupabase.from("user_games").insert(missing.map((game) => ({
+          user_id: user.id,
+          app_id: game.appid,
+          status: "playing",
+          is_platinumed: true,
+          hours_played: minutesToHours(game.playtime_forever || 0),
+          playtime_2weeks: minutesToHours(game.playtime_2weeks || 0),
+          last_played_at: game.rtime_last_played ? new Date(game.rtime_last_played * 1000).toISOString() : null,
+        })));
+        if (error) return json(500, { error: "platinum_insert_failed", detail: error.message });
+      }
+    }
+
+    const processed = offset + candidates.length;
+    return json(200, {
+      updated: 0,
+      inserted: platinumGames.filter((game) => !byAppId.has(game.appid)).length,
+      steam_total: games.length,
+      synced_at: new Date().toISOString(),
+      platinum_synced: platinumGames.length,
+      platinum_next_offset: processed < allCandidates.length ? processed : null,
+      platinum_candidates: allCandidates.length,
+    });
   }
 
   const now = new Date().toISOString();
@@ -338,50 +410,6 @@ serve(async (req) => {
 
   }
 
-  let platinumSynced = 0;
-  let platinumNextOffset: number | null = null;
-  let platinumCandidates = 0;
-  if (payload.sync_platinums === true && STEAM_API_KEY && steamId) {
-    const allCandidates = games
-      .filter((game) => (game.playtime_forever || 0) > 0)
-      .slice(0, 150);
-    const offset = Math.max(0, Number(payload.platinum_offset) || 0);
-    const candidates = allCandidates.slice(offset, offset + 5);
-    platinumCandidates = allCandidates.length;
-    const platinumAppIds: number[] = [];
-
-    for (let index = 0; index < candidates.length; index += 6) {
-      const batch = candidates.slice(index, index + 6);
-      const results = await Promise.all(batch.map(async (game) => {
-        try {
-          const achieveUrl =
-            `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?key=${STEAM_API_KEY}` +
-            `&steamid=${steamId}&appid=${game.appid}&l=english`;
-          const achieveData = await fetchJson(achieveUrl);
-          const achievements: Array<{ achieved: number }> = achieveData?.playerstats?.achievements ?? [];
-          return achievements.length > 0 && achievements.every((achievement) => achievement.achieved === 1)
-            ? game.appid
-            : null;
-        } catch {
-          return null;
-        }
-      }));
-      platinumAppIds.push(...results.filter((appId): appId is number => appId !== null));
-    }
-
-    if (platinumAppIds.length) {
-      const { error: platinumError } = await adminSupabase
-        .from("user_games")
-        .update({ is_platinumed: true })
-        .eq("user_id", user.id)
-        .in("app_id", platinumAppIds);
-      if (platinumError) return json(500, { error: "platinum_sync_failed" });
-    }
-    platinumSynced = platinumAppIds.length;
-    const processed = offset + candidates.length;
-    platinumNextOffset = processed < allCandidates.length ? processed : null;
-  }
-
   await adminSupabase
     .from("profiles")
     .update({ steam_last_synced: now })
@@ -394,8 +422,8 @@ serve(async (req) => {
     synced_at: now,
     inserted_app_ids: insertedAppIds,
     detail_app_ids: detailAppIds,
-    platinum_synced: platinumSynced,
-    platinum_next_offset: platinumNextOffset,
-    platinum_candidates: platinumCandidates,
+    platinum_synced: 0,
+    platinum_next_offset: null,
+    platinum_candidates: 0,
   });
 });
