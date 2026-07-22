@@ -346,7 +346,7 @@ serve(async (req) => {
       .filter((game) => (game.playtime_forever || 0) > 0)
       .slice(0, 150);
     const offset = Math.max(0, Number(payload.platinum_offset) || 0);
-    const candidates = allCandidates.slice(offset, offset + 20);
+    const candidates = allCandidates.slice(offset, offset + 5);
     platinumCandidates = allCandidates.length;
     const platinumAppIds: number[] = [];
 

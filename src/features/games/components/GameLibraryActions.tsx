@@ -1,35 +1,8 @@
-/**
- * Componente da feature games.
- */
-
-import { useMemo } from "react";
-import {
-  Plus,
-  Check,
-  Heart,
-  Trophy,
-  ChevronDown,
-  Loader2,
-  BookOpen,
-} from "lucide-react";
+import { BookOpen, Check, Heart, Loader2, Plus, Trash2, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  useUserGameByAppId,
-  useAddGame,
-  useUpdateGame,
-  useRemoveGame,
-  UserGame,
-} from "@/hooks/useUserGames";
+import { useUserGameByAppId, useAddGame, useUpdateGame, useRemoveGame } from "@/hooks/useUserGames";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -47,191 +20,54 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
   const updateGame = useUpdateGame();
   const removeGame = useRemoveGame();
   const { t } = useTranslation();
+  const busy = isLoading || addGame.isPending || updateGame.isPending || removeGame.isPending;
 
-  const statusOptions = useMemo<Array<{ value: UserGame["status"]; label: string; icon: string }>>(
-    () => [
-      { value: "wishlist", label: t("library.statusWishlist"), icon: "??" },
-      { value: "playing", label: t("library.statusPlaying"), icon: "??" },
-      { value: "completed", label: t("library.statusCompleted"), icon: "?" },
-      { value: "dropped", label: t("library.statusDropped"), icon: "?" },
-    ],
-    [t]
-  );
-
-  const handleAddToLibrary = async (status: UserGame["status"] = "wishlist") => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
+  const addToLibrary = async () => {
+    if (!user) return navigate("/auth");
     try {
-      await addGame.mutateAsync({ appId, status });
+      await addGame.mutateAsync({ appId, status: "playing" });
       toast({ title: t("library.added") });
-    } catch (error) {
+    } catch {
       toast({ title: t("library.updateError"), variant: "destructive" });
     }
   };
 
-  const handleChangeStatus = async (status: UserGame["status"]) => {
+  const toggle = async (field: "is_favorite" | "is_platinumed", value: boolean) => {
     if (!userGame) return;
-
     try {
-      await updateGame.mutateAsync({
-        id: userGame.id,
-        updates: { status },
-      });
-      toast({ title: t("library.statusChanged", { status: statusOptions.find((s) => s.value === status)?.label }) });
-    } catch (error) {
+      await updateGame.mutateAsync({ id: userGame.id, updates: { [field]: !value } });
+    } catch {
       toast({ title: t("library.updateError"), variant: "destructive" });
     }
   };
 
-  const handleToggleFavorite = async () => {
-    if (!userGame) return;
-
-    try {
-      await updateGame.mutateAsync({
-        id: userGame.id,
-        updates: { is_favorite: !userGame.is_favorite },
-      });
-      toast({
-        title: userGame.is_favorite ? t("library.favoriteRemoved") : t("library.favoriteAdded"),
-      });
-    } catch (error) {
-      toast({ title: t("library.updateError"), variant: "destructive" });
-    }
-  };
-
-  const handleTogglePlatinum = async () => {
-    if (!userGame) return;
-
-    try {
-      await updateGame.mutateAsync({
-        id: userGame.id,
-        updates: { is_platinumed: !userGame.is_platinumed },
-      });
-      toast({
-        title: userGame.is_platinumed ? t("library.platinumRemoved") : t("library.platinumAdded"),
-      });
-    } catch (error) {
-      toast({ title: t("library.updateError"), variant: "destructive" });
-    }
-  };
-
-  const handleRemove = async () => {
-    if (!userGame) return;
-
+  const remove = async () => {
+    if (!userGame || !window.confirm("Remover este jogo da sua biblioteca?")) return;
     try {
       await removeGame.mutateAsync(userGame.id);
       toast({ title: t("library.removeSuccess") });
-    } catch (error) {
+    } catch {
       toast({ title: t("library.removeError"), variant: "destructive" });
     }
   };
 
-  const isLoaderShown = isLoading || addGame.isPending || updateGame.isPending;
-
-  if (!userGame) {
-    return (
-      <div className="flex items-center gap-2 flex-wrap">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="glow" className="gap-2" disabled={isLoaderShown}>
-              {isLoaderShown ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              {t("library.addToLibrary")}
-              <ChevronDown className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {statusOptions.map((option) => (
-              <DropdownMenuItem
-                key={option.value}
-                onClick={() => handleAddToLibrary(option.value)}
-              >
-                <span className="mr-2">{option.icon}</span>
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        {onWriteReview && (
-          <Button
-            variant="outline"
-            className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
-            onClick={onWriteReview}
-            disabled={isLoaderShown}
-          >
-            <BookOpen className="w-4 h-4" />
-            {t("gameModal.writeReview")}
-          </Button>
-        )}
-      </div>
-    );
-  }
-
-  const currentStatus = statusOptions.find((s) => s.value === userGame.status);
-
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="gap-2">
-            <Check className="w-4 h-4 text-emerald-500" />
-            {currentStatus?.icon} {currentStatus?.label}
-            <ChevronDown className="w-4 h-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          {statusOptions.map((option) => (
-            <DropdownMenuItem
-              key={option.value}
-              onClick={() => handleChangeStatus(option.value)}
-              className={cn(userGame.status === option.value && "bg-secondary")}
-            >
-              <span className="mr-2">{option.icon}</span>
-              {option.label}
-              {userGame.status === option.value && <Check className="w-4 h-4 ml-auto" />}
-            </DropdownMenuItem>
-          ))}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleRemove} className="text-destructive">
-            {t("library.removeFromLibrary")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <Button
-        variant={userGame.is_favorite ? "default" : "outline"}
-        size="icon"
-        onClick={handleToggleFavorite}
-        disabled={updateGame.isPending}
-        className={cn(userGame.is_favorite && "bg-rose-500 hover:bg-rose-600 border-rose-500")}
-        aria-label={t("library.favoriteToggle", { defaultValue: "Favorito" })}
-      >
-        <Heart className={cn("w-4 h-4", userGame.is_favorite && "fill-current")} />
-      </Button>
-
-      <Button
-        variant={userGame.is_platinumed ? "default" : "outline"}
-        size="icon"
-        onClick={handleTogglePlatinum}
-        disabled={updateGame.isPending}
-        className={cn(userGame.is_platinumed && "bg-amber-500 hover:bg-amber-600 border-amber-500")}
-        aria-label={t("library.platinumBadge")}
-      >
-        <Trophy className="w-4 h-4" />
-      </Button>
-
-      {onWriteReview && (
-        <Button
-          variant="outline"
-          className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
-          onClick={onWriteReview}
-        >
-          <BookOpen className="w-4 h-4" />
-          {t("gameModal.writeReview")}
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/40 bg-black/10 p-3">
+      {!userGame ? (
+        <Button onClick={addToLibrary} disabled={busy} className="gap-2">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          Adicionar à biblioteca
         </Button>
+      ) : (
+        <span className="inline-flex h-9 items-center gap-2 rounded-md bg-emerald-500/10 px-3 text-sm text-emerald-400">
+          <Check className="h-4 w-4" /> Na biblioteca
+        </span>
       )}
+
+      {userGame && <Button variant={userGame.is_favorite ? "secondary" : "outline"} onClick={() => toggle("is_favorite", userGame.is_favorite)} disabled={busy} className="gap-2"><Heart className={`h-4 w-4 ${userGame.is_favorite ? "fill-current text-rose-400" : ""}`} />{userGame.is_favorite ? "Favorito" : "Favoritar"}</Button>}
+      {userGame && <Button variant={userGame.is_platinumed ? "secondary" : "outline"} onClick={() => toggle("is_platinumed", userGame.is_platinumed)} disabled={busy} className="gap-2"><Trophy className={`h-4 w-4 ${userGame.is_platinumed ? "text-amber-400" : ""}`} />{userGame.is_platinumed ? "Platinado" : "Marcar como platinado"}</Button>}
+      {onWriteReview && <Button variant="outline" onClick={onWriteReview} disabled={busy} className="gap-2 border-primary/40 text-primary hover:bg-primary/10"><BookOpen className="h-4 w-4" />Escrever avaliação</Button>}
+      {userGame && <Button variant="ghost" onClick={remove} disabled={busy} className="ml-auto gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" />Remover</Button>}
     </div>
   );
 }

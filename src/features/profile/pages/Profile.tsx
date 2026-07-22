@@ -224,8 +224,8 @@ const Profile = () => {
                   try {
                     const result = await syncSteam.mutateAsync({ syncPlatinums: true });
                     toast({ title: result.platinum_synced ? `${result.platinum_synced} platinado(s) encontrado(s) na Steam.` : "Nenhum jogo com 100% das conquistas foi encontrado." });
-                  } catch {
-                    toast({ title: "Não foi possível verificar os platinados da Steam.", variant: "destructive" });
+                  } catch (error) {
+                    toast({ title: "Não foi possível verificar os platinados da Steam.", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
                   }
                 }}>{syncSteam.isPending ? "Verificando..." : "Verificar na Steam"}</Button>
                 <Button size="sm" variant="outline" onClick={() => setActiveTab("library")}>Escolher manualmente</Button>

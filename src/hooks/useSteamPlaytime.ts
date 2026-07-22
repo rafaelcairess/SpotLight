@@ -46,15 +46,21 @@ export function useSyncSteamPlaytime() {
       let result: SteamPlaytimeSyncResult | null = null;
 
       do {
-        const { data, error } = await supabase.functions.invoke("sync-steam-playtime", {
-          body: {
-            import_all: options?.importAll === true,
-            sync_platinums: options?.syncPlatinums === true,
-            platinum_offset: options?.syncPlatinums ? offset : undefined,
-          },
-        });
-        if (error) throw error;
-        result = data as SteamPlaytimeSyncResult;
+        let page: SteamPlaytimeSyncResult | null = null;
+        let lastError: unknown = null;
+        for (let attempt = 0; attempt < 2 && !page; attempt += 1) {
+          const { data, error } = await supabase.functions.invoke("sync-steam-playtime", {
+            body: {
+              import_all: options?.importAll === true,
+              sync_platinums: options?.syncPlatinums === true,
+              platinum_offset: options?.syncPlatinums ? offset : undefined,
+            },
+          });
+          if (error) lastError = error;
+          else page = data as SteamPlaytimeSyncResult;
+        }
+        if (!page) throw lastError instanceof Error ? lastError : new Error("Steam sync page failed");
+        result = page;
         platinumTotal += result.platinum_synced || 0;
         offset = options?.syncPlatinums ? result.platinum_next_offset ?? null : null;
       } while (offset !== null);
