@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { buildFriendRequestDeletionFilter } from "../_shared/account-deletion.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin":
@@ -123,7 +124,7 @@ serve(async (req) => {
         adminSupabase
           .from("friend_requests")
           .delete()
-          .or(`requester_id.eq.${targetUserId},requestee_id.eq.${targetUserId}`),
+          .or(buildFriendRequestDeletionFilter(targetUserId)),
       ],
       ["reviews", adminSupabase.from("reviews").delete().eq("user_id", targetUserId)],
       ["user_top_games", adminSupabase.from("user_top_games").delete().eq("user_id", targetUserId)],

@@ -15,7 +15,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useUserGames, useHiddenGames } from "@/hooks/useUserGames";
 import { useReviewsByUser } from "@/hooks/useReviews";
-import { UserAvatar } from "@/features/profile/components/UserAvatar";
 import { ProfileLibrarySections } from "@/features/profile/components/ProfileLibrarySections";
 import { GameLibrary } from "@/features/profile/components/GameLibrary";
 import { ProfileReviews } from "@/features/profile/components/ProfileReviews";
@@ -30,6 +29,8 @@ import { ProfileSidePanel } from "@/features/profile/components/ProfileSidePanel
 import { RecentActivity } from "@/features/profile/components/RecentActivity";
 import { PlatinumShowcase } from "@/features/profile/components/PlatinumShowcase";
 import { PlatinumGamePicker } from "@/features/profile/components/PlatinumGamePicker";
+import { ProfileHero } from "@/features/profile/components/ProfileHero";
+import { UserAvatar } from "@/features/profile/components/UserAvatar";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
@@ -105,48 +106,29 @@ const Profile = () => {
 
       <main className="mx-auto max-w-6xl px-4 pb-12 pt-24">
         <section className="overflow-hidden rounded-xl border border-primary/10 bg-gradient-to-br from-primary/10 via-card/80 to-background shadow-2xl shadow-black/20">
-          <div className="grid gap-6 p-5 md:grid-cols-[10rem_minmax(0,1fr)] md:p-7">
-            <div className="relative">
-              <UserAvatar
-                src={profile?.avatar_url}
-                displayName={profile?.display_name}
-                username={profile?.username}
-                size="xl"
-                shape="square"
-                className="h-40 w-40 rounded-md ring-primary/40"
-              />
-            </div>
-
-            <div className="flex-1">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-bold">
-                    {profile?.display_name || t("profile.defaultName")}
-                  </h1>
-                  <p className="text-muted-foreground">@{profile?.username}</p>
-                  {profile && (
-                    <div className="mt-2">
-                      <PresenceSelector
-                        value={profile.presence_status || "online"}
-                        lastSeenAt={profile.last_seen_at}
-                      />
-                    </div>
-                  )}
-                  {profile?.bio && (
-                    <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>
-                  )}
-                </div>
-                <div className="flex flex-col items-start sm:items-end gap-2">
-                  <ProfileProgressCard userId={profile?.user_id} />
-                  <div className="flex items-center">
-                    <Button variant="outline" size="sm" onClick={() => navigate("/profile/edit")}>
-                      Editar perfil
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ProfileHero
+            avatarUrl={profile?.avatar_url}
+            displayName={profile?.display_name}
+            username={profile?.username}
+            bio={profile?.bio}
+            fallbackName={t("profile.defaultName")}
+            presence={
+              profile ? (
+                <PresenceSelector
+                  value={profile.presence_status || "online"}
+                  lastSeenAt={profile.last_seen_at}
+                />
+              ) : null
+            }
+            actions={
+              <>
+                <ProfileProgressCard userId={profile?.user_id} />
+                <Button variant="outline" size="sm" onClick={() => navigate("/profile/edit")}>
+                  Editar perfil
+                </Button>
+              </>
+            }
+          />
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full px-5 pb-7 md:px-7">
             <TabsList className="sr-only">

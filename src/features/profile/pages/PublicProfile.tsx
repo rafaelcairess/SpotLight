@@ -16,7 +16,6 @@ import { useProfileByUsername } from "@/hooks/useProfile";
 import { useUserGames } from "@/hooks/useUserGames";
 import { useReviewsByUser } from "@/hooks/useReviews";
 import { useFollowUser, useFollowingIds, useUnfollowUser } from "@/hooks/useFollows";
-import { UserAvatar } from "@/features/profile/components/UserAvatar";
 import { ProfileLibrarySections } from "@/features/profile/components/ProfileLibrarySections";
 import { GameLibrary } from "@/features/profile/components/GameLibrary";
 import { ProfileReviews } from "@/features/profile/components/ProfileReviews";
@@ -33,6 +32,9 @@ import { useProfileCounts } from "@/hooks/useProfileCounts";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
+import { canViewProfileSection } from "@/lib/profilePrivacy";
+import { ProfileHero } from "@/features/profile/components/ProfileHero";
+import { UserAvatar } from "@/features/profile/components/UserAvatar";
 import NotFound from "@/pages/NotFound";
 import { PresenceBadge } from "@/features/profile/components/PresenceBadge";
 import { ProfileProgressCard } from "@/features/profile/components/ProfileProgress";
@@ -63,13 +65,13 @@ const PublicProfile = () => {
   const removeFriendship = useRemoveFriendship();
   const [activeTab, setActiveTab] = useState("overview");
 
-  const canView = (value?: string) => value === "public" || (value === "friends" && isFriend);
-
-  const canViewProfile = !!profile && (isSelf || canView(profile.profile_visibility));
-
-  const canViewLibrary = !!profile && (isSelf || canView(profile.library_visibility));
-
-  const canViewReviews = !!profile && (isSelf || canView(profile.reviews_visibility));
+  const relationship = { isOwner: Boolean(isSelf), isFriend };
+  const canViewProfile =
+    !!profile && canViewProfileSection(profile.profile_visibility, relationship);
+  const canViewLibrary =
+    canViewProfile && canViewProfileSection(profile?.library_visibility, relationship);
+  const canViewReviews =
+    canViewProfile && canViewProfileSection(profile?.reviews_visibility, relationship);
 
   const shouldLoadGames = ["library", "favorites", "platinum"].includes(activeTab);
   const shouldLoadReviews = activeTab === "reviews";
@@ -183,80 +185,61 @@ const PublicProfile = () => {
 
       <main className="mx-auto max-w-6xl px-4 pb-12 pt-24">
         <section className="overflow-hidden rounded-xl border border-primary/10 bg-gradient-to-br from-primary/10 via-card/80 to-background shadow-2xl shadow-black/20">
-          {/* Cabecalho do perfil */}
-          <div className="grid gap-6 p-5 md:grid-cols-[10rem_minmax(0,1fr)] md:p-7">
-            <div className="relative">
-              <UserAvatar
-                src={profile.avatar_url}
-                displayName={profile.display_name}
-                username={profile.username}
-                size="xl"
-                shape="square"
-                className="h-40 w-40 rounded-md ring-primary/40"
-              />
-            </div>
-
-            <div className="flex-1">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-bold">
-                    {profile.display_name || t("profile.defaultName")}
-                  </h1>
-                  <p className="text-muted-foreground">@{profile.username}</p>
-                  <div className="mt-2">
-                    <PresenceBadge
-                      status={profile.presence_status}
-                      lastSeenAt={profile.last_seen_at}
-                    />
-                  </div>
-                  {profile.bio && <p className="mt-2 text-foreground/80 max-w-xl">{profile.bio}</p>}
-                </div>
-                <div className="flex flex-col items-start gap-3 sm:items-end">
-                  <ProfileProgressCard userId={userId} />
-                  {!isSelf && (
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant={friendshipState === "friends" ? "secondary" : "outline"}
-                        size="sm"
-                        className="gap-2"
-                        onClick={handleFriendAction}
-                        disabled={
-                          sendFriendRequest.isPending ||
-                          acceptFriendRequest.isPending ||
-                          removeFriendship.isPending
-                        }
-                      >
-                        {friendshipState === "friends" ? (
-                          <UserCheck className="w-4 h-4" />
-                        ) : friendshipState === "outgoing" ? (
-                          <Clock3 className="w-4 h-4" />
-                        ) : (
-                          <UserPlus className="w-4 h-4" />
-                        )}
-                        {friendshipState === "friends"
-                          ? "Amigos"
-                          : friendshipState === "incoming"
-                            ? "Aceitar amizade"
-                            : friendshipState === "outgoing"
-                              ? "Pedido enviado"
-                              : "Adicionar amigo"}
-                      </Button>
-                      <Button
-                        variant={isFollowing ? "secondary" : "glow"}
-                        size="sm"
-                        className="gap-2"
-                        onClick={handleToggleFollow}
-                        disabled={followUser.isPending || unfollowUser.isPending}
-                      >
+          <ProfileHero
+            avatarUrl={profile.avatar_url}
+            displayName={profile.display_name}
+            username={profile.username}
+            bio={profile.bio}
+            fallbackName={t("profile.defaultName")}
+            presence={
+              <PresenceBadge status={profile.presence_status} lastSeenAt={profile.last_seen_at} />
+            }
+            actions={
+              <>
+                <ProfileProgressCard userId={userId} />
+                {!isSelf && (
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={friendshipState === "friends" ? "secondary" : "outline"}
+                      size="sm"
+                      className="gap-2"
+                      onClick={handleFriendAction}
+                      disabled={
+                        sendFriendRequest.isPending ||
+                        acceptFriendRequest.isPending ||
+                        removeFriendship.isPending
+                      }
+                    >
+                      {friendshipState === "friends" ? (
+                        <UserCheck className="w-4 h-4" />
+                      ) : friendshipState === "outgoing" ? (
+                        <Clock3 className="w-4 h-4" />
+                      ) : (
                         <UserPlus className="w-4 h-4" />
-                        {isFollowing ? t("community.following") : t("community.follow")}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+                      )}
+                      {friendshipState === "friends"
+                        ? "Amigos"
+                        : friendshipState === "incoming"
+                          ? "Aceitar amizade"
+                          : friendshipState === "outgoing"
+                            ? "Pedido enviado"
+                            : "Adicionar amigo"}
+                    </Button>
+                    <Button
+                      variant={isFollowing ? "secondary" : "glow"}
+                      size="sm"
+                      className="gap-2"
+                      onClick={handleToggleFollow}
+                      disabled={followUser.isPending || unfollowUser.isPending}
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      {isFollowing ? t("community.following") : t("community.follow")}
+                    </Button>
+                  </div>
+                )}
+              </>
+            }
+          />
 
           {/* Abas */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full px-5 pb-7 md:px-7">

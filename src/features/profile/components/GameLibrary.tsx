@@ -25,10 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { UserGame, useUpdateGame, useRemoveGame } from "@/hooks/useUserGames";
 import { useGamesByIds } from "@/hooks/useGames";
 import { GameData } from "@/types/game";
@@ -44,6 +41,7 @@ import {
   PlatinumPlatformDialog,
 } from "@/features/profile/components/PlatinumPlatformSelector";
 import type { PlatinumPlatform } from "@/hooks/useUserGames";
+import { ManualHoursDialog } from "@/features/profile/components/ManualHoursDialog";
 
 interface GameLibraryProps {
   games: UserGame[];
@@ -227,48 +225,16 @@ export function GameLibrary({
   };
 
   const editDialog = (
-    <Dialog
-      open={!!editingGame}
-      onOpenChange={(open) => {
-        if (!open) closeEditHours();
-      }}
-    >
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t("library.editHoursTitle")}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-lg border border-border/50 bg-secondary/20 px-3 py-2">
-            <Label className="text-xs text-muted-foreground">{t("library.useManualHours")}</Label>
-            <Switch checked={manualOverride} onCheckedChange={setManualOverride} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="manualHours">{t("library.editHoursLabel")}</Label>
-            <Input
-              id="manualHours"
-              type="number"
-              min="0"
-              step="0.1"
-              value={manualHours}
-              onChange={(event) => setManualHours(event.target.value)}
-              placeholder={t("library.manualHoursPlaceholder")}
-              disabled={!manualOverride}
-            />
-            <p className="text-xs text-muted-foreground">{t("library.editHoursHint")}</p>
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={closeEditHours}>
-              {t("common.actions.cancel")}
-            </Button>
-            <Button onClick={handleSaveHours} disabled={updateGame.isPending}>
-              {t("common.actions.save")}
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <ManualHoursDialog
+      open={Boolean(editingGame)}
+      hours={manualHours}
+      overrideEnabled={manualOverride}
+      saving={updateGame.isPending}
+      onHoursChange={setManualHours}
+      onOverrideChange={setManualOverride}
+      onCancel={closeEditHours}
+      onSave={handleSaveHours}
+    />
   );
 
   if (isLoading || catalogLoading) {

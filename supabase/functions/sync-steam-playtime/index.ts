@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isSteamId64, minutesToHours, parseSteamInput } from "../_shared/steam-sync.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin":
@@ -12,31 +13,6 @@ const json = (status: number, body: Record<string, unknown>) =>
     status,
     headers: { "Content-Type": "application/json", ...corsHeaders },
   });
-
-const isSteamId64 = (value: string) => /^\d{17}$/.test(value);
-
-type SteamIdCandidate = { type: "steamid"; value: string } | { type: "vanity"; value: string };
-
-const parseSteamInput = (raw?: string | null): SteamIdCandidate | null => {
-  const trimmed = (raw || "").trim();
-  if (!trimmed) return null;
-
-  try {
-    const url = new URL(trimmed);
-    if (url.hostname.endsWith("steamcommunity.com")) {
-      const parts = url.pathname.split("/").filter(Boolean);
-      const type = parts[0];
-      const value = parts[1];
-      if (type === "profiles" && value) return { type: "steamid", value };
-      if (type === "id" && value) return { type: "vanity", value };
-    }
-  } catch {
-    // Not a URL.
-  }
-
-  if (isSteamId64(trimmed)) return { type: "steamid", value: trimmed };
-  return { type: "vanity", value: trimmed };
-};
 
 const fetchJson = async (url: string) => {
   const res = await fetch(url);
@@ -53,8 +29,6 @@ const resolveVanityUrl = async (key: string, vanity: string) => {
   const steamId = data?.response?.steamid;
   return typeof steamId === "string" && steamId.length > 0 ? steamId : null;
 };
-
-const minutesToHours = (minutes: number) => Math.round((minutes / 60) * 100) / 100;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
