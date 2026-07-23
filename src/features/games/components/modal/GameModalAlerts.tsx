@@ -5,7 +5,13 @@
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { usePriceAlerts } from "@/hooks/usePriceAlerts";
@@ -107,8 +113,8 @@ export const GameModalAlerts = ({ appId }: GameModalAlertsProps) => {
           {alertsLoading
             ? t("gameModal.loadingAlert")
             : activeAlert
-            ? t("gameModal.editAlert")
-            : t("gameModal.receiveAlert")}
+              ? t("gameModal.editAlert")
+              : t("gameModal.receiveAlert")}
         </Button>
         {activeAlert && (
           <span className="text-xs text-muted-foreground">{t("gameModal.activeAlert")}</span>

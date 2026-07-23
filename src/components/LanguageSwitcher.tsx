@@ -3,7 +3,12 @@
  */
 
 import { Globe } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "react-i18next";
@@ -21,12 +26,16 @@ interface LanguageSwitcherProps {
   align?: "start" | "end";
 }
 
-export default function LanguageSwitcher({ showLabel = false, align = "end" }: LanguageSwitcherProps) {
+export default function LanguageSwitcher({
+  showLabel = false,
+  align = "end",
+}: LanguageSwitcherProps) {
   const { locale, setLocale } = useLanguage();
   const { t } = useTranslation();
 
   const currentLabel = t(`languageOptions.${locale}`);
-  const currentShort = LANGUAGE_OPTIONS.find((opt) => opt.value === locale)?.short ?? locale.toUpperCase();
+  const currentShort =
+    LANGUAGE_OPTIONS.find((opt) => opt.value === locale)?.short ?? locale.toUpperCase();
 
   return (
     <DropdownMenu>
@@ -34,9 +43,7 @@ export default function LanguageSwitcher({ showLabel = false, align = "end" }: L
         <Button variant="ghost" size="sm" className="gap-2">
           <Globe className="w-4 h-4" />
           <span className="text-xs font-semibold">{currentShort}</span>
-          {showLabel && (
-            <span className="text-sm text-muted-foreground">{currentLabel}</span>
-          )}
+          {showLabel && <span className="text-sm text-muted-foreground">{currentLabel}</span>}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className="w-40">

@@ -74,10 +74,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
           {game.communityRating && (
             <div className="flex items-center gap-2">
               <Star
-                className={cn(
-                  "w-4 h-4 fill-current",
-                  getRatingColorClass(game.communityRating)
-                )}
+                className={cn("w-4 h-4 fill-current", getRatingColorClass(game.communityRating))}
               />
               <span className={getRatingColorClass(game.communityRating)}>
                 {t("featuredBanner.ratingPositive", {
@@ -97,20 +94,11 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
 
         {/* Acoes */}
         <div className="flex flex-wrap items-center gap-3 animate-fade-in-up">
-          <Button
-            size="lg"
-            className="gap-2 glow-primary"
-            onClick={handleOpenSteam}
-          >
+          <Button size="lg" className="gap-2 glow-primary" onClick={handleOpenSteam}>
             <img src={steamIcon} alt="Steam" className="w-4 h-4" />
             {t("gameModal.viewOnSteam")}
           </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="gap-2"
-            onClick={onExplore}
-          >
+          <Button size="lg" variant="secondary" className="gap-2" onClick={onExplore}>
             <Info className="w-4 h-4" />
             {t("featuredBanner.moreDetails")}
           </Button>

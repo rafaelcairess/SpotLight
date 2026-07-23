@@ -2,7 +2,8 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("PUBLIC_SITE_URL") || "https://spot-light-xi.vercel.app",
+  "Access-Control-Allow-Origin":
+    Deno.env.get("PUBLIC_SITE_URL") || "https://spot-light-xi.vercel.app",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -14,9 +15,7 @@ const json = (status: number, body: Record<string, unknown>) =>
 
 const isSteamId64 = (value: string) => /^\d{17}$/.test(value);
 
-type SteamIdCandidate =
-  | { type: "steamid"; value: string }
-  | { type: "vanity"; value: string };
+type SteamIdCandidate = { type: "steamid"; value: string } | { type: "vanity"; value: string };
 
 const parseSteamInput = (raw?: string | null): SteamIdCandidate | null => {
   const trimmed = (raw || "").trim();
@@ -93,7 +92,9 @@ serve(async (req) => {
   let rawPayload: Record<string, unknown> = {};
   try {
     rawPayload = await req.json();
-  } catch { /* body vazio */ }
+  } catch {
+    /* body vazio */
+  }
 
   if (rawPayload.batch === true && token === SUPABASE_SERVICE_ROLE_KEY) {
     const { data: profiles } = await adminSupabase
@@ -112,8 +113,12 @@ serve(async (req) => {
         const res = await fetch(ownedUrl);
         if (!res.ok) continue;
         const data = await res.json();
-        const games: Array<{ appid: number; playtime_forever?: number; playtime_2weeks?: number; rtime_last_played?: number }> =
-          Array.isArray(data?.response?.games) ? data.response.games : [];
+        const games: Array<{
+          appid: number;
+          playtime_forever?: number;
+          playtime_2weeks?: number;
+          rtime_last_played?: number;
+        }> = Array.isArray(data?.response?.games) ? data.response.games : [];
 
         const { data: userGames } = await adminSupabase
           .from("user_games")
@@ -134,18 +139,31 @@ serve(async (req) => {
               id,
               hours_played: hours,
               playtime_2weeks: minutesToHoursLocal(game.playtime_2weeks || 0),
-              last_played_at: game.rtime_last_played ? new Date(game.rtime_last_played * 1000).toISOString() : null,
+              last_played_at: game.rtime_last_played
+                ? new Date(game.rtime_last_played * 1000).toISOString()
+                : null,
               updated_at: now,
             };
           })
-          .filter(Boolean) as Array<{ id: string; hours_played: number; playtime_2weeks: number; last_played_at: string | null; updated_at: string }>;
+          .filter(Boolean) as Array<{
+          id: string;
+          hours_played: number;
+          playtime_2weeks: number;
+          last_played_at: string | null;
+          updated_at: string;
+        }>;
 
         if (updates.length) {
           await adminSupabase.from("user_games").upsert(updates, { onConflict: "id" });
         }
-        await adminSupabase.from("profiles").update({ steam_last_synced: now }).eq("user_id", p.user_id);
+        await adminSupabase
+          .from("profiles")
+          .update({ steam_last_synced: now })
+          .eq("user_id", p.user_id);
         synced++;
-      } catch { /* continua para próximo usuário */ }
+      } catch {
+        /* continua para próximo usuário */
+      }
     }
     return json(200, { batch: true, synced_users: synced });
   }
@@ -158,13 +176,26 @@ serve(async (req) => {
     global: { headers: { Authorization: authHeader } },
   });
 
-  const { data: { user }, error: authError } = await userSupabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await userSupabase.auth.getUser();
   if (authError || !user) {
     console.error("auth_error:", authError?.message);
     return json(401, { error: "unauthorized", detail: authError?.message });
   }
 
-  const payload: { steam_id?: string; import_all?: boolean; sync_platinums?: boolean; platinum_offset?: number } = rawPayload as { steam_id?: string; import_all?: boolean; sync_platinums?: boolean; platinum_offset?: number };
+  const payload: {
+    steam_id?: string;
+    import_all?: boolean;
+    sync_platinums?: boolean;
+    platinum_offset?: number;
+  } = rawPayload as {
+    steam_id?: string;
+    import_all?: boolean;
+    sync_platinums?: boolean;
+    platinum_offset?: number;
+  };
 
   const { data: profile, error: profileError } = await adminSupabase
     .from("profiles")
@@ -193,10 +224,7 @@ serve(async (req) => {
   }
 
   if (profile?.steam_id !== steamId) {
-    await adminSupabase
-      .from("profiles")
-      .update({ steam_id: steamId })
-      .eq("user_id", user.id);
+    await adminSupabase.from("profiles").update({ steam_id: steamId }).eq("user_id", user.id);
   }
 
   const includeAppInfo = importAll || payload.sync_platinums === true ? 1 : 0;
@@ -211,12 +239,21 @@ serve(async (req) => {
     return rt < twelveMonthsAgoUnix ? "dropped" : "playing";
   };
 
-  let games: Array<{ appid: number; playtime_forever?: number; playtime_2weeks?: number; name?: string; rtime_last_played?: number }> = [];
+  let games: Array<{
+    appid: number;
+    playtime_forever?: number;
+    playtime_2weeks?: number;
+    name?: string;
+    rtime_last_played?: number;
+  }> = [];
   try {
     const data = await fetchJson(ownedUrl);
     games = Array.isArray(data?.response?.games) ? data.response.games : [];
   } catch (error) {
-    return json(502, { error: "steam_fetch_failed", detail: `${(error as Error)?.message ?? error}` });
+    return json(502, {
+      error: "steam_fetch_failed",
+      detail: `${(error as Error)?.message ?? error}`,
+    });
   }
 
   const { data: userGames, error: userGamesError } = await adminSupabase
@@ -244,20 +281,24 @@ serve(async (req) => {
     const candidates = allCandidates.slice(offset, offset + 5);
     const platinumGames: typeof games = [];
 
-    const results = await Promise.all(candidates.map(async (game) => {
-      try {
-        const achieveUrl =
-          `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?key=${STEAM_API_KEY}` +
-          `&steamid=${steamId}&appid=${game.appid}&l=english`;
-        const achieveData = await fetchJson(achieveUrl);
-        const achievements: Array<{ achieved: number }> = achieveData?.playerstats?.achievements ?? [];
-        return achievements.length > 0 && achievements.every((achievement) => achievement.achieved === 1)
-          ? game
-          : null;
-      } catch {
-        return null;
-      }
-    }));
+    const results = await Promise.all(
+      candidates.map(async (game) => {
+        try {
+          const achieveUrl =
+            `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?key=${STEAM_API_KEY}` +
+            `&steamid=${steamId}&appid=${game.appid}&l=english`;
+          const achieveData = await fetchJson(achieveUrl);
+          const achievements: Array<{ achieved: number }> =
+            achieveData?.playerstats?.achievements ?? [];
+          return achievements.length > 0 &&
+            achievements.every((achievement) => achievement.achieved === 1)
+            ? game
+            : null;
+        } catch {
+          return null;
+        }
+      }),
+    );
     platinumGames.push(...results.filter((game): game is (typeof games)[number] => game !== null));
 
     if (platinumGames.length) {
@@ -272,32 +313,49 @@ serve(async (req) => {
         })),
         { onConflict: "app_id" },
       );
-      if (catalogError) return json(500, { error: "platinum_catalog_failed", detail: catalogError.message });
+      if (catalogError)
+        return json(500, { error: "platinum_catalog_failed", detail: catalogError.message });
 
-      const existingIds = platinumGames.map((game) => byAppId.get(game.appid)).filter((id): id is string => !!id);
+      const existingIds = platinumGames
+        .map((game) => byAppId.get(game.appid))
+        .filter((id): id is string => !!id);
       if (existingIds.length) {
-        const updates = await Promise.all(platinumGames.filter((game) => byAppId.has(game.appid)).map((game) =>
-          adminSupabase.from("user_games").update({
-            is_platinumed: true,
-            platinum_platforms: Array.from(new Set([...(platformsByAppId.get(game.appid) || []), "steam"])),
-          }).eq("id", byAppId.get(game.appid)!)
-        ));
+        const updates = await Promise.all(
+          platinumGames
+            .filter((game) => byAppId.has(game.appid))
+            .map((game) =>
+              adminSupabase
+                .from("user_games")
+                .update({
+                  is_platinumed: true,
+                  platinum_platforms: Array.from(
+                    new Set([...(platformsByAppId.get(game.appid) || []), "steam"]),
+                  ),
+                })
+                .eq("id", byAppId.get(game.appid)!),
+            ),
+        );
         const failed = updates.find((result) => result.error);
-        if (failed?.error) return json(500, { error: "platinum_update_failed", detail: failed.error.message });
+        if (failed?.error)
+          return json(500, { error: "platinum_update_failed", detail: failed.error.message });
       }
 
       const missing = platinumGames.filter((game) => !byAppId.has(game.appid));
       if (missing.length) {
-        const { error } = await adminSupabase.from("user_games").insert(missing.map((game) => ({
-          user_id: user.id,
-          app_id: game.appid,
-          status: "playing",
-          is_platinumed: true,
-          platinum_platforms: ["steam"],
-          hours_played: minutesToHours(game.playtime_forever || 0),
-          playtime_2weeks: minutesToHours(game.playtime_2weeks || 0),
-          last_played_at: game.rtime_last_played ? new Date(game.rtime_last_played * 1000).toISOString() : null,
-        })));
+        const { error } = await adminSupabase.from("user_games").insert(
+          missing.map((game) => ({
+            user_id: user.id,
+            app_id: game.appid,
+            status: "playing",
+            is_platinumed: true,
+            platinum_platforms: ["steam"],
+            hours_played: minutesToHours(game.playtime_forever || 0),
+            playtime_2weeks: minutesToHours(game.playtime_2weeks || 0),
+            last_played_at: game.rtime_last_played
+              ? new Date(game.rtime_last_played * 1000).toISOString()
+              : null,
+          })),
+        );
         if (error) return json(500, { error: "platinum_insert_failed", detail: error.message });
       }
     }
@@ -346,7 +404,9 @@ serve(async (req) => {
           id,
           hours_played: hours,
           playtime_2weeks: minutesToHours(game.playtime_2weeks || 0),
-          last_played_at: game.rtime_last_played ? new Date(game.rtime_last_played * 1000).toISOString() : null,
+          last_played_at: game.rtime_last_played
+            ? new Date(game.rtime_last_played * 1000).toISOString()
+            : null,
           updated_at: now,
         };
       }
@@ -359,7 +419,9 @@ serve(async (req) => {
           status,
           hours_played: hours,
           playtime_2weeks: minutesToHours(game.playtime_2weeks || 0),
-          last_played_at: game.rtime_last_played ? new Date(game.rtime_last_played * 1000).toISOString() : null,
+          last_played_at: game.rtime_last_played
+            ? new Date(game.rtime_last_played * 1000).toISOString()
+            : null,
           added_at: now,
           updated_at: now,
         });
@@ -381,7 +443,17 @@ serve(async (req) => {
 
       return null;
     })
-    .filter((row): row is { id: string; hours_played: number; playtime_2weeks: number; last_played_at: string | null; updated_at: string } => !!row);
+    .filter(
+      (
+        row,
+      ): row is {
+        id: string;
+        hours_played: number;
+        playtime_2weeks: number;
+        last_played_at: string | null;
+        updated_at: string;
+      } => !!row,
+    );
 
   if (updates.length) {
     const { error: updateError } = await adminSupabase
@@ -392,7 +464,8 @@ serve(async (req) => {
 
   if (inserts.length) {
     const { error: insertError } = await adminSupabase.from("user_games").insert(inserts);
-    if (insertError) return json(500, { error: "user_games_insert_failed", detail: insertError.message });
+    if (insertError)
+      return json(500, { error: "user_games_insert_failed", detail: insertError.message });
   }
 
   if (catalogRows.length) {
@@ -410,19 +483,15 @@ serve(async (req) => {
       .in("app_id", appIds);
 
     const detailMap = new Map<number, string | null>(
-      (detailRows || []).map((row) => [row.app_id, row.short_description || null])
+      (detailRows || []).map((row) => [row.app_id, row.short_description || null]),
     );
     detailAppIds = appIds.filter((appId) => {
       const desc = detailMap.get(appId);
       return !desc || desc.length === 0;
     });
-
   }
 
-  await adminSupabase
-    .from("profiles")
-    .update({ steam_last_synced: now })
-    .eq("user_id", user.id);
+  await adminSupabase.from("profiles").update({ steam_last_synced: now }).eq("user_id", user.id);
 
   return json(200, {
     updated: updates.length,

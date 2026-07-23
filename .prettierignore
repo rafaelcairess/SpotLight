@@ -1,0 +1,11 @@
+dist
+node_modules
+.env
+.env.*
+!.env.example
+
+# Generated or historical files should not create formatting-only diffs.
+src/integrations/supabase/types.ts
+src/i18n/resources.ts
+supabase/migrations
+package-lock.json

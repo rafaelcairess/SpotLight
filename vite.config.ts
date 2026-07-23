@@ -18,9 +18,12 @@ export default defineConfig({
           if (!id.includes("node_modules")) return undefined;
           if (id.includes("@supabase")) return "supabase";
           if (id.includes("@tanstack")) return "query";
-          if (id.includes("@sentry")) return "sentry";
           if (id.includes("i18next")) return "i18n";
-          if (id.includes("react-router") || id.includes("react-dom") || /node_modules[\\/]react[\\/]/.test(id)) {
+          if (
+            id.includes("react-router") ||
+            id.includes("react-dom") ||
+            /node_modules[\\/]react[\\/]/.test(id)
+          ) {
             return "react";
           }
           return undefined;

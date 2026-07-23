@@ -22,7 +22,7 @@ export default function MostPlayed() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [layoutMode, setLayoutMode] = useLayoutPreference(
     STORAGE_KEYS.layoutMode.mostPlayed,
-    "standard"
+    "standard",
   );
   const { t } = useTranslation();
   const { locale } = useLanguage();
@@ -105,7 +105,13 @@ export default function MostPlayed() {
                     <div className="w-10 text-center">
                       <span className="text-lg font-bold text-primary">#{index + 1}</span>
                     </div>
-                    <img src={game.image} alt={game.title} loading="lazy" decoding="async" className="w-24 h-14 rounded object-cover" />
+                    <img
+                      src={game.image}
+                      alt={game.title}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-24 h-14 rounded object-cover"
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold truncate">{game.title}</p>
                       <p className="text-xs text-muted-foreground truncate">
@@ -114,7 +120,8 @@ export default function MostPlayed() {
                     </div>
                     <div className="text-right min-w-[160px]">
                       <p className="text-xs text-muted-foreground">
-                        {numberFormatter.format(game.activePlayers || 0)} {t("mostPlayed.playingSuffix")}
+                        {numberFormatter.format(game.activePlayers || 0)}{" "}
+                        {t("mostPlayed.playingSuffix")}
                       </p>
                     </div>
                   </div>

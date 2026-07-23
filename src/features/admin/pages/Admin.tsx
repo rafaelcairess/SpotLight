@@ -63,17 +63,21 @@ export default function Admin() {
               className="pl-10 bg-secondary/50 border-border/50"
             />
           </div>
-          <p className="text-xs text-muted-foreground mt-2">Digite ao menos 2 caracteres para buscar.</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Digite ao menos 2 caracteres para buscar.
+          </p>
         </div>
 
-        {searchTerm.trim().length >= 2 && (
-          searching ? (
+        {searchTerm.trim().length >= 2 &&
+          (searching ? (
             <div className="text-center py-10 text-muted-foreground">
               <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
               Buscando...
             </div>
           ) : results.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">Nenhum usuário encontrado.</div>
+            <div className="text-center py-10 text-muted-foreground">
+              Nenhum usuário encontrado.
+            </div>
           ) : (
             <div className="space-y-3">
               {results.map((u) => (
@@ -91,20 +95,20 @@ export default function Admin() {
                     <div className="min-w-0">
                       <p className="font-medium truncate">{u.display_name || u.username}</p>
                       <p className="text-xs text-muted-foreground">@{u.username}</p>
-                      {u.bio && <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{u.bio}</p>}
+                      {u.bio && (
+                        <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{u.bio}</p>
+                      )}
                     </div>
                   </div>
 
                   <div className="flex-shrink-0">
                     {u.user_id === user.id ? (
-                      <span className="text-xs text-muted-foreground px-3 py-1 rounded-full bg-secondary">Você</span>
+                      <span className="text-xs text-muted-foreground px-3 py-1 rounded-full bg-secondary">
+                        Você
+                      </span>
                     ) : confirmingId === u.user_id ? (
                       <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setConfirmingId(null)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => setConfirmingId(null)}>
                           Cancelar
                         </Button>
                         <Button
@@ -135,8 +139,7 @@ export default function Admin() {
                 </div>
               ))}
             </div>
-          )
-        )}
+          ))}
       </main>
     </div>
   );

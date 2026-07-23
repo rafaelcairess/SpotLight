@@ -38,15 +38,12 @@ export const GameModalStats = ({ game }: GameModalStatsProps) => {
               game.communityRating >= 80
                 ? "bg-emerald-500/10"
                 : game.communityRating >= 50
-                ? "bg-amber-500/10"
-                : "bg-red-500/10"
+                  ? "bg-amber-500/10"
+                  : "bg-red-500/10",
             )}
           >
             <Star
-              className={cn(
-                "w-4 h-4 fill-current",
-                getRatingColorClass(game.communityRating)
-              )}
+              className={cn("w-4 h-4 fill-current", getRatingColorClass(game.communityRating))}
             />
           </div>
           <div>

@@ -27,5 +27,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         </LanguageProvider>
       </I18nextProvider>
     </SectionErrorBoundary>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

@@ -19,6 +19,8 @@ const MATURE_KEYWORDS = [
 ];
 
 export function isMatureGame(game: GameData): boolean {
-  const values = [game.title, game.short_description ?? "", game.genre ?? "", ...(game.tags ?? [])].join(" ").toLowerCase();
+  const values = [game.title, game.short_description ?? "", game.genre ?? "", ...(game.tags ?? [])]
+    .join(" ")
+    .toLowerCase();
   return MATURE_KEYWORDS.some((keyword) => values.includes(keyword));
 }

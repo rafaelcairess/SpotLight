@@ -27,13 +27,6 @@ serve((req) => {
   const origin = url.origin;
   const fallbackSite = Deno.env.get("SITE_URL") || Deno.env.get("PUBLIC_SITE_URL") || origin;
 
-  let baseOrigin = origin;
-  try {
-    baseOrigin = new URL(fallbackSite).origin;
-  } catch {
-    baseOrigin = origin;
-  }
-
   const requestedRedirect = url.searchParams.get("redirect");
   const safeRedirect = buildRedirect(requestedRedirect, fallbackSite);
 

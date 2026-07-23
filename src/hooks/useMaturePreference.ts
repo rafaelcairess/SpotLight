@@ -14,5 +14,5 @@ export const useMaturePreference = () =>
       if (raw === "false") return false;
       return null;
     },
-    (value) => String(value)
+    (value) => String(value),
   );

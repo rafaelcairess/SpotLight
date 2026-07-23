@@ -2,7 +2,18 @@
  * Componente compartilhado (Header).
  */
 
-import { Search, Menu, X, LogOut, DollarSign, Users, Bell, Trophy, Flame, MessageSquare } from "lucide-react";
+import {
+  Search,
+  Menu,
+  X,
+  LogOut,
+  DollarSign,
+  Users,
+  Bell,
+  Trophy,
+  Flame,
+  MessageSquare,
+} from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +29,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/useNotifications";
+import {
+  useNotifications,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+} from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -101,9 +116,7 @@ const Header = () => {
                 to={link.href}
                 className={cn(
                   "text-sm font-medium transition-colors hover:text-primary",
-                  location.pathname === link.href
-                    ? "text-primary"
-                    : "text-muted-foreground"
+                  location.pathname === link.href ? "text-primary" : "text-muted-foreground",
                 )}
               >
                 <span className="inline-flex items-center gap-2">
@@ -115,7 +128,10 @@ const Header = () => {
           </nav>
 
           {/* Barra de busca - desktop */}
-          <form onSubmit={handleSearch} className="hidden md:flex items-center gap-2 flex-1 max-w-md ml-4 mr-2">
+          <form
+            onSubmit={handleSearch}
+            className="hidden md:flex items-center gap-2 flex-1 max-w-md ml-4 mr-2"
+          >
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -130,15 +146,21 @@ const Header = () => {
 
           {/* Area de autenticacao - desktop */}
           <div className="hidden md:flex items-center gap-4">
-            {!authLoading && (
-              user ? (
+            {!authLoading &&
+              (user ? (
                 <div className="flex items-center">
                   <div className="flex items-center gap-2">
                     <LanguageSwitcher />
                     <Button variant="ghost" size="icon" className="relative" asChild>
                       <Link to="/friends" aria-label="Pedidos de amizade">
                         <Users className="w-5 h-5" />
-                        {!!friendRequests?.incoming.length && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">{friendRequests.incoming.length > 9 ? "9+" : friendRequests.incoming.length}</span>}
+                        {!!friendRequests?.incoming.length && (
+                          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                            {friendRequests.incoming.length > 9
+                              ? "9+"
+                              : friendRequests.incoming.length}
+                          </span>
+                        )}
                       </Link>
                     </Button>
                     <DropdownMenu>
@@ -178,10 +200,12 @@ const Header = () => {
                           notifications.map((notification) => (
                             <DropdownMenuItem
                               key={notification.id}
-                              onClick={() => handleNotificationClick(notification.id, notification.link)}
+                              onClick={() =>
+                                handleNotificationClick(notification.id, notification.link)
+                              }
                               className={cn(
                                 "flex flex-col items-start gap-1 whitespace-normal",
-                                !notification.read_at && "bg-primary/5"
+                                !notification.read_at && "bg-primary/5",
                               )}
                             >
                               <span className="text-sm font-medium">{notification.message}</span>
@@ -237,8 +261,7 @@ const Header = () => {
                     <Link to="/auth">{t("header.signIn")}</Link>
                   </Button>
                 </div>
-              )
-            )}
+              ))}
           </div>
 
           {/* Botao do menu mobile */}
@@ -248,11 +271,7 @@ const Header = () => {
             className="md:hidden"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            {isMobileMenuOpen ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
         </div>
 
@@ -284,7 +303,7 @@ const Header = () => {
                     "px-3 py-3 rounded-lg text-base font-medium transition-colors",
                     location.pathname === link.href
                       ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-secondary"
+                      : "text-muted-foreground hover:bg-secondary",
                   )}
                 >
                   <span className="inline-flex items-center gap-2">
@@ -309,10 +328,22 @@ const Header = () => {
                 <MessageSquare className="w-4 h-4" />
                 {t("header.feedback")}
               </Link>
-              {!authLoading && (
-                user ? (
+              {!authLoading &&
+                (user ? (
                   <div className="space-y-2">
-                    <Link to="/friends" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary"><Users className="w-4 h-4" />Amigos{!!friendRequests?.incoming.length && <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">{friendRequests.incoming.length}</span>}</Link>
+                    <Link
+                      to="/friends"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2 px-3 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-secondary"
+                    >
+                      <Users className="w-4 h-4" />
+                      Amigos
+                      {!!friendRequests?.incoming.length && (
+                        <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                          {friendRequests.incoming.length}
+                        </span>
+                      )}
+                    </Link>
                     <Link
                       to="/profile"
                       onClick={() => setIsMobileMenuOpen(false)}
@@ -338,17 +369,12 @@ const Header = () => {
                     </button>
                   </div>
                 ) : (
-                  <Link
-                    to="/auth"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block"
-                  >
+                  <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)} className="block">
                     <Button variant="glow" className="w-full">
                       {t("header.signIn")}
                     </Button>
                   </Link>
-                )
-              )}
+                ))}
             </div>
           </div>
         )}

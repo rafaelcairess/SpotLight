@@ -28,7 +28,7 @@ export interface SyncSteamPlaytimeOptions {
 const runBatches = async <T>(
   items: T[],
   batchSize: number,
-  handler: (item: T) => Promise<unknown>
+  handler: (item: T) => Promise<unknown>,
 ) => {
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, i + batchSize);
@@ -41,7 +41,7 @@ const getFunctionError = async (error: unknown) => {
   const context = (error as { context?: Response } | null)?.context;
   if (!context || typeof context.clone !== "function") return new Error(fallback);
   try {
-    const body = await context.clone().json() as { error?: string; detail?: string };
+    const body = (await context.clone().json()) as { error?: string; detail?: string };
     return new Error([body.error, body.detail].filter(Boolean).join(": ") || fallback);
   } catch {
     return new Error(fallback);
@@ -71,10 +71,11 @@ export function useSyncSteamPlaytime() {
           if (error) lastError = await getFunctionError(error);
           else page = data as SteamPlaytimeSyncResult;
         }
-        if (!page) throw lastError instanceof Error ? lastError : new Error("Steam sync page failed");
+        if (!page)
+          throw lastError instanceof Error ? lastError : new Error("Steam sync page failed");
         result = page;
         platinumTotal += result.platinum_synced || 0;
-        offset = options?.syncPlatinums ? result.platinum_next_offset ?? null : null;
+        offset = options?.syncPlatinums ? (result.platinum_next_offset ?? null) : null;
       } while (offset !== null);
 
       if (!result) throw new Error("Steam sync returned no result");
@@ -83,7 +84,7 @@ export function useSyncSteamPlaytime() {
       const detailAppIds =
         result?.detail_app_ids && result.detail_app_ids.length > 0
           ? result.detail_app_ids
-          : result?.inserted_app_ids ?? [];
+          : (result?.inserted_app_ids ?? []);
 
       if (options?.enrichDetails && detailAppIds.length > 0) {
         const language = options.language;

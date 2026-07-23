@@ -2,7 +2,7 @@
  * Script de manutenção/sync (steam sync popular).
  */
 
-﻿import fs from "fs";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
@@ -22,7 +22,10 @@ const loadEnvFile = (filename) => {
     if (eqIndex === -1) continue;
     const key = trimmed.slice(0, eqIndex).trim();
     let value = trimmed.slice(eqIndex + 1).trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
       value = value.slice(1, -1);
     }
     process.env[key] = value;
@@ -150,9 +153,7 @@ const normalizePriceInfo = (details) => {
   return {
     price: priceOverview.final_formatted || null,
     priceOriginal:
-      discountPercent && discountPercent > 0
-        ? priceOverview.initial_formatted || null
-        : null,
+      discountPercent && discountPercent > 0 ? priceOverview.initial_formatted || null : null,
     discountPercent: discountPercent && discountPercent > 0 ? discountPercent : null,
   };
 };
@@ -197,8 +198,8 @@ for (const appId of appIds) {
       price_original: priceInfo.priceOriginal,
       discount_percent: priceInfo.discountPercent,
       release_date: details.release_date?.date ?? null,
-      developer: Array.isArray(details.developers) ? details.developers[0] ?? null : null,
-      publisher: Array.isArray(details.publishers) ? details.publishers[0] ?? null : null,
+      developer: Array.isArray(details.developers) ? (details.developers[0] ?? null) : null,
+      publisher: Array.isArray(details.publishers) ? (details.publishers[0] ?? null) : null,
       platforms: normalizePlatforms(details.platforms),
       steam_url: `https://store.steampowered.com/app/${appId}`,
       last_synced: new Date().toISOString(),

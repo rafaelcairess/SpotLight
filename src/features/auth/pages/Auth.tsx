@@ -91,10 +91,15 @@ const Auth = () => {
           </CardHeader>
           <CardContent>
             {mode === "login" && (
-              <LoginForm onSwitchToSignup={() => setMode("signup")} onForgotPassword={() => setMode("reset")} />
+              <LoginForm
+                onSwitchToSignup={() => setMode("signup")}
+                onForgotPassword={() => setMode("reset")}
+              />
             )}
             {mode === "signup" && <SignupForm onSwitchToLogin={() => setMode("login")} />}
-            {mode === "reset" && <PasswordResetRequestForm onBackToLogin={() => setMode("login")} />}
+            {mode === "reset" && (
+              <PasswordResetRequestForm onBackToLogin={() => setMode("login")} />
+            )}
             {mode === "recover" && <PasswordResetForm onBackToLogin={() => setMode("login")} />}
           </CardContent>
         </Card>

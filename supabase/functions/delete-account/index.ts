@@ -2,7 +2,8 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("PUBLIC_SITE_URL") || "https://spot-light-xi.vercel.app",
+  "Access-Control-Allow-Origin":
+    Deno.env.get("PUBLIC_SITE_URL") || "https://spot-light-xi.vercel.app",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -38,7 +39,10 @@ serve(async (req) => {
     global: { headers: { Authorization: authHeader } },
   });
 
-  const { data: { user }, error: authError } = await userSupabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await userSupabase.auth.getUser();
   if (authError || !user) {
     return json(401, { error: "unauthorized", detail: authError?.message });
   }
@@ -48,11 +52,14 @@ serve(async (req) => {
   });
 
   let rawBody: Record<string, unknown> = {};
-  try { rawBody = await req.json(); } catch { /* empty body = self-delete */ }
+  try {
+    rawBody = await req.json();
+  } catch {
+    /* empty body = self-delete */
+  }
 
-  const targetUserId = typeof rawBody.target_user_id === "string"
-    ? rawBody.target_user_id
-    : user.id;
+  const targetUserId =
+    typeof rawBody.target_user_id === "string" ? rawBody.target_user_id : user.id;
 
   // app_metadata is controlled by the server; profile fields are user data and
   // must never be treated as authorization claims.
@@ -90,16 +97,34 @@ serve(async (req) => {
       const { error } = await adminSupabase
         .from("review_reactions")
         .delete()
-        .in("review_id", userReviews.map((review) => review.id));
+        .in(
+          "review_id",
+          userReviews.map((review) => review.id),
+        );
       ensureSuccess("review_reactions_received", error);
     }
 
     const directDeletes = [
       ["price_alerts", adminSupabase.from("price_alerts").delete().eq("user_id", targetUserId)],
       ["notifications", adminSupabase.from("notifications").delete().eq("user_id", targetUserId)],
-      ["review_reactions", adminSupabase.from("review_reactions").delete().eq("user_id", targetUserId)],
-      ["follows", adminSupabase.from("follows").delete().or(`follower_id.eq.${targetUserId},following_id.eq.${targetUserId}`)],
-      ["friend_requests", adminSupabase.from("friend_requests").delete().or(`requester_id.eq.${targetUserId},requestee_id.eq.${targetUserId}`)],
+      [
+        "review_reactions",
+        adminSupabase.from("review_reactions").delete().eq("user_id", targetUserId),
+      ],
+      [
+        "follows",
+        adminSupabase
+          .from("follows")
+          .delete()
+          .or(`follower_id.eq.${targetUserId},following_id.eq.${targetUserId}`),
+      ],
+      [
+        "friend_requests",
+        adminSupabase
+          .from("friend_requests")
+          .delete()
+          .or(`requester_id.eq.${targetUserId},requestee_id.eq.${targetUserId}`),
+      ],
       ["reviews", adminSupabase.from("reviews").delete().eq("user_id", targetUserId)],
       ["user_top_games", adminSupabase.from("user_top_games").delete().eq("user_id", targetUserId)],
     ] as const;
@@ -120,7 +145,10 @@ serve(async (req) => {
       const { error } = await adminSupabase
         .from("user_list_games")
         .delete()
-        .in("list_id", userLists.map((list) => list.id));
+        .in(
+          "list_id",
+          userLists.map((list) => list.id),
+        );
       ensureSuccess("user_list_games", error);
     }
 
@@ -132,7 +160,6 @@ serve(async (req) => {
       const { error } = await operation;
       ensureSuccess(label, error);
     }
-
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     console.error("account_cleanup_failed:", detail);
@@ -140,16 +167,13 @@ serve(async (req) => {
   }
 
   // Delete the auth user
-  const deleteRes = await fetch(
-    `${SUPABASE_URL}/auth/v1/admin/users/${targetUserId}`,
-    {
-      method: "DELETE",
-      headers: {
-        "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        "apikey": SUPABASE_SERVICE_ROLE_KEY,
-      },
-    }
-  );
+  const deleteRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${targetUserId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+    },
+  });
 
   if (!deleteRes.ok) {
     console.error("auth_delete_failed status:", deleteRes.status);

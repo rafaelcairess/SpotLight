@@ -17,13 +17,7 @@ interface GameCardProps {
   rank?: number;
 }
 
-const GameCard = ({
-  game,
-  onClick,
-  index = 0,
-  variant = "default",
-  rank,
-}: GameCardProps) => {
+const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameCardProps) => {
   const { t } = useTranslation();
 
   if (variant === "ranking") {
@@ -40,7 +34,7 @@ const GameCard = ({
               rank === 1 && "text-gradient-accent",
               rank === 2 && "text-slate-300",
               rank === 3 && "text-amber-700",
-              rank && rank > 3 && "text-muted-foreground"
+              rank && rank > 3 && "text-muted-foreground",
             )}
           >
             {rank}
@@ -72,7 +66,7 @@ const GameCard = ({
               <span
                 className={cn(
                   "flex items-center gap-1 text-xs",
-                  getRatingColorClass(game.communityRating)
+                  getRatingColorClass(game.communityRating),
                 )}
               >
                 <Star className="w-3 h-3 fill-current" />
@@ -132,7 +126,7 @@ const GameCard = ({
               <span
                 className={cn(
                   "mt-1 inline-flex items-center gap-1 text-xs",
-                  getRatingColorClass(game.communityRating)
+                  getRatingColorClass(game.communityRating),
                 )}
               >
                 <Star className="w-3 h-3 fill-current" />
@@ -150,7 +144,7 @@ const GameCard = ({
       onClick={onClick}
       className={cn(
         "game-card cursor-pointer group animate-fade-in",
-        variant === "compact" && "aspect-[4/3]"
+        variant === "compact" && "aspect-[4/3]",
       )}
       style={{ animationDelay: `${index * 50}ms` }}
     >
@@ -205,7 +199,7 @@ const GameCard = ({
             <div
               className={cn(
                 "flex items-center gap-1.5 text-xs",
-                getRatingColorClass(game.communityRating)
+                getRatingColorClass(game.communityRating),
               )}
             >
               <Star className="w-3.5 h-3.5 fill-current" />

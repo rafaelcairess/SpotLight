@@ -36,23 +36,27 @@ Além de centralizar o que você já tem, o SpotLight ajuda a descobrir o próxi
 ## Funcionalidades
 
 ### Biblioteca pessoal
-- Status por jogo: **Jogando**, **Completado**, **Abandonado**, **Wishlist**
+
 - Horas jogadas sincronizadas via Steam ou inseridas manualmente
-- Favoritos e platinas em vitrine no perfil
+- Jogos privados ou ocultos por usuário
+- Jogo favorito e até seis jogos platinados em vitrines do perfil
+- Plataforma da platina identificada como Steam, Xbox ou PlayStation
 
 ### Integração com plataformas
+
 - **Steam** — biblioteca completa e horas jogadas sincronizadas via Steam Web API
-- **Xbox** — biblioteca Xbox Live e conquistas via OAuth da Microsoft
-- **PlayStation** — troféus (Bronze, Prata, Ouro, Platina) via PSN OAuth
-- **Google** — autenticação rápida via OAuth
+- **Xbox** — fluxo OAuth e sincronização em desenvolvimento
+- **PlayStation** — fluxo OAuth e troféus em desenvolvimento
 
 ### Perfil e estatísticas
+
 - Perfil público em `/u/:username` com avatar, bio e vitrine de platinas
-- **Insights**: total de horas, taxa de conclusão, top gêneros (gráfico), jogos adicionados por mês
-- **Conquistas SpotLight**: badges por milestones (colecionador, crítico, maratonista…)
-- Sistema de seguidores
+- Nível próprio do SpotLight
+- Amigos, presença, privacidade e comentários no perfil
+- Escolha manual da plataforma e das horas jogadas
 
 ### Descoberta de jogos
+
 - Catálogo dinâmico atualizado a cada 6 horas com dados da Steam
 - Busca por nome com resultados em tempo real
 - Rankings curados: **Mais Vendidos**, **Mais Jogados**, **Top Games**
@@ -60,10 +64,12 @@ Além de centralizar o que você já tem, o SpotLight ajuda a descobrir o próxi
 - Recomendações personalizadas com base na sua biblioteca
 
 ### Alertas de preço
+
 - Configure um preço-alvo para qualquer jogo da sua wishlist
 - Receba e-mail quando o preço cair abaixo do alvo
 
 ### Reviews e comunidade
+
 - Escreva reviews com nota e texto para qualquer jogo
 - Veja o que outros jogadores acharam antes de comprar
 - Listas públicas e compartilháveis criadas pela comunidade
@@ -72,34 +78,33 @@ Além de centralizar o que você já tem, o SpotLight ajuda a descobrir o próxi
 
 ## Stack
 
-| Camada | Tecnologia |
-|--------|-----------|
-| Frontend | React 18 + TypeScript + Vite 7 |
-| UI | TailwindCSS 3 + shadcn/ui + Radix UI |
-| Estado / Dados | TanStack Query (React Query) |
-| Gráficos | Recharts |
-| Backend | Supabase (PostgreSQL + Auth + RLS + Storage) |
-| Edge Functions | Supabase Edge Functions (Deno) |
-| Deploy | Vercel |
-| CI/CD | GitHub Actions |
-| Internacionalização | react-i18next (PT, EN, ES) |
-| Tratamento de erros | React Error Boundaries |
+| Camada              | Tecnologia                                   |
+| ------------------- | -------------------------------------------- |
+| Frontend            | React 18 + TypeScript + Vite 7               |
+| UI                  | TailwindCSS 3 + shadcn/ui + Radix UI         |
+| Estado / Dados      | TanStack Query (React Query)                 |
+| Backend             | Supabase (PostgreSQL + Auth + RLS + Storage) |
+| Edge Functions      | Supabase Edge Functions (Deno)               |
+| Deploy              | Vercel                                       |
+| CI/CD               | GitHub Actions                               |
+| Internacionalização | react-i18next (PT, EN, ES)                   |
+| Tratamento de erros | React Error Boundaries                       |
 
 ### Edge Functions (Deno)
 
-| Função | Descrição |
-|--------|-----------|
-| `steam-auth-start` | Inicia fluxo OpenID 2.0 da Steam |
-| `steam-auth-callback` | Valida retorno da Steam, cria/atualiza usuário e importa biblioteca |
-| `sync-steam-playtime` | Atualiza horas jogadas via Steam Web API |
-| `xbox-auth-start` | Inicia fluxo OAuth 2.0 da Microsoft para Xbox |
-| `xbox-auth-callback` | Valida token Xbox e salva XUID/Gamertag |
-| `sync-xbox-library` | Sincroniza biblioteca Xbox Live |
-| `psn-auth-start` / `psn-auth-callback` | Fluxo OAuth PSN (Sony) |
-| `sync-psn-trophies` | Sincroniza troféus PSN |
-| `fetch-steam-details` | Busca detalhes enriquecidos de um jogo na Steam Store API |
-| `search-steam` | Pesquisa jogos na Steam para o catálogo |
-| `send-price-alert-email` | Dispara e-mail de alerta de preço |
+| Função                                 | Descrição                                                           |
+| -------------------------------------- | ------------------------------------------------------------------- |
+| `steam-auth-start`                     | Inicia fluxo OpenID 2.0 da Steam                                    |
+| `steam-auth-callback`                  | Valida retorno da Steam, cria/atualiza usuário e importa biblioteca |
+| `sync-steam-playtime`                  | Atualiza horas jogadas via Steam Web API                            |
+| `xbox-auth-start`                      | Inicia fluxo OAuth 2.0 da Microsoft para Xbox                       |
+| `xbox-auth-callback`                   | Valida token Xbox e salva XUID/Gamertag                             |
+| `sync-xbox-library`                    | Sincroniza biblioteca Xbox Live                                     |
+| `psn-auth-start` / `psn-auth-callback` | Fluxo OAuth PSN (Sony)                                              |
+| `sync-psn-trophies`                    | Sincroniza troféus PSN                                              |
+| `fetch-steam-details`                  | Busca detalhes enriquecidos de um jogo na Steam Store API           |
+| `search-steam`                         | Pesquisa jogos na Steam para o catálogo                             |
+| `send-price-alert-email`               | Dispara e-mail de alerta de preço                                   |
 
 ---
 
@@ -130,12 +135,12 @@ npm install
 cp .env.example .env
 ```
 
-| Variável | Descrição |
-|----------|-----------|
-| `VITE_SUPABASE_URL` | URL do seu projeto Supabase |
-| `VITE_SUPABASE_ANON_KEY` | Chave anon/public do Supabase |
+| Variável                        | Descrição                    |
+| ------------------------------- | ---------------------------- |
+| `VITE_SUPABASE_URL`             | URL do seu projeto Supabase  |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Chave publicável do Supabase |
 
-> As variáveis das Edge Functions (Steam API Key, Xbox Client ID/Secret, etc.) são configuradas no painel do Supabase em *Settings → Edge Functions → Secrets*.
+> As variáveis das Edge Functions (Steam API Key, Xbox Client ID/Secret, etc.) são configuradas no painel do Supabase em _Settings → Edge Functions → Secrets_.
 
 ### 4. Configure o banco de dados
 
@@ -171,6 +176,10 @@ npm run set:featured     # Define o jogo em destaque do dia
 ---
 
 ## Estrutura do projeto
+
+Para saber onde alterar cada funcionalidade, como os dados percorrem o sistema e
+quais regras seguir no backend, consulte o
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ```
 src/

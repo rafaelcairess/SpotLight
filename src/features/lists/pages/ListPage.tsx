@@ -77,9 +77,7 @@ export default function ListPage() {
               <Lock className="w-4 h-4 text-muted-foreground" />
             )}
           </div>
-          {list.description && (
-            <p className="text-muted-foreground">{list.description}</p>
-          )}
+          {list.description && <p className="text-muted-foreground">{list.description}</p>}
           <p className="text-sm text-muted-foreground">{catalogGames.length} jogos</p>
         </div>
 

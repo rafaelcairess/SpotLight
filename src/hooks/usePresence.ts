@@ -6,7 +6,10 @@ import { useAuth } from "@/contexts/AuthContext";
 export type PresenceStatus = "online" | "away" | "busy" | "invisible";
 export type VisiblePresence = "online" | "away" | "busy" | "offline";
 
-export function resolvePresence(status?: string | null, lastSeenAt?: string | null): VisiblePresence {
+export function resolvePresence(
+  status?: string | null,
+  lastSeenAt?: string | null,
+): VisiblePresence {
   if (status === "invisible" || !lastSeenAt) return "offline";
   const active = Date.now() - new Date(lastSeenAt).getTime() < 3 * 60 * 1000;
   if (!active) return "offline";
@@ -19,9 +22,16 @@ export function PresenceHeartbeat() {
     if (!user?.id) return;
     const touch = async () => {
       if (document.visibilityState === "visible") {
-        const { data } = await supabase.from("profiles").select("presence_status").eq("user_id", user.id).maybeSingle();
+        const { data } = await supabase
+          .from("profiles")
+          .select("presence_status")
+          .eq("user_id", user.id)
+          .maybeSingle();
         if (data?.presence_status !== "invisible") {
-          await supabase.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("user_id", user.id);
+          await supabase
+            .from("profiles")
+            .update({ last_seen_at: new Date().toISOString() })
+            .eq("user_id", user.id);
         }
       }
     };
@@ -43,7 +53,10 @@ export function useSetPresence() {
   return useMutation({
     mutationFn: async (presenceStatus: PresenceStatus) => {
       if (!user?.id) throw new Error("Not authenticated");
-      const { error } = await supabase.from("profiles").update({ presence_status: presenceStatus, last_seen_at: new Date().toISOString() }).eq("user_id", user.id);
+      const { error } = await supabase
+        .from("profiles")
+        .update({ presence_status: presenceStatus, last_seen_at: new Date().toISOString() })
+        .eq("user_id", user.id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["profile"] }),

@@ -44,13 +44,6 @@ serve(async (req) => {
   const url = new URL(req.url);
   const fallbackSite = Deno.env.get("SITE_URL") || Deno.env.get("PUBLIC_SITE_URL") || url.origin;
 
-  let baseOrigin = url.origin;
-  try {
-    baseOrigin = new URL(fallbackSite).origin;
-  } catch {
-    baseOrigin = url.origin;
-  }
-
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const error = url.searchParams.get("error");
@@ -85,7 +78,9 @@ serve(async (req) => {
         safeRedirect = u.toString();
       }
     }
-  } catch { /* usa fallbackSite */ }
+  } catch {
+    /* usa fallbackSite */
+  }
   // ───────────────────────────────────────────────────────────────
 
   const callbackUrl = `${url.origin}/functions/v1/xbox-auth-callback`;
@@ -109,8 +104,6 @@ serve(async (req) => {
 
   const tokenData = await tokenRes.json();
   const msAccessToken: string = tokenData.access_token;
-  const msRefreshToken: string | undefined = tokenData.refresh_token;
-
   if (!msAccessToken) {
     return json(500, { error: "no_access_token" });
   }
@@ -183,8 +176,8 @@ serve(async (req) => {
   const fakeEmail = `xbox_${xuid}@xbox.local`;
   const adminHeaders = {
     "Content-Type": "application/json",
-    "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    apikey: SUPABASE_SERVICE_ROLE_KEY,
   };
 
   let userId: string | undefined;
@@ -195,7 +188,7 @@ serve(async (req) => {
     // Busca usuário pelo email via REST API
     const listRes = await fetch(
       `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(fakeEmail)}&page=1&per_page=1`,
-      { headers: adminHeaders }
+      { headers: adminHeaders },
     );
     const listData = await listRes.json();
     const existingUser = listData?.users?.[0];
@@ -232,11 +225,14 @@ serve(async (req) => {
   const now = new Date().toISOString();
 
   if (profile?.id) {
-    await supabase.from("profiles").update({
-      xbox_id: xuid,
-      xbox_gamertag: gamertag,
-      xbox_last_synced: now,
-    }).eq("user_id", userId);
+    await supabase
+      .from("profiles")
+      .update({
+        xbox_id: xuid,
+        xbox_gamertag: gamertag,
+        xbox_last_synced: now,
+      })
+      .eq("user_id", userId);
   } else {
     await supabase.from("profiles").insert({
       user_id: userId,
@@ -260,7 +256,9 @@ serve(async (req) => {
       Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
     },
     body: JSON.stringify({ user_id: userId, xuid, xsts_token: xstsToken, user_hash: userHash }),
-  }).catch(() => { /* best effort */ });
+  }).catch(() => {
+    /* best effort */
+  });
 
   // Gera magic link via REST API direta
   const generateLinkRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/generate_link`, {

@@ -63,9 +63,7 @@ const PromotionsBar = () => {
       {isLoading ? (
         <LoadingSkeleton variant="card" count={6} />
       ) : games.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          {t("promotions.empty")}
-        </div>
+        <div className="text-center py-8 text-muted-foreground">{t("promotions.empty")}</div>
       ) : (
         <>
           <div className={gridClass}>

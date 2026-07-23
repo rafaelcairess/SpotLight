@@ -76,7 +76,9 @@ serve(async (req) => {
   try {
     const resolved = new URL(safeRedirectRaw, baseOrigin);
     if (resolved.origin === baseOrigin) safeRedirect = resolved.toString();
-  } catch { /* usa baseOrigin */ }
+  } catch {
+    /* usa baseOrigin */
+  }
   // ───────────────────────────────────────────────────────────────
 
   const callbackUrl = `${url.origin}/functions/v1/psn-auth-callback`;
@@ -107,12 +109,15 @@ serve(async (req) => {
   }
 
   // ── Busca informações do usuário PSN ───────────────────────────
-  const profileRes = await fetch("https://m.np.playstation.com/api/userProfile/v1/internal/users/me/profiles", {
-    headers: {
-      Authorization: `Bearer ${psnAccessToken}`,
-      "Content-Type": "application/json",
+  const profileRes = await fetch(
+    "https://m.np.playstation.com/api/userProfile/v1/internal/users/me/profiles",
+    {
+      headers: {
+        Authorization: `Bearer ${psnAccessToken}`,
+        "Content-Type": "application/json",
+      },
     },
-  });
+  );
 
   if (!profileRes.ok) {
     return json(502, { error: "psn_profile_fetch_failed" });
@@ -161,11 +166,14 @@ serve(async (req) => {
     .maybeSingle();
 
   if (profile?.id) {
-    await supabase.from("profiles").update({
-      psn_id: psnAccountId,
-      psn_online_id: psnOnlineId,
-      psn_last_synced: now,
-    }).eq("user_id", userId);
+    await supabase
+      .from("profiles")
+      .update({
+        psn_id: psnAccountId,
+        psn_online_id: psnOnlineId,
+        psn_last_synced: now,
+      })
+      .eq("user_id", userId);
   } else {
     await supabase.from("profiles").insert({
       user_id: userId,
@@ -193,7 +201,9 @@ serve(async (req) => {
       psn_account_id: psnAccountId,
       psn_access_token: psnAccessToken,
     }),
-  }).catch(() => { /* best effort */ });
+  }).catch(() => {
+    /* best effort */
+  });
 
   // Gera magic link
   const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({

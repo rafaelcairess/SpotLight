@@ -2,7 +2,8 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("PUBLIC_SITE_URL") || "https://spot-light-xi.vercel.app",
+  "Access-Control-Allow-Origin":
+    Deno.env.get("PUBLIC_SITE_URL") || "https://spot-light-xi.vercel.app",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -84,9 +85,7 @@ const normalizePriceInfo = (details: SteamPriceDetails | null | undefined) => {
   return {
     price: priceOverview.final_formatted || null,
     priceOriginal:
-      discountPercent && discountPercent > 0
-        ? priceOverview.initial_formatted || null
-        : null,
+      discountPercent && discountPercent > 0 ? priceOverview.initial_formatted || null : null,
     discountPercent: discountPercent && discountPercent > 0 ? discountPercent : null,
   };
 };
@@ -159,9 +158,11 @@ serve(async (req) => {
     .maybeSingle();
   const cacheCutoff = Date.now() - 24 * 60 * 60 * 1000;
   if (
-    cachedGame?.media_synced_at && Date.parse(cachedGame.media_synced_at) > cacheCutoff &&
+    cachedGame?.media_synced_at &&
+    Date.parse(cachedGame.media_synced_at) > cacheCutoff &&
     !(cachedGame.trailer_thumbnail && !cachedGame.trailer_url) &&
-    cachedLocalization?.updated_at && Date.parse(cachedLocalization.updated_at) > cacheCutoff
+    cachedLocalization?.updated_at &&
+    Date.parse(cachedLocalization.updated_at) > cacheCutoff
   ) {
     return json(200, { status: "cached", app_id: appId, locale });
   }
@@ -176,17 +177,15 @@ serve(async (req) => {
 
     const details = entry.data;
     if (details?.type !== "game") {
-      await supabase
-        .from("steam_apps")
-        .upsert(
-          {
-            app_id: appId,
-            name: details?.name ?? `App ${appId}`,
-            is_game: false,
-            last_seen: new Date().toISOString(),
-          },
-          { onConflict: "app_id" },
-        );
+      await supabase.from("steam_apps").upsert(
+        {
+          app_id: appId,
+          name: details?.name ?? `App ${appId}`,
+          is_game: false,
+          last_seen: new Date().toISOString(),
+        },
+        { onConflict: "app_id" },
+      );
       return json(200, { status: "not_game", app_id: appId });
     }
 
@@ -213,28 +212,33 @@ serve(async (req) => {
     const genres = normalizeGenres(details.genres);
     const now = new Date().toISOString();
     const screenshots = Array.isArray(details.screenshots)
-      ? details.screenshots.map((item: { path_full?: string }) => safeSteamUrl(item?.path_full)).filter(Boolean).slice(0, 8)
+      ? details.screenshots
+          .map((item: { path_full?: string }) => safeSteamUrl(item?.path_full))
+          .filter(Boolean)
+          .slice(0, 8)
       : [];
     const movies = Array.isArray(details.movies) ? details.movies : [];
     const movie = movies.find((item: { highlight?: boolean }) => item?.highlight) || movies[0];
     const trailerUrl = safeSteamUrl(
-      movie?.mp4?.max || movie?.webm?.max || movie?.mp4?.["480"] || movie?.webm?.["480"] || movie?.hls_h264,
+      movie?.mp4?.max ||
+        movie?.webm?.max ||
+        movie?.mp4?.["480"] ||
+        movie?.webm?.["480"] ||
+        movie?.hls_h264,
     );
 
-    await supabase
-      .from("game_localizations")
-      .upsert(
-        {
-          app_id: appId,
-          locale,
-          title: details.name ?? null,
-          short_description: details.short_description ?? null,
-          genre: genres[0] ?? null,
-          tags: tags.length ? tags : null,
-          updated_at: now,
-        },
-        { onConflict: "app_id,locale" },
-      );
+    await supabase.from("game_localizations").upsert(
+      {
+        app_id: appId,
+        locale,
+        title: details.name ?? null,
+        short_description: details.short_description ?? null,
+        genre: genres[0] ?? null,
+        tags: tags.length ? tags : null,
+        updated_at: now,
+      },
+      { onConflict: "app_id,locale" },
+    );
 
     const { data: existingGame } = await supabase
       .from("games")
@@ -243,16 +247,18 @@ serve(async (req) => {
       .maybeSingle();
 
     const shouldUpdateText = locale === "pt" || !existingGame;
-    const baseTitle = shouldUpdateText ? details.name : existingGame?.title ?? details.name;
+    const baseTitle = shouldUpdateText ? details.name : (existingGame?.title ?? details.name);
     const baseDescription = shouldUpdateText
-      ? details.short_description ?? null
-      : existingGame?.short_description ?? details.short_description ?? null;
-    const baseGenre = shouldUpdateText ? genres[0] ?? null : existingGame?.genre ?? genres[0] ?? null;
+      ? (details.short_description ?? null)
+      : (existingGame?.short_description ?? details.short_description ?? null);
+    const baseGenre = shouldUpdateText
+      ? (genres[0] ?? null)
+      : (existingGame?.genre ?? genres[0] ?? null);
     const baseTags = shouldUpdateText
       ? tags.length
         ? tags
         : null
-      : existingGame?.tags ?? (tags.length ? tags : null);
+      : (existingGame?.tags ?? (tags.length ? tags : null));
 
     const row = {
       app_id: appId,
@@ -267,8 +273,8 @@ serve(async (req) => {
       price_original: priceInfo.priceOriginal,
       discount_percent: priceInfo.discountPercent,
       release_date: details.release_date?.date ?? null,
-      developer: Array.isArray(details.developers) ? details.developers[0] ?? null : null,
-      publisher: Array.isArray(details.publishers) ? details.publishers[0] ?? null : null,
+      developer: Array.isArray(details.developers) ? (details.developers[0] ?? null) : null,
+      publisher: Array.isArray(details.publishers) ? (details.publishers[0] ?? null) : null,
       platforms: normalizePlatforms(details.platforms),
       background_image: safeSteamUrl(details.background_raw || details.background),
       trailer_url: trailerUrl,
@@ -284,17 +290,15 @@ serve(async (req) => {
       .upsert(row, { onConflict: "app_id" });
     if (upsertError) throw upsertError;
 
-    await supabase
-      .from("steam_apps")
-      .upsert(
-        {
-          app_id: appId,
-          name: details.name,
-          is_game: true,
-          last_seen: now,
-        },
-        { onConflict: "app_id" },
-      );
+    await supabase.from("steam_apps").upsert(
+      {
+        app_id: appId,
+        name: details.name,
+        is_game: true,
+        last_seen: now,
+      },
+      { onConflict: "app_id" },
+    );
 
     return json(200, { status: "ok", app_id: appId, locale });
   } catch (error) {

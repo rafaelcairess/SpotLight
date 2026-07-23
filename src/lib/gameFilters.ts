@@ -30,14 +30,7 @@ const NON_GAME_TITLE_PATTERNS = [
   /\bexpansao\b/i,
 ];
 
-const NON_GAME_TAG_MARKERS = [
-  "dlc",
-  "soundtrack",
-  "demo",
-  "expansion",
-  "season pass",
-  "artbook",
-];
+const NON_GAME_TAG_MARKERS = ["dlc", "soundtrack", "demo", "expansion", "season pass", "artbook"];
 
 type GameLike = {
   title?: string;

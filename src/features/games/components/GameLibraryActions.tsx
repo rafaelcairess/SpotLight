@@ -1,10 +1,16 @@
-import { BookOpen, Check, Loader2, Plus, Trash2, Trophy } from "lucide-react";
+import { useState } from "react";
+import { BookOpen, Check, Loader2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserGameByAppId, useAddGame, useUpdateGame, useRemoveGame } from "@/hooks/useUserGames";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import {
+  PlatformLogo,
+  PlatinumPlatformDialog,
+} from "@/features/profile/components/PlatinumPlatformSelector";
+import type { PlatinumPlatform } from "@/hooks/useUserGames";
 
 interface GameLibraryActionsProps {
   appId: number;
@@ -21,6 +27,7 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
   const removeGame = useRemoveGame();
   const { t } = useTranslation();
   const busy = isLoading || addGame.isPending || updateGame.isPending || removeGame.isPending;
+  const [platformOpen, setPlatformOpen] = useState(false);
 
   const addToLibrary = async () => {
     if (!user) return navigate("/auth");
@@ -32,19 +39,27 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
     }
   };
 
-  const togglePlatinum = async () => {
+  const markPlatinum = async (platform: PlatinumPlatform) => {
     if (!userGame) return;
     try {
       await updateGame.mutateAsync({
         id: userGame.id,
         updates: {
-          is_platinumed: !userGame.is_platinumed,
-          platinum_platforms: userGame.is_platinumed ? [] : ["steam"],
+          is_platinumed: true,
+          platinum_platforms: [platform],
         },
       });
     } catch {
       toast({ title: t("library.updateError"), variant: "destructive" });
     }
+  };
+
+  const removePlatinum = async () => {
+    if (!userGame) return;
+    await updateGame.mutateAsync({
+      id: userGame.id,
+      updates: { is_platinumed: false, platinum_platforms: [] },
+    });
   };
 
   const remove = async () => {
@@ -70,9 +85,48 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
         </span>
       )}
 
-      {userGame && <Button variant={userGame.is_platinumed ? "secondary" : "outline"} onClick={togglePlatinum} disabled={busy} className="gap-2"><Trophy className={`h-4 w-4 ${userGame.is_platinumed ? "text-amber-400" : ""}`} />{userGame.is_platinumed ? "Platinado" : "Marcar como platinado"}</Button>}
-      {onWriteReview && <Button variant="outline" onClick={onWriteReview} disabled={busy} className="gap-2 border-primary/40 text-primary hover:bg-primary/10"><BookOpen className="h-4 w-4" />Escrever avaliação</Button>}
-      {userGame && <Button variant="ghost" onClick={remove} disabled={busy} className="ml-auto gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" />Remover</Button>}
+      {userGame && (
+        <Button
+          variant={userGame.is_platinumed ? "secondary" : "outline"}
+          onClick={() => (userGame.is_platinumed ? removePlatinum() : setPlatformOpen(true))}
+          disabled={busy}
+          className={
+            userGame.is_platinumed
+              ? "gap-2 border-amber-300/30 shadow-[0_0_12px_rgba(251,191,36,0.12)]"
+              : "gap-2"
+          }
+        >
+          {userGame.is_platinumed && <PlatformLogo platform={userGame.platinum_platforms?.[0]} />}{" "}
+          {userGame.is_platinumed ? "Zerado" : "Marcar como zerado"}
+        </Button>
+      )}
+      {onWriteReview && (
+        <Button
+          variant="outline"
+          onClick={onWriteReview}
+          disabled={busy}
+          className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
+        >
+          <BookOpen className="h-4 w-4" />
+          Escrever avaliação
+        </Button>
+      )}
+      {userGame && (
+        <Button
+          variant="ghost"
+          onClick={remove}
+          disabled={busy}
+          className="ml-auto gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+          Remover
+        </Button>
+      )}
+      <PlatinumPlatformDialog
+        open={platformOpen}
+        onOpenChange={setPlatformOpen}
+        onSelect={markPlatinum}
+      />
     </div>
   );
 }

@@ -1,14 +1,17 @@
 /**
- * Hook de dados/estado (useUserGames).
+ * Fonte de verdade da biblioteca do usuário.
+ *
+ * Alterações feitas aqui precisam revalidar também as vitrines do perfil que
+ * leem `user_games` por queries próprias (favorito, atividade e platinados).
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { Database } from '@/integrations/supabase/types';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Database } from "@/integrations/supabase/types";
 
-type GameStatus = Database['public']['Enums']['game_status'];
+type GameStatus = Database["public"]["Enums"]["game_status"];
 
 // Entrada da biblioteca do usuário (uma linha por jogo).
 export interface UserGame {
@@ -36,16 +39,16 @@ export function useUserGames(userId?: string, useAuthFallback = true, enabled = 
   const targetUserId = userId ?? (useAuthFallback ? user?.id : undefined);
 
   return useQuery({
-    queryKey: ['user_games', targetUserId],
+    queryKey: ["user_games", targetUserId],
     queryFn: async () => {
       if (!targetUserId) return [];
-      
+
       const { data, error } = await supabase
-        .from('user_games')
-        .select('*')
-        .eq('user_id', targetUserId)
-        .eq('is_hidden', false)
-        .order('added_at', { ascending: false });
+        .from("user_games")
+        .select("*")
+        .eq("user_id", targetUserId)
+        .eq("is_hidden", false)
+        .order("added_at", { ascending: false });
 
       if (error) throw error;
       return data as UserGame[];
@@ -61,17 +64,17 @@ export function useUserGameByAppId(appId: number) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['user_games', user?.id, appId],
+    queryKey: ["user_games", user?.id, appId],
     queryFn: async () => {
       if (!user?.id) return null;
-      
+
       const { data, error } = await supabase
-        .from('user_games')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('app_id', appId)
+        .from("user_games")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("app_id", appId)
         .maybeSingle();
-      
+
       if (error) throw error;
       return data as UserGame | null;
     },
@@ -87,17 +90,11 @@ export function useAddGame() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ 
-      appId, 
-      status = 'wishlist' 
-    }: { 
-      appId: number; 
-      status?: GameStatus;
-    }) => {
-      if (!user?.id) throw new Error('Not authenticated');
-      
+    mutationFn: async ({ appId, status = "wishlist" }: { appId: number; status?: GameStatus }) => {
+      if (!user?.id) throw new Error("Not authenticated");
+
       const { data, error } = await supabase
-        .from('user_games')
+        .from("user_games")
         .insert({
           user_id: user.id,
           app_id: appId,
@@ -105,13 +102,17 @@ export function useAddGame() {
         })
         .select()
         .single();
-      
+
       if (error) throw error;
       return data as UserGame;
     },
     onSuccess: () => {
       // Atualiza a lista da biblioteca após adicionar.
-      queryClient.invalidateQueries({ queryKey: ['user_games'] });
+      queryClient.invalidateQueries({ queryKey: ["user_games"] });
+      queryClient.invalidateQueries({ queryKey: ["favorite-game"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-platinum-showcase"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-recent-activity"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-progress"] });
     },
   });
 }
@@ -132,13 +133,26 @@ export function useMarkGamePlatinum() {
       if (detailsError) throw detailsError;
 
       const { data: existing, error: existingError } = await supabase
-        .from("user_games").select("id, platinum_platforms").eq("user_id", user.id).eq("app_id", appId).maybeSingle();
+        .from("user_games")
+        .select("id, platinum_platforms")
+        .eq("user_id", user.id)
+        .eq("app_id", appId)
+        .maybeSingle();
       if (existingError) throw existingError;
 
-      const platforms = Array.from(new Set([...(existing?.platinum_platforms || []), platform]));
+      const platforms = [platform];
       const query = existing
-        ? supabase.from("user_games").update({ is_platinumed: true, platinum_platforms: platforms }).eq("id", existing.id)
-        : supabase.from("user_games").insert({ user_id: user.id, app_id: appId, status: "playing", is_platinumed: true, platinum_platforms: platforms });
+        ? supabase
+            .from("user_games")
+            .update({ is_platinumed: true, platinum_platforms: platforms })
+            .eq("id", existing.id)
+        : supabase.from("user_games").insert({
+            user_id: user.id,
+            app_id: appId,
+            status: "playing",
+            is_platinumed: true,
+            platinum_platforms: platforms,
+          });
       const { error } = await query;
       if (error) throw error;
     },
@@ -221,29 +235,41 @@ export function useUpdateGame() {
   return useMutation({
     mutationFn: async ({
       id,
-      updates
+      updates,
     }: {
       id: string;
       updates: Partial<
         Pick<
           UserGame,
-          "status" | "hours_played" | "hours_played_manual" | "hours_override" | "is_favorite" | "is_hidden" | "is_private" | "is_platinumed" | "platinum_platforms"
+          | "status"
+          | "hours_played"
+          | "hours_played_manual"
+          | "hours_override"
+          | "is_favorite"
+          | "is_hidden"
+          | "is_private"
+          | "is_platinumed"
+          | "platinum_platforms"
         >
       >;
     }) => {
       const { data, error } = await supabase
-        .from('user_games')
+        .from("user_games")
         .update(updates)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data as UserGame;
     },
     onSuccess: () => {
       // Atualiza a lista da biblioteca após editar.
-      queryClient.invalidateQueries({ queryKey: ['user_games'] });
+      queryClient.invalidateQueries({ queryKey: ["user_games"] });
+      queryClient.invalidateQueries({ queryKey: ["favorite-game"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-platinum-showcase"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-recent-activity"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-progress"] });
     },
   });
 }
@@ -253,16 +279,16 @@ export function useHiddenGames(enabled = true) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['user_games_hidden', user?.id],
+    queryKey: ["user_games_hidden", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
 
       const { data, error } = await supabase
-        .from('user_games')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_hidden', true)
-        .order('updated_at', { ascending: false });
+        .from("user_games")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("is_hidden", true)
+        .order("updated_at", { ascending: false });
 
       if (error) throw error;
       return data as UserGame[];
@@ -279,16 +305,13 @@ export function useRemoveGame() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('user_games')
-        .delete()
-        .eq('id', id);
-      
+      const { error } = await supabase.from("user_games").delete().eq("id", id);
+
       if (error) throw error;
     },
     onSuccess: () => {
       // Atualiza a lista da biblioteca após remover.
-      queryClient.invalidateQueries({ queryKey: ['user_games'] });
+      queryClient.invalidateQueries({ queryKey: ["user_games"] });
     },
   });
 }

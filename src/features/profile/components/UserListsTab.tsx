@@ -9,12 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   useUserLists,
   useCreateUserList,
@@ -67,7 +62,11 @@ export function UserListsTab() {
   const handleCreate = async () => {
     if (!newName.trim()) return;
     try {
-      await createList.mutateAsync({ name: newName.trim(), description: newDesc.trim() || undefined, is_public: isPublic });
+      await createList.mutateAsync({
+        name: newName.trim(),
+        description: newDesc.trim() || undefined,
+        is_public: isPublic,
+      });
       toast({ title: "Lista criada!" });
       setIsCreateOpen(false);
       setNewName("");

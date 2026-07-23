@@ -29,20 +29,14 @@ const EMPTY_COUNTS: Record<ReviewReactionType, number> = {
   useful: 0,
 };
 
-function ensureCounts(
-  map: Map<string, Record<ReviewReactionType, number>>,
-  reviewId: string
-) {
+function ensureCounts(map: Map<string, Record<ReviewReactionType, number>>, reviewId: string) {
   if (!map.has(reviewId)) {
     map.set(reviewId, { ...EMPTY_COUNTS });
   }
   return map.get(reviewId)!;
 }
 
-function ensureUserSet(
-  map: Map<string, Set<ReviewReactionType>>,
-  reviewId: string
-) {
+function ensureUserSet(map: Map<string, Set<ReviewReactionType>>, reviewId: string) {
   if (!map.has(reviewId)) {
     map.set(reviewId, new Set());
   }

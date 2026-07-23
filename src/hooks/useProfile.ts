@@ -2,9 +2,9 @@
  * Hook de dados/estado (useProfile).
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Modelo de perfil usado nas páginas privada e pública.
 export interface Profile {
@@ -26,10 +26,10 @@ export interface Profile {
   profile_visibility: string;
   reviews_visibility: string;
   library_visibility: string;
-  comments_permission: 'public' | 'friends' | 'disabled';
+  comments_permission: "public" | "friends" | "disabled";
   favorite_game_app_id: number | null;
   platinum_showcase_app_ids: number[];
-  presence_status: 'online' | 'away' | 'busy' | 'invisible';
+  presence_status: "online" | "away" | "busy" | "invisible";
   last_seen_at: string | null;
   is_admin: boolean;
   created_at: string;
@@ -41,15 +41,15 @@ export function useProfile() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['profile', user?.id],
+    queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      
+
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();  // ← era .single()
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle(); // ← era .single()
 
       if (error) throw error;
       return data as Profile | null;
@@ -63,16 +63,16 @@ export function useProfile() {
 // Busca perfil por username (página pública).
 export function useProfileByUsername(username: string | undefined) {
   return useQuery({
-    queryKey: ['profile', 'username', username],
+    queryKey: ["profile", "username", username],
     queryFn: async () => {
       if (!username) return null;
-      
+
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('username', username)
+        .from("profiles")
+        .select("*")
+        .eq("username", username)
         .single();
-      
+
       if (error) throw error;
       return data as Profile;
     },
@@ -92,37 +92,37 @@ export function useUpdateProfile() {
       updates: Partial<
         Pick<
           Profile,
-          | 'username'
-          | 'display_name'
-          | 'bio'
-          | 'avatar_url'
-          | 'steam_id'
-          | 'profile_visibility'
-          | 'reviews_visibility'
-          | 'library_visibility'
-          | 'comments_permission'
-          | 'favorite_game_app_id'
-          | 'platinum_showcase_app_ids'
-          | 'presence_status'
-          | 'last_seen_at'
+          | "username"
+          | "display_name"
+          | "bio"
+          | "avatar_url"
+          | "steam_id"
+          | "profile_visibility"
+          | "reviews_visibility"
+          | "library_visibility"
+          | "comments_permission"
+          | "favorite_game_app_id"
+          | "platinum_showcase_app_ids"
+          | "presence_status"
+          | "last_seen_at"
         >
-      >
+      >,
     ) => {
-      if (!user?.id) throw new Error('Not authenticated');
-      
+      if (!user?.id) throw new Error("Not authenticated");
+
       const { data, error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update(updates)
-        .eq('user_id', user.id)
+        .eq("user_id", user.id)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data as Profile;
     },
     onSuccess: () => {
       // Atualiza o cache do perfil após salvar.
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
   });
 }
@@ -130,16 +130,16 @@ export function useUpdateProfile() {
 // Busca perfis por username ou nome de exibição.
 export function useSearchProfiles(searchTerm: string) {
   return useQuery({
-    queryKey: ['profiles', 'search', searchTerm],
+    queryKey: ["profiles", "search", searchTerm],
     queryFn: async () => {
       if (!searchTerm || searchTerm.length < 2) return [];
-      
+
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
+        .from("profiles")
+        .select("*")
         .or(`username.ilike.%${searchTerm}%,display_name.ilike.%${searchTerm}%`)
         .limit(20);
-      
+
       if (error) throw error;
       return data as Profile[];
     },

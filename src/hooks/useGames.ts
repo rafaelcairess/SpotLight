@@ -113,20 +113,22 @@ const mergeLocalizations = (games: GameData[], localizations: GameLocalizationRo
 };
 
 // Converte linhas do banco para o formato da UI + filtra nao-jogos.
-const mapRowsToGames = (rows?: GameRow[]) =>
-  (rows ?? []).map(mapGameRow).filter(isLikelyGame);
+const mapRowsToGames = (rows?: GameRow[]) => (rows ?? []).map(mapGameRow).filter(isLikelyGame);
 
 // Aplica localizacoes para o idioma atual.
 const localizeGames = async (games: GameData[], locale: SupportedLocale) => {
   if (!games.length) return [];
-  const localizations = await fetchLocalizations(games.map((game) => game.app_id), locale);
+  const localizations = await fetchLocalizations(
+    games.map((game) => game.app_id),
+    locale,
+  );
   return mergeLocalizations(games, localizations);
 };
 
 // Helper padrao para consultas de jogos com localizacoes e filtro de nao-jogos.
 const fetchGamesWithLocalization = async (
   fetcher: () => PromiseLike<{ data: GameRow[] | null; error: unknown }>,
-  locale: SupportedLocale
+  locale: SupportedLocale,
 ) => {
   const { data, error } = await fetcher();
   if (error) throw error;
@@ -148,7 +150,7 @@ const mergeCatalogItems = async (items: CatalogItem[], locale: SupportedLocale) 
   if (gamesResponse.error) throw gamesResponse.error;
 
   const gameMap = new Map(
-    (gamesResponse.data as GameRow[]).map((row) => [row.app_id, mapGameRow(row)])
+    (gamesResponse.data as GameRow[]).map((row) => [row.app_id, mapGameRow(row)]),
   );
   const localizationMap = new Map(localizations.map((row) => [row.app_id, row]));
 
@@ -188,7 +190,7 @@ export function usePopularGames(limit = 10) {
             .gt("active_players", 0)
             .order("active_players", { ascending: false })
             .limit(limit),
-        locale
+        locale,
       );
     },
     staleTime: 10 * 60 * 1000,
@@ -209,7 +211,7 @@ export function useAllGames(limit = 200, enabled = true) {
             .select("*")
             .order("last_synced", { ascending: false })
             .limit(limit),
-        locale
+        locale,
       );
     },
     enabled,
@@ -258,7 +260,7 @@ export function useGamesByIds(appIds: number[]) {
 
       return fetchGamesWithLocalization(
         () => supabase.from("games").select("*").in("app_id", uniqueIds),
-        locale
+        locale,
       );
     },
     enabled: uniqueIds.length > 0,
@@ -271,7 +273,7 @@ export function useSearchGames(query: string, limit = 20) {
   const catalogQuery = useSearchCatalog(query, limit);
   return {
     ...catalogQuery,
-    data: (catalogQuery.data ?? []).map(({ hasDetails, ...game }) => game),
+    data: (catalogQuery.data ?? []).map(({ hasDetails: _hasDetails, ...game }) => game),
   };
 }
 
@@ -307,11 +309,11 @@ export function useSearchCatalog(query: string, limit = 20) {
 
       if (!appsFailed && list.length > 0) {
         const filteredList = list.filter((app) =>
-          isLikelyGame({ title: app.name, tags: [], genre: undefined })
+          isLikelyGame({ title: app.name, tags: [], genre: undefined }),
         );
         const merged = await mergeCatalogItems(
           filteredList.map((app) => ({ app_id: app.app_id, title: app.name })),
-          locale
+          locale,
         );
         return sortByPopularity(merged);
       }
@@ -347,7 +349,7 @@ export function useSearchCatalog(query: string, limit = 20) {
       const items = (fallbackData?.items ?? []) as CatalogItem[];
 
       const filteredItems = items.filter((item) =>
-        isLikelyGame({ title: item.title, tags: [], genre: undefined })
+        isLikelyGame({ title: item.title, tags: [], genre: undefined }),
       );
 
       if (filteredItems.length === 0) return [];
@@ -403,7 +405,7 @@ export function useEnsureGameDetails() {
       return data as { status: string; app_id: number };
     },
     // Revalida caches que dependem do detalhe do jogo.
-    onSuccess: (_, appId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["games", "by-id"] });
       queryClient.invalidateQueries({ queryKey: ["games", "by-ids"] });
       queryClient.invalidateQueries({ queryKey: ["games", "catalog-search"] });

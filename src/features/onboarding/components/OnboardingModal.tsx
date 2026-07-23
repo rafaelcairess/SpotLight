@@ -5,7 +5,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -78,10 +84,7 @@ export default function OnboardingModal() {
     }
   }, [profile, isSteamUser]);
 
-  const selectedIds = useMemo(
-    () => selectedGames.map((game) => game.app_id),
-    [selectedGames]
-  );
+  const selectedIds = useMemo(() => selectedGames.map((game) => game.app_id), [selectedGames]);
   const selectedMap = useMemo(() => new Set(selectedIds), [selectedIds]);
 
   const closeOnboarding = () => {
@@ -105,19 +108,6 @@ export default function OnboardingModal() {
     ]);
   };
 
-  const handleSaveProfile = async () => {
-    if (!user || !isSteamUser) return;
-    try {
-      await updateProfile.mutateAsync({
-        display_name: displayName.trim() || undefined,
-        username: username.trim() || undefined,
-      });
-      toast({ title: t("onboarding.profileSaved") });
-    } catch {
-      toast({ title: t("onboarding.profileError"), variant: "destructive" });
-    }
-  };
-
   const handleFinish = async () => {
     setShowMature(matureEnabled);
 
@@ -138,7 +128,7 @@ export default function OnboardingModal() {
           await ensureFavorite.mutateAsync(appId);
         }
         toast({ title: t("onboarding.favoritesSaved") });
-      } catch (error) {
+      } catch {
         toast({ title: t("onboarding.favoritesError"), variant: "destructive" });
       }
     }
@@ -185,7 +175,9 @@ export default function OnboardingModal() {
               <Input
                 id="onb-username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                onChange={(e) =>
+                  setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
+                }
                 placeholder={t("onboarding.usernamePlaceholder")}
               />
             </div>
@@ -245,9 +237,7 @@ export default function OnboardingModal() {
                 className="rounded-lg border border-border/40 bg-secondary/30 p-2"
               >
                 <p className="text-xs font-semibold">{item.title}</p>
-                <p className="text-[11px] text-muted-foreground leading-snug">
-                  {item.description}
-                </p>
+                <p className="text-[11px] text-muted-foreground leading-snug">{item.description}</p>
               </div>
             ))}
           </div>
@@ -381,7 +371,9 @@ export default function OnboardingModal() {
         <DialogHeader>
           <div className="flex items-center gap-2 text-primary">
             <Sparkles className="w-4 h-4" />
-            <span className="text-xs font-semibold uppercase tracking-wider">{t("onboarding.tutorialLabel")}</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">
+              {t("onboarding.tutorialLabel")}
+            </span>
           </div>
           <DialogTitle>{stepTitles[step]}</DialogTitle>
           <DialogDescription className="sr-only">
@@ -389,9 +381,7 @@ export default function OnboardingModal() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-4">
-          {renderStep()}
-        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-4">{renderStep()}</div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-4">
           <Button type="button" variant="ghost" onClick={closeOnboarding}>
@@ -419,4 +409,3 @@ export default function OnboardingModal() {
     </Dialog>
   );
 }
-

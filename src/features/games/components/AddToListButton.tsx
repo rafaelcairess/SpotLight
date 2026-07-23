@@ -5,12 +5,13 @@
 import { useState } from "react";
 import { List, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useUserLists, useUserListGames, useAddGameToList, useRemoveGameFromList } from "@/hooks/useUserLists";
+  useUserLists,
+  useUserListGames,
+  useAddGameToList,
+  useRemoveGameFromList,
+} from "@/hooks/useUserLists";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -19,7 +20,15 @@ interface AddToListButtonProps {
   appId: number;
 }
 
-function ListItem({ listId, listName, appId }: { listId: string; listName: string; appId: number }) {
+function ListItem({
+  listId,
+  listName,
+  appId,
+}: {
+  listId: string;
+  listName: string;
+  appId: number;
+}) {
   const { data: listGames = [] } = useUserListGames(listId);
   const addGame = useAddGameToList();
   const removeGame = useRemoveGameFromList();

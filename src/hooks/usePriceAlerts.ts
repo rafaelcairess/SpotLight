@@ -64,7 +64,7 @@ export function usePriceAlerts(gameId?: number) {
             is_active: true,
             notified_at: null,
           },
-          { onConflict: "user_id,game_id" }
+          { onConflict: "user_id,game_id" },
         )
         .select()
         .single();

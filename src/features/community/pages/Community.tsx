@@ -22,13 +22,15 @@ const Community = () => {
   const { t } = useTranslation();
 
   const hasSearch = searchTerm.trim().length >= 2;
-  const { data: searchResults = [], isLoading: searchLoading } = useSearchProfiles(searchTerm.trim());
+  const { data: searchResults = [], isLoading: searchLoading } = useSearchProfiles(
+    searchTerm.trim(),
+  );
 
   const filteredProfiles = searchResults.filter((profile) => profile.user_id !== user?.id);
 
   const profileIds = useMemo(
     () => filteredProfiles.map((profile) => profile.user_id),
-    [filteredProfiles]
+    [filteredProfiles],
   );
 
   const { data: followingIds = [] } = useFollowingIds(profileIds);
@@ -125,10 +127,16 @@ const Community = () => {
                         size="md"
                       />
                       <div className="min-w-0">
-                        <p className="font-medium truncate">{profile.display_name || profile.username}</p>
-                        <p className="text-xs text-muted-foreground truncate">@{profile.username}</p>
+                        <p className="font-medium truncate">
+                          {profile.display_name || profile.username}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          @{profile.username}
+                        </p>
                         {profile.bio && (
-                          <p className="text-xs text-muted-foreground line-clamp-1 mt-1">{profile.bio}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
+                            {profile.bio}
+                          </p>
                         )}
                       </div>
                     </div>

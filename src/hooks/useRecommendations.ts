@@ -100,15 +100,17 @@ export function useRecommendations(limit = 12) {
       if (!user?.id) return [] as RecommendedGame[];
 
       // Carrega biblioteca e reviews do usuario em paralelo.
-      const [{ data: userGames, error: userGamesError }, { data: userReviews, error: reviewsError }] = await Promise.all([
+      const [
+        { data: userGames, error: userGamesError },
+        { data: userReviews, error: reviewsError },
+      ] = await Promise.all([
         supabase
           .from("user_games")
-          .select("app_id, status, is_favorite, is_platinumed, hours_played, hours_played_manual, hours_override")
+          .select(
+            "app_id, status, is_favorite, is_platinumed, hours_played, hours_played_manual, hours_override",
+          )
           .eq("user_id", user.id),
-        supabase
-          .from("reviews")
-          .select("app_id, is_positive, score")
-          .eq("user_id", user.id),
+        supabase.from("reviews").select("app_id, is_positive, score").eq("user_id", user.id),
       ]);
 
       if (userGamesError) throw userGamesError;
@@ -124,7 +126,10 @@ export function useRecommendations(limit = 12) {
           ? supabase
               .from("games")
               .select("app_id, genre, tags")
-              .in("app_id", profileGames.map((game) => game.app_id))
+              .in(
+                "app_id",
+                profileGames.map((game) => game.app_id),
+              )
           : Promise.resolve({ data: [], error: null }),
         supabase
           .from("games")
@@ -136,7 +141,10 @@ export function useRecommendations(limit = 12) {
       if (ownedGamesResult.error) throw ownedGamesResult.error;
       if (candidateGamesResult.error) throw candidateGamesResult.error;
 
-      const ownedGames = (ownedGamesResult.data || []) as Pick<GameRow, "app_id" | "genre" | "tags">[];
+      const ownedGames = (ownedGamesResult.data || []) as Pick<
+        GameRow,
+        "app_id" | "genre" | "tags"
+      >[];
       const candidateGames = (candidateGamesResult.data || []) as CandidateGameRow[];
 
       const ownedGameMap = new Map(ownedGames.map((game) => [game.app_id, game]));
@@ -200,9 +208,7 @@ export function useRecommendations(limit = 12) {
 
         // Soma signal de rating e popularidade ao score de tags.
         const ratingScore = (game.community_rating || 0) * 0.08;
-        const popularityScore = game.active_players
-          ? Math.log10(game.active_players + 1) * 3
-          : 0;
+        const popularityScore = game.active_players ? Math.log10(game.active_players + 1) * 3 : 0;
 
         recommendations.push({
           game,
@@ -212,19 +218,20 @@ export function useRecommendations(limit = 12) {
       }
 
       // Se não houver recomendações personalizadas, volta para populares.
-      const selected = recommendations.length === 0
-        ? candidateGames
-          .filter((game) => !ownedAppIds.has(game.app_id))
-          .sort((a, b) => (b.active_players || 0) - (a.active_players || 0))
-          .slice(0, limit)
-          .map((game) => ({
-            game,
-            recommendationScore: 0,
-            matchedTags: [],
-          }))
-        : recommendations
-          .sort((a, b) => b.recommendationScore - a.recommendationScore)
-          .slice(0, limit);
+      const selected =
+        recommendations.length === 0
+          ? candidateGames
+              .filter((game) => !ownedAppIds.has(game.app_id))
+              .sort((a, b) => (b.active_players || 0) - (a.active_players || 0))
+              .slice(0, limit)
+              .map((game) => ({
+                game,
+                recommendationScore: 0,
+                matchedTags: [],
+              }))
+          : recommendations
+              .sort((a, b) => b.recommendationScore - a.recommendationScore)
+              .slice(0, limit);
 
       if (selected.length === 0) return [];
 
@@ -232,7 +239,10 @@ export function useRecommendations(limit = 12) {
       const { data: detailedGames, error: detailedGamesError } = await supabase
         .from("games")
         .select("*")
-        .in("app_id", selected.map(({ game }) => game.app_id));
+        .in(
+          "app_id",
+          selected.map(({ game }) => game.app_id),
+        );
 
       if (detailedGamesError) throw detailedGamesError;
       const detailsById = new Map(
@@ -240,7 +250,7 @@ export function useRecommendations(limit = 12) {
       );
 
       return selected.map(({ game, recommendationScore, matchedTags }) => ({
-        ...mapGameRow(detailsById.get(game.app_id) || game as GameRow),
+        ...mapGameRow(detailsById.get(game.app_id) || (game as GameRow)),
         recommendationScore,
         matchedTags,
       }));

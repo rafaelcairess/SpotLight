@@ -11,7 +11,7 @@ export const useLocalStorageState = <T>(
   key: string,
   defaultValue: T,
   parse: Parser<T>,
-  serialize: Serializer<T>
+  serialize: Serializer<T>,
 ) => {
   const [value, setValue] = useState<T>(defaultValue);
   const parseRef = useRef(parse);

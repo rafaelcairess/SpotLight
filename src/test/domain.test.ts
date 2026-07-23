@@ -22,8 +22,12 @@ describe("game filters", () => {
 
 describe("playtime", () => {
   it("uses manual hours only when override is enabled", () => {
-    expect(getEffectiveHours({ hours_played: 10, hours_played_manual: 25, hours_override: true })).toBe(25);
-    expect(getEffectiveHours({ hours_played: 10, hours_played_manual: 25, hours_override: false })).toBe(10);
+    expect(
+      getEffectiveHours({ hours_played: 10, hours_played_manual: 25, hours_override: true }),
+    ).toBe(25);
+    expect(
+      getEffectiveHours({ hours_played: 10, hours_played_manual: 25, hours_override: false }),
+    ).toBe(10);
   });
 
   it("identifies a valid manual override", () => {
@@ -45,9 +49,30 @@ describe("popularity sorting", () => {
 
 describe("discovery ranking", () => {
   const games = [
-    { app_id: 1, title: "Ótimo", image: "1.jpg", communityRating: 95, activePlayers: 5_000, releaseDate: "9/jul./2026" },
-    { app_id: 2, title: "Popular ruim", image: "2.jpg", communityRating: 55, activePlayers: 100_000, releaseDate: "5/jun./2026" },
-    { app_id: 3, title: "Antigo bom", image: "3.jpg", communityRating: 98, activePlayers: 4_000, releaseDate: "26/fev./2016" },
+    {
+      app_id: 1,
+      title: "Ótimo",
+      image: "1.jpg",
+      communityRating: 95,
+      activePlayers: 5_000,
+      releaseDate: "9/jul./2026",
+    },
+    {
+      app_id: 2,
+      title: "Popular ruim",
+      image: "2.jpg",
+      communityRating: 55,
+      activePlayers: 100_000,
+      releaseDate: "5/jun./2026",
+    },
+    {
+      app_id: 3,
+      title: "Antigo bom",
+      image: "3.jpg",
+      communityRating: 98,
+      activePlayers: 4_000,
+      releaseDate: "26/fev./2016",
+    },
   ];
 
   it("interpreta datas localizadas da Steam", () => {

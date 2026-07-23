@@ -43,7 +43,9 @@ export const GameModalHeader = ({ game }: GameModalHeaderProps) => {
             </Badge>
           )}
           <Button
-            onClick={() => window.open(getSteamStoreUrl(game.app_id), "_blank", "noopener,noreferrer")}
+            onClick={() =>
+              window.open(getSteamStoreUrl(game.app_id), "_blank", "noopener,noreferrer")
+            }
             className="mt-5 h-11 gap-2 bg-[#1b6ca8] px-5 text-white shadow-lg shadow-[#1b6ca8]/20 hover:bg-[#2387c8]"
           >
             <img src={steamIcon} alt="" className="h-5 w-5" />

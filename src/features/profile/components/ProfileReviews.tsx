@@ -11,7 +11,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import ReviewForm from "@/features/reviews/components/ReviewForm";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -36,7 +42,7 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
   const { data: catalogGames = [], isLoading: catalogLoading } = useGamesByIds(appIds);
   const gameMap = useMemo(
     () => new Map(catalogGames.map((game) => [game.app_id, game])),
-    [catalogGames]
+    [catalogGames],
   );
 
   if (isLoading || catalogLoading) {
@@ -68,10 +74,19 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
         const isMine = user?.id === review.user_id;
 
         return (
-          <div key={review.id} className="bg-card rounded-lg border border-border/50 overflow-hidden">
+          <div
+            key={review.id}
+            className="bg-card rounded-lg border border-border/50 overflow-hidden"
+          >
             <div className="flex items-center gap-3 p-4 border-b border-border/50 bg-secondary/30">
               {gameInfo && (
-                <img src={gameInfo.image} alt={gameInfo.title} loading="lazy" decoding="async" className="w-16 h-10 object-cover rounded" />
+                <img
+                  src={gameInfo.image}
+                  alt={gameInfo.title}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-16 h-10 object-cover rounded"
+                />
               )}
               <div className="flex-1">
                 <h3 className="font-semibold">{gameInfo?.title || `App ID: ${review.app_id}`}</h3>
@@ -96,7 +111,7 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium",
                     review.is_positive
                       ? "bg-emerald-500/10 text-emerald-500"
-                      : "bg-rose-500/10 text-rose-500"
+                      : "bg-rose-500/10 text-rose-500",
                   )}
                 >
                   {review.is_positive ? (
@@ -144,7 +159,10 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
                           await deleteReview.mutateAsync(review.id);
                           toast({ title: t("gameModal.reviewDeleted") });
                         } catch (error) {
-                          toast({ title: t("gameModal.reviewDeleteError"), variant: "destructive" });
+                          toast({
+                            title: t("gameModal.reviewDeleteError"),
+                            variant: "destructive",
+                          });
                         }
                       }}
                       aria-label={t("gameModal.deleteReview")}
@@ -175,7 +193,9 @@ export function ProfileReviews({ reviews, isLoading }: ProfileReviewsProps) {
         <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>{t("gameModal.editReviewTitle")}</DialogTitle>
-            <DialogDescription>{t("gameModal.editReviewDescription", { title: editingTitle })}</DialogDescription>
+            <DialogDescription>
+              {t("gameModal.editReviewDescription", { title: editingTitle })}
+            </DialogDescription>
           </DialogHeader>
           {editingAppId !== null && (
             <ReviewForm

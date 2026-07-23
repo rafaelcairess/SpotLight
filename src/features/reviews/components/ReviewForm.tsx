@@ -48,15 +48,13 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
         typeof existingReview.score === "number"
           ? Math.max(0, Math.min(5, Math.round(existingReview.score)))
           : existingReview.is_positive
-          ? 4
-          : 2;
+            ? 4
+            : 2;
       setScore(initialScore);
       setIsPositive(initialScore >= 3);
       setContent(existingReview.content || "");
       setHoursAtReview(
-        existingReview.hours_at_review !== null
-          ? Math.trunc(existingReview.hours_at_review)
-          : ""
+        existingReview.hours_at_review !== null ? Math.trunc(existingReview.hours_at_review) : "",
       );
     } else {
       setIsPositive(true);
@@ -97,7 +95,10 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
     }
 
     const hoursValue = hoursAtReview === "" ? undefined : Number(hoursAtReview);
-    if (hoursValue !== undefined && (!Number.isFinite(hoursValue) || !Number.isInteger(hoursValue))) {
+    if (
+      hoursValue !== undefined &&
+      (!Number.isFinite(hoursValue) || !Number.isInteger(hoursValue))
+    ) {
       toast({ title: t("reviewForm.invalidHours"), variant: "destructive" });
       return;
     }
@@ -169,10 +170,7 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
   };
 
   const isSaving =
-    createReview.isPending ||
-    updateReview.isPending ||
-    addGame.isPending ||
-    deleteReview.isPending;
+    createReview.isPending || updateReview.isPending || addGame.isPending || deleteReview.isPending;
   const isCooldownActive = cooldownRemaining > 0;
 
   return (
@@ -264,9 +262,7 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
         />
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        {t("reviewForm.limitHint")}
-      </p>
+      <p className="text-xs text-muted-foreground">{t("reviewForm.limitHint")}</p>
 
       <div className="flex justify-end gap-2">
         {onClose && (
@@ -299,8 +295,8 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
           {isSaving
             ? t("reviewForm.saving")
             : isCooldownActive
-            ? t("reviewForm.wait", { seconds: Math.ceil(cooldownRemaining / 1000) })
-            : t("reviewForm.saveAction")}
+              ? t("reviewForm.wait", { seconds: Math.ceil(cooldownRemaining / 1000) })
+              : t("reviewForm.saveAction")}
         </Button>
       </div>
     </form>
@@ -308,4 +304,3 @@ const ReviewForm = ({ appId, onClose }: ReviewFormProps) => {
 };
 
 export default ReviewForm;
-

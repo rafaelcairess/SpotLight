@@ -148,10 +148,13 @@ serve(async (req) => {
         });
       } else {
         const id = byAppId.get(appId)!;
-        await supabase.from("user_games").update({
-          is_platinumed: isPlatinumed,
-          updated_at: now,
-        }).eq("id", id);
+        await supabase
+          .from("user_games")
+          .update({
+            is_platinumed: isPlatinumed,
+            updated_at: now,
+          })
+          .eq("id", id);
       }
     }
 
@@ -163,10 +166,7 @@ serve(async (req) => {
       await supabase.from("user_games").insert(inserts);
     }
 
-    await supabase
-      .from("profiles")
-      .update({ psn_last_synced: now })
-      .eq("user_id", user_id);
+    await supabase.from("profiles").update({ psn_last_synced: now }).eq("user_id", user_id);
 
     return json(200, { synced: titles.length, inserted: inserts.length });
   } catch (err) {

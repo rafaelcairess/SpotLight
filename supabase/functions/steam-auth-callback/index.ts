@@ -53,7 +53,7 @@ const fetchSteamPlayerSummary = async (
       `&steamids=${encodeURIComponent(steamId)}`;
     const data = await fetchJson(summaryUrl);
     const player = data?.response?.players?.[0];
-    return player && typeof player === "object" ? player as SteamPlayerSummary : null;
+    return player && typeof player === "object" ? (player as SteamPlayerSummary) : null;
   } catch (error) {
     // Uma falha na foto/nome da Steam não deve impedir o login.
     console.error("steam_profile_fetch_error:", error);
@@ -73,328 +73,332 @@ const getCookie = (cookieHeader: string | null, name: string): string | null => 
 
 serve(async (req) => {
   try {
-  const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
-  const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-  const STEAM_API_KEY = Deno.env.get("STEAM_API_KEY") || "";
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const STEAM_API_KEY = Deno.env.get("STEAM_API_KEY") || "";
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    return json(500, { error: "server_not_configured" });
-  }
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      return json(500, { error: "server_not_configured" });
+    }
 
-  const url = new URL(req.url);
-  const fallbackSite = Deno.env.get("SITE_URL") || Deno.env.get("PUBLIC_SITE_URL") || url.origin;
+    const url = new URL(req.url);
+    const fallbackSite = Deno.env.get("SITE_URL") || Deno.env.get("PUBLIC_SITE_URL") || url.origin;
 
-  let baseOrigin = url.origin;
-  try {
-    baseOrigin = new URL(fallbackSite).origin;
-  } catch {
-    baseOrigin = url.origin;
-  }
+    const safeRedirect = buildRedirect(url.searchParams.get("redirect"), fallbackSite);
 
-  const safeRedirect = buildRedirect(url.searchParams.get("redirect"), fallbackSite);
+    // ── Validação CSRF via nonce ──────────────────────────────────────
+    const nonceFromUrl = url.searchParams.get("nonce");
+    const nonceFromCookie = getCookie(req.headers.get("cookie"), "steam_nonce");
 
-  // ── Validação CSRF via nonce ──────────────────────────────────────
-  const nonceFromUrl = url.searchParams.get("nonce");
-  const nonceFromCookie = getCookie(req.headers.get("cookie"), "steam_nonce");
+    if (!nonceFromUrl || !nonceFromCookie || nonceFromUrl !== nonceFromCookie) {
+      return json(403, { error: "csrf_nonce_mismatch" });
+    }
+    // ─────────────────────────────────────────────────────────────────
 
-  if (!nonceFromUrl || !nonceFromCookie || nonceFromUrl !== nonceFromCookie) {
-    return json(403, { error: "csrf_nonce_mismatch" });
-  }
-  // ─────────────────────────────────────────────────────────────────
+    const openIdParams = new URLSearchParams();
+    for (const [key, value] of url.searchParams.entries()) {
+      if (key.startsWith("openid.")) openIdParams.set(key, value);
+    }
 
-  const openIdParams = new URLSearchParams();
-  for (const [key, value] of url.searchParams.entries()) {
-    if (key.startsWith("openid.")) openIdParams.set(key, value);
-  }
+    if (!openIdParams.get("openid.claimed_id")) {
+      return json(400, { error: "missing_openid_claim" });
+    }
 
-  if (!openIdParams.get("openid.claimed_id")) {
-    return json(400, { error: "missing_openid_claim" });
-  }
+    openIdParams.set("openid.mode", "check_authentication");
 
-  openIdParams.set("openid.mode", "check_authentication");
-
-  const verifyRes = await fetch("https://steamcommunity.com/openid/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: openIdParams.toString(),
-  });
-
-  if (!verifyRes.ok) {
-    return json(502, { error: "steam_verify_failed" });
-  }
-
-  const verifyText = await verifyRes.text();
-  if (!verifyText.includes("is_valid:true")) {
-    return json(401, { error: "steam_invalid" });
-  }
-
-  const claimedId = openIdParams.get("openid.claimed_id") || "";
-  const match = claimedId.match(/https?:\/\/steamcommunity\.com\/openid\/id\/(\d{17})/);
-  const steamId = match?.[1];
-
-  if (!steamId) {
-    return json(400, { error: "steam_id_missing" });
-  }
-
-  const steamPlayer = await fetchSteamPlayerSummary(STEAM_API_KEY, steamId);
-  const steamDisplayName = steamPlayer?.personaname?.trim() || `Steam ${steamId.slice(-4)}`;
-  const steamAvatarUrl = steamPlayer?.avatarfull?.trim() || null;
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false },
-  });
-
-  const email = `steam_${steamId}@steam.local`;
-  const adminHeaders = {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-    "apikey": SUPABASE_SERVICE_ROLE_KEY,
-  };
-
-  let userId: string | undefined;
-
-  // Busca usuário existente pelo email via REST API
-  const listRes = await fetch(
-    `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(email)}&page=1&per_page=1`,
-    { headers: adminHeaders }
-  );
-  const listData = await listRes.json();
-  const existingUser = listData?.users?.[0];
-
-  if (existingUser?.id) {
-    userId = existingUser.id;
-    // Atualiza metadados
-    await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
-      method: "PUT",
-      headers: adminHeaders,
-      body: JSON.stringify({
-        user_metadata: {
-          steam_id: steamId,
-          provider: "steam",
-          display_name: steamDisplayName,
-          avatar_url: steamAvatarUrl,
-        },
-      }),
-    });
-  } else {
-    // Cria novo usuário
-    const createRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+    const verifyRes = await fetch("https://steamcommunity.com/openid/login", {
       method: "POST",
-      headers: adminHeaders,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: openIdParams.toString(),
+    });
+
+    if (!verifyRes.ok) {
+      return json(502, { error: "steam_verify_failed" });
+    }
+
+    const verifyText = await verifyRes.text();
+    if (!verifyText.includes("is_valid:true")) {
+      return json(401, { error: "steam_invalid" });
+    }
+
+    const claimedId = openIdParams.get("openid.claimed_id") || "";
+    const match = claimedId.match(/https?:\/\/steamcommunity\.com\/openid\/id\/(\d{17})/);
+    const steamId = match?.[1];
+
+    if (!steamId) {
+      return json(400, { error: "steam_id_missing" });
+    }
+
+    const steamPlayer = await fetchSteamPlayerSummary(STEAM_API_KEY, steamId);
+    const steamDisplayName = steamPlayer?.personaname?.trim() || `Steam ${steamId.slice(-4)}`;
+    const steamAvatarUrl = steamPlayer?.avatarfull?.trim() || null;
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    });
+
+    const email = `steam_${steamId}@steam.local`;
+    const adminHeaders = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+    };
+
+    let userId: string | undefined;
+
+    // Busca usuário existente pelo email via REST API
+    const listRes = await fetch(
+      `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(email)}&page=1&per_page=1`,
+      { headers: adminHeaders },
+    );
+    const listData = await listRes.json();
+    const existingUser = listData?.users?.[0];
+
+    if (existingUser?.id) {
+      userId = existingUser.id;
+      // Atualiza metadados
+      await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+        method: "PUT",
+        headers: adminHeaders,
+        body: JSON.stringify({
+          user_metadata: {
+            steam_id: steamId,
+            provider: "steam",
+            display_name: steamDisplayName,
+            avatar_url: steamAvatarUrl,
+          },
+        }),
+      });
+    } else {
+      // Cria novo usuário
+      const createRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+        method: "POST",
+        headers: adminHeaders,
+        body: JSON.stringify({
+          email,
+          email_confirm: true,
+          user_metadata: {
+            steam_id: steamId,
+            provider: "steam",
+            display_name: steamDisplayName,
+            avatar_url: steamAvatarUrl,
+          },
+        }),
+      });
+      const createdUser = await createRes.json();
+      if (!createRes.ok || !createdUser?.id) {
+        console.error("user_create_failed:", JSON.stringify(createdUser));
+        return json(500, { error: "user_create_failed", detail: createdUser?.message });
+      }
+      userId = createdUser.id;
+    }
+
+    if (!userId) {
+      return json(500, { error: "user_missing" });
+    }
+
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("display_name, avatar_url")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const generatedDisplayName = `Steam ${steamId.slice(-4)}`;
+    const shouldImportDisplayName =
+      !existingProfile?.display_name || existingProfile.display_name === generatedDisplayName;
+    const shouldImportAvatar = !existingProfile?.avatar_url;
+
+    // Atualiza identidade Steam sem sobrescrever personalizações feitas no SpotLight.
+    const { data: updatedRows, error: updateErr } = await supabase
+      .from("profiles")
+      .update({
+        steam_id: steamId,
+        ...(shouldImportDisplayName ? { display_name: steamDisplayName } : {}),
+        ...(shouldImportAvatar && steamAvatarUrl ? { avatar_url: steamAvatarUrl } : {}),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", userId)
+      .select("id");
+
+    // Se não encontrou perfil (trigger não rodou), cria um novo
+    if (!updatedRows || updatedRows.length === 0) {
+      await supabase.from("profiles").insert({
+        user_id: userId,
+        username: `steam_${steamId.slice(-8)}`,
+        steam_id: steamId,
+        profile_visibility: "public",
+        library_visibility: "public",
+        reviews_visibility: "public",
+        display_name: steamDisplayName,
+        avatar_url: steamAvatarUrl,
+      });
+    }
+    if (updateErr) console.error("profile_update_error:", JSON.stringify(updateErr));
+
+    if (STEAM_API_KEY) {
+      try {
+        const ownedUrl =
+          `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${STEAM_API_KEY}` +
+          `&steamid=${steamId}&include_played_free_games=1&include_appinfo=1`;
+
+        const data = await fetchJson(ownedUrl);
+        const games: Array<{
+          appid: number;
+          playtime_forever?: number;
+          name?: string;
+          rtime_last_played?: number;
+        }> = Array.isArray(data?.response?.games) ? data.response.games : [];
+
+        const twelveMonthsAgoUnix = Math.floor(Date.now() / 1000) - 365 * 24 * 3600;
+        const getSmartStatus = (
+          hours: number,
+          rtime?: number,
+        ): "wishlist" | "playing" | "dropped" => {
+          const rt = rtime ?? 0;
+          if (rt === 0) return hours > 0 ? "playing" : "wishlist";
+          return rt < twelveMonthsAgoUnix ? "dropped" : "playing";
+        };
+
+        // Perfil Steam privado: games é undefined/vazio — registra mas não bloqueia o login
+        if (games.length === 0) {
+          await supabase
+            .from("profiles")
+            .update({
+              steam_last_synced: new Date().toISOString(),
+              steam_library_private: true,
+            })
+            .eq("user_id", userId);
+        } else {
+          const { data: userGames } = await supabase
+            .from("user_games")
+            .select("id, app_id")
+            .eq("user_id", userId);
+
+          const byAppId = new Map<number, string>();
+          for (const row of userGames || []) {
+            byAppId.set(row.app_id, row.id);
+          }
+
+          const now = new Date().toISOString();
+          const inserts: Array<{
+            user_id: string;
+            app_id: number;
+            status: "wishlist" | "playing" | "dropped";
+            hours_played: number;
+            source: string;
+            added_at: string;
+            updated_at: string;
+          }> = [];
+          const catalogRows: Array<{
+            app_id: number;
+            title: string;
+            image: string | null;
+            steam_url: string | null;
+            last_synced: string;
+          }> = [];
+          const updates = games
+            .map((game) => {
+              const id = byAppId.get(game.appid);
+              const minutes = Number.isFinite(game.playtime_forever)
+                ? game.playtime_forever || 0
+                : 0;
+              const hours = minutesToHours(minutes);
+
+              if (id) {
+                return { id, hours_played: hours, updated_at: now };
+              }
+
+              const status = getSmartStatus(hours, game.rtime_last_played);
+              inserts.push({
+                user_id: userId!,
+                app_id: game.appid,
+                status,
+                hours_played: hours,
+                source: "steam",
+                added_at: now,
+                updated_at: now,
+              });
+
+              const title =
+                typeof game.name === "string" && game.name.trim().length > 0
+                  ? game.name.trim()
+                  : `App ${game.appid}`;
+
+              catalogRows.push({
+                app_id: game.appid,
+                title,
+                image: `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`,
+                steam_url: `https://store.steampowered.com/app/${game.appid}`,
+                last_synced: now,
+              });
+
+              return null;
+            })
+            .filter(
+              (row): row is { id: string; hours_played: number; updated_at: string } => !!row,
+            );
+
+          if (updates.length) {
+            await supabase.from("user_games").upsert(updates, { onConflict: "id" });
+          }
+
+          if (inserts.length) {
+            await supabase.from("user_games").insert(inserts);
+          }
+
+          if (catalogRows.length) {
+            await supabase.from("games").upsert(catalogRows, { onConflict: "app_id" });
+          }
+
+          await supabase
+            .from("profiles")
+            .update({
+              steam_last_synced: now,
+              steam_library_private: false,
+            })
+            .eq("user_id", userId);
+        }
+      } catch {
+        // Best effort: não bloqueia o login em caso de falha na sincronização Steam.
+      }
+    }
+
+    // Gera magic link via REST API direta (mais confiável que supabase-js)
+    const generateLinkRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/generate_link`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+      },
       body: JSON.stringify({
+        type: "magiclink",
         email,
-        email_confirm: true,
-        user_metadata: {
-          steam_id: steamId,
-          provider: "steam",
-          display_name: steamDisplayName,
-          avatar_url: steamAvatarUrl,
-        },
+        redirect_to: safeRedirect,
       }),
     });
-    const createdUser = await createRes.json();
-    if (!createRes.ok || !createdUser?.id) {
-      console.error("user_create_failed:", JSON.stringify(createdUser));
-      return json(500, { error: "user_create_failed", detail: createdUser?.message });
+
+    if (!generateLinkRes.ok) {
+      console.error("magiclink_failed status:", generateLinkRes.status);
+      return json(500, { error: "magiclink_failed" });
     }
-    userId = createdUser.id;
-  }
 
-  if (!userId) {
-    return json(500, { error: "user_missing" });
-  }
+    const generateLinkData = await generateLinkRes.json();
+    const actionLink = generateLinkData?.action_link;
 
-  const { data: existingProfile } = await supabase
-    .from("profiles")
-    .select("display_name, avatar_url")
-    .eq("user_id", userId)
-    .maybeSingle();
+    if (!actionLink) {
+      console.error("missing_action_link, response:", JSON.stringify(generateLinkData));
+      return json(500, { error: "missing_action_link" });
+    }
 
-  const generatedDisplayName = `Steam ${steamId.slice(-4)}`;
-  const shouldImportDisplayName =
-    !existingProfile?.display_name || existingProfile.display_name === generatedDisplayName;
-  const shouldImportAvatar = !existingProfile?.avatar_url;
-
-  // Atualiza identidade Steam sem sobrescrever personalizações feitas no SpotLight.
-  const { data: updatedRows, error: updateErr } = await supabase
-    .from("profiles")
-    .update({
-      steam_id: steamId,
-      ...(shouldImportDisplayName ? { display_name: steamDisplayName } : {}),
-      ...(shouldImportAvatar && steamAvatarUrl ? { avatar_url: steamAvatarUrl } : {}),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("user_id", userId)
-    .select("id");
-
-  // Se não encontrou perfil (trigger não rodou), cria um novo
-  if (!updatedRows || updatedRows.length === 0) {
-    await supabase.from("profiles").insert({
-      user_id: userId,
-      username: `steam_${steamId.slice(-8)}`,
-      steam_id: steamId,
-      profile_visibility: "public",
-      library_visibility: "public",
-      reviews_visibility: "public",
-      display_name: steamDisplayName,
-      avatar_url: steamAvatarUrl,
+    // Limpa o cookie de nonce após uso
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: actionLink,
+        "Set-Cookie": "steam_nonce=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0",
+      },
     });
-  }
-  if (updateErr) console.error("profile_update_error:", JSON.stringify(updateErr));
-
-  if (STEAM_API_KEY) {
-    try {
-      const ownedUrl =
-        `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${STEAM_API_KEY}` +
-        `&steamid=${steamId}&include_played_free_games=1&include_appinfo=1`;
-
-      const data = await fetchJson(ownedUrl);
-      const games: Array<{ appid: number; playtime_forever?: number; name?: string; rtime_last_played?: number }> =
-        Array.isArray(data?.response?.games) ? data.response.games : [];
-
-      const twelveMonthsAgoUnix = Math.floor(Date.now() / 1000) - 365 * 24 * 3600;
-      const getSmartStatus = (hours: number, rtime?: number): "wishlist" | "playing" | "dropped" => {
-        const rt = rtime ?? 0;
-        if (rt === 0) return hours > 0 ? "playing" : "wishlist";
-        return rt < twelveMonthsAgoUnix ? "dropped" : "playing";
-      };
-
-      // Perfil Steam privado: games é undefined/vazio — registra mas não bloqueia o login
-      if (games.length === 0) {
-        await supabase
-          .from("profiles")
-          .update({
-            steam_last_synced: new Date().toISOString(),
-            steam_library_private: true,
-          })
-          .eq("user_id", userId);
-      } else {
-        const { data: userGames } = await supabase
-          .from("user_games")
-          .select("id, app_id")
-          .eq("user_id", userId);
-
-        const byAppId = new Map<number, string>();
-        for (const row of userGames || []) {
-          byAppId.set(row.app_id, row.id);
-        }
-
-        const now = new Date().toISOString();
-        const inserts: Array<{
-          user_id: string;
-          app_id: number;
-          status: "wishlist" | "playing" | "dropped";
-          hours_played: number;
-          source: string;
-          added_at: string;
-          updated_at: string;
-        }> = [];
-        const catalogRows: Array<{
-          app_id: number;
-          title: string;
-          image: string | null;
-          steam_url: string | null;
-          last_synced: string;
-        }> = [];
-        const updates = games
-          .map((game) => {
-            const id = byAppId.get(game.appid);
-            const minutes = Number.isFinite(game.playtime_forever) ? game.playtime_forever || 0 : 0;
-            const hours = minutesToHours(minutes);
-
-            if (id) {
-              return { id, hours_played: hours, updated_at: now };
-            }
-
-            const status = getSmartStatus(hours, game.rtime_last_played);
-            inserts.push({
-              user_id: userId!,
-              app_id: game.appid,
-              status,
-              hours_played: hours,
-              source: "steam",
-              added_at: now,
-              updated_at: now,
-            });
-
-            const title =
-              typeof game.name === "string" && game.name.trim().length > 0
-                ? game.name.trim()
-                : `App ${game.appid}`;
-
-            catalogRows.push({
-              app_id: game.appid,
-              title,
-              image: `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`,
-              steam_url: `https://store.steampowered.com/app/${game.appid}`,
-              last_synced: now,
-            });
-
-            return null;
-          })
-          .filter((row): row is { id: string; hours_played: number; updated_at: string } => !!row);
-
-        if (updates.length) {
-          await supabase.from("user_games").upsert(updates, { onConflict: "id" });
-        }
-
-        if (inserts.length) {
-          await supabase.from("user_games").insert(inserts);
-        }
-
-        if (catalogRows.length) {
-          await supabase.from("games").upsert(catalogRows, { onConflict: "app_id" });
-        }
-
-        await supabase
-          .from("profiles")
-          .update({
-            steam_last_synced: now,
-            steam_library_private: false,
-          })
-          .eq("user_id", userId);
-      }
-    } catch {
-      // Best effort: não bloqueia o login em caso de falha na sincronização Steam.
-    }
-  }
-
-  // Gera magic link via REST API direta (mais confiável que supabase-js)
-  const generateLinkRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/generate_link`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-      "apikey": SUPABASE_SERVICE_ROLE_KEY,
-    },
-    body: JSON.stringify({
-      type: "magiclink",
-      email,
-      redirect_to: safeRedirect,
-    }),
-  });
-
-  if (!generateLinkRes.ok) {
-    console.error("magiclink_failed status:", generateLinkRes.status);
-    return json(500, { error: "magiclink_failed" });
-  }
-
-  const generateLinkData = await generateLinkRes.json();
-  const actionLink = generateLinkData?.action_link;
-
-  if (!actionLink) {
-    console.error("missing_action_link, response:", JSON.stringify(generateLinkData));
-    return json(500, { error: "missing_action_link" });
-  }
-
-  // Limpa o cookie de nonce após uso
-  return new Response(null, {
-    status: 302,
-    headers: {
-      Location: actionLink,
-      "Set-Cookie": "steam_nonce=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0",
-    },
-  });
   } catch (err) {
     console.error("unhandled_exception:", err instanceof Error ? err.message : String(err));
     return json(500, { error: "unhandled_exception" });

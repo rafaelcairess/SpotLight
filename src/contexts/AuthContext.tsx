@@ -1,17 +1,24 @@
 /**
- * Arquivo do projeto (AuthContext).
+ * Mantém a sessão Supabase e concentra os fluxos de autenticação.
+ *
+ * As páginas devem consumir este estado por `useAuth`; não devem criar outro
+ * listener de sessão, pois listeners concorrentes causam transições duplicadas.
  */
 
-import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { User, Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, displayName?: string) => Promise<{ error: Error | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    displayName?: string,
+  ) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signInWithSteam: () => Promise<{ error: Error | null }>;
@@ -47,15 +54,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     // Configura o listener de auth primeiro
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        authEventReceived = true;
-        applySession(session);
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      authEventReceived = true;
+      applySession(session);
+    });
 
     // Depois, checa a sessao existente
-    supabase.auth.getSession()
+    supabase.auth
+      .getSession()
       .then(({ data: { session } }) => {
         if (!authEventReceived) applySession(session);
       })
@@ -73,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       options: {
         emailRedirectTo: `${window.location.origin}/auth?mode=login`,
         data: {
-          display_name: displayName || 'Novo Gamer',
+          display_name: displayName || "Novo Gamer",
         },
       },
     });
@@ -90,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
         redirectTo: window.location.origin,
       },
@@ -150,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signOut();
     if (error) {
       // A conta pode já ter sido apagada no servidor; ainda assim remove a sessão local.
-      await supabase.auth.signOut({ scope: 'local' });
+      await supabase.auth.signOut({ scope: "local" });
     }
     activeUserId.current = null;
     setSession(null);
@@ -183,7 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

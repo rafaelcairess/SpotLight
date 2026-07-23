@@ -1,5 +1,6 @@
 /**
- * Arquivo do projeto (LanguageContext).
+ * Sincroniza o idioma escolhido entre i18next, localStorage e o atributo
+ * `lang` do documento.
  */
 
 import { createContext, useContext, useEffect, useMemo, ReactNode } from "react";
@@ -21,7 +22,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     STORAGE_KEYS.language,
     defaultLocale,
     (raw) => (raw ? normalizeLocale(raw) : null),
-    (value) => value
+    (value) => value,
   );
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
       locale,
       setLocale: setLocaleState,
     }),
-    [locale, setLocaleState]
+    [locale, setLocaleState],
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;

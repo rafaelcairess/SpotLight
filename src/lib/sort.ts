@@ -2,8 +2,10 @@
  * Helpers utilitários (sort).
  */
 
-export const sortByPopularity = <T extends { activePlayers?: number; communityRating?: number; title?: string }>(
-  items: T[]
+export const sortByPopularity = <
+  T extends { activePlayers?: number; communityRating?: number; title?: string },
+>(
+  items: T[],
 ) =>
   [...items].sort((a, b) => {
     const playersDiff = (b.activePlayers ?? 0) - (a.activePlayers ?? 0);

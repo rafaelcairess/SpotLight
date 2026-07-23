@@ -8,12 +8,12 @@ import { STORAGE_KEYS } from "@/config/storageKeys";
 
 export const useLayoutPreference = (
   storageKey: string = STORAGE_KEYS.layoutMode.base,
-  defaultMode: LayoutMode = "standard"
+  defaultMode: LayoutMode = "standard",
 ) => {
   return useLocalStorageState<LayoutMode>(
     storageKey,
     defaultMode,
     (raw) => (raw === "standard" || raw === "compact" ? raw : null),
-    (value) => value
+    (value) => value,
   );
 };

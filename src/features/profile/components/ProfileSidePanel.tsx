@@ -9,7 +9,14 @@ interface ProfileSidePanelProps {
   onSelect: (tab: string) => void;
 }
 
-export function ProfileSidePanel({ games, platinums, reviews, friends, lists, onSelect }: ProfileSidePanelProps) {
+export function ProfileSidePanel({
+  games,
+  platinums,
+  reviews,
+  friends,
+  lists,
+  onSelect,
+}: ProfileSidePanelProps) {
   const links = [
     { tab: "library", label: "Jogos", value: games, icon: Gamepad2 },
     { tab: "platinum", label: "Platinados", value: platinums, icon: Trophy },
@@ -30,7 +37,9 @@ export function ProfileSidePanel({ games, platinums, reviews, friends, lists, on
           >
             <Icon className="h-4 w-4 text-primary/80" />
             <span className="flex-1">{label}</span>
-            {value !== undefined && <span className="text-xl font-light text-foreground/70">{value}</span>}
+            {value !== undefined && (
+              <span className="text-xl font-light text-foreground/70">{value}</span>
+            )}
           </button>
         ))}
       </nav>

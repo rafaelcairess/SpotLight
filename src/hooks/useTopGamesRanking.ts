@@ -86,10 +86,7 @@ const matchesGenreAndTag = (game: GameData, genreFilter: string, tagFilter: stri
   const normalizedGenreFilter = normalizeText(genreFilter);
   const normalizedTagFilter = normalizeText(tagFilter);
 
-  const tokens = [
-    ...(game.genre ? game.genre.split(",") : []),
-    ...(game.tags || []),
-  ]
+  const tokens = [...(game.genre ? game.genre.split(",") : []), ...(game.tags || [])]
     .map((token) => normalizeText(token))
     .filter(Boolean);
 
@@ -112,26 +109,26 @@ export function useTopGamesRanking(genreFilter = "", tagFilter = "", limit = 100
         new Set(
           TOP_GAMES_SERIES_CURATED.flatMap((entry) => entry.match)
             .map((term) => term.trim())
-            .filter(Boolean)
-        )
+            .filter(Boolean),
+        ),
       );
 
-      const curatedOr = curatedTerms
-        .map((term) => `title.ilike.%${term}%`)
-        .join(",");
+      const curatedOr = curatedTerms.map((term) => `title.ilike.%${term}%`).join(",");
 
       // Busca em paralelo: pool curado + pool popular.
-      const [{ data: curatedData, error: curatedError }, { data: popularData, error: popularError }] =
-        await Promise.all([
-          curatedOr
-            ? supabase.from("games").select("*").or(curatedOr)
-            : supabase.from("games").select("*").limit(0),
-          supabase
-            .from("games")
-            .select("*")
-            .order("active_players", { ascending: false })
-            .limit(1200),
-        ]);
+      const [
+        { data: curatedData, error: curatedError },
+        { data: popularData, error: popularError },
+      ] = await Promise.all([
+        curatedOr
+          ? supabase.from("games").select("*").or(curatedOr)
+          : supabase.from("games").select("*").limit(0),
+        supabase
+          .from("games")
+          .select("*")
+          .order("active_players", { ascending: false })
+          .limit(1200),
+      ]);
 
       if (curatedError) throw curatedError;
       if (popularError) throw popularError;
@@ -147,7 +144,7 @@ export function useTopGamesRanking(genreFilter = "", tagFilter = "", limit = 100
           (game) =>
             !takenIds.has(game.app_id) &&
             includesAnyNormalized(game.title, entry.match) &&
-            matchesGenreAndTag(game, genreFilter, tagFilter)
+            matchesGenreAndTag(game, genreFilter, tagFilter),
         );
 
         if (found) {

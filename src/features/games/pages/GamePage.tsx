@@ -7,7 +7,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
-import { GameData } from "@/types/game";
 import { GameModalHeader } from "@/features/games/components/modal/GameModalHeader";
 import { GameModalStats } from "@/features/games/components/modal/GameModalStats";
 import { GameModalReviews } from "@/features/games/components/modal/GameModalReviews";

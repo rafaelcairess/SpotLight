@@ -49,10 +49,7 @@ export default function Explore() {
   const { data: dailyFeaturedGame, isLoading: dailyFeaturedLoading } = useDailyFeaturedGame();
 
   const qualityGames = useMemo(() => rankQualityGames(allGames), [allGames]);
-  const newReleases = useMemo(
-    () => rankNoteworthyReleases(allGames).slice(0, 10),
-    [allGames],
-  );
+  const newReleases = useMemo(() => rankNoteworthyReleases(allGames).slice(0, 10), [allGames]);
   const newReleaseIds = useMemo(
     () => new Set(newReleases.map((game) => game.app_id)),
     [newReleases],
@@ -72,9 +69,9 @@ export default function Explore() {
   );
   const categories = useMemo(
     () =>
-      FEATURED_CATEGORY_IDS
-        .map((id) => CATEGORIES.find((category) => category.id === id))
-        .filter((category): category is (typeof CATEGORIES)[number] => Boolean(category)),
+      FEATURED_CATEGORY_IDS.map((id) => CATEGORIES.find((category) => category.id === id)).filter(
+        (category): category is (typeof CATEGORIES)[number] => Boolean(category),
+      ),
     [],
   );
 
@@ -278,7 +275,11 @@ export default function Explore() {
         </div>
       </footer>
 
-      <GameModal game={selectedGame} isOpen={Boolean(selectedGame)} onClose={() => setSelectedGame(null)} />
+      <GameModal
+        game={selectedGame}
+        isOpen={Boolean(selectedGame)}
+        onClose={() => setSelectedGame(null)}
+      />
     </div>
   );
 }

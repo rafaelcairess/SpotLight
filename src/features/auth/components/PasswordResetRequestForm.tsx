@@ -71,7 +71,7 @@ export function PasswordResetRequestForm({ onBackToLogin }: PasswordResetRequest
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        {t("auth.form.rememberPassword")} {" "}
+        {t("auth.form.rememberPassword")}{" "}
         <button
           type="button"
           onClick={onBackToLogin}

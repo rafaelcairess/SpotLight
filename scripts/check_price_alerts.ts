@@ -5,7 +5,6 @@
  * Script de manutenção/sync (check price alerts).
  */
 
-
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -41,7 +40,9 @@ loadEnvFile(".env.local");
 
 const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "").trim();
 const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
-const FUNCTIONS_URL = (process.env.SUPABASE_FUNCTIONS_URL || `${SUPABASE_URL}/functions/v1`).replace(/\/$/, "");
+const FUNCTIONS_URL = (
+  process.env.SUPABASE_FUNCTIONS_URL || `${SUPABASE_URL}/functions/v1`
+).replace(/\/$/, "");
 const STEAM_STORE_LANGUAGE = process.env.STEAM_STORE_LANGUAGE || "brazilian";
 
 if (!SUPABASE_URL) {
@@ -116,9 +117,7 @@ const extractPriceSnapshot = (details: SteamDetails | null): PriceSnapshot | nul
   const priceOverview = details?.price_overview;
   if (!priceOverview) return null;
 
-  const priceValue = Number.isFinite(priceOverview.final)
-    ? priceOverview.final / 100
-    : null;
+  const priceValue = Number.isFinite(priceOverview.final) ? priceOverview.final / 100 : null;
 
   return {
     title: details.name || "Jogo",
@@ -149,15 +148,7 @@ const maskEmail = (email: string) => {
   return `${maskedName}@${maskedDomain}`;
 };
 
-const sendEmail = async ({
-  to,
-  subject,
-  html,
-}: {
-  to: string;
-  subject: string;
-  html: string;
-}) => {
+const sendEmail = async ({ to, subject, html }: { to: string; subject: string; html: string }) => {
   try {
     const res = await fetch(`${FUNCTIONS_URL}/send-price-alert-email`, {
       method: "POST",
@@ -176,7 +167,10 @@ const sendEmail = async ({
 
     return true;
   } catch (error: unknown) {
-    console.warn("Falha ao chamar a função de email:", error instanceof Error ? error.message : error);
+    console.warn(
+      "Falha ao chamar a função de email:",
+      error instanceof Error ? error.message : error,
+    );
     return false;
   }
 };
@@ -239,7 +233,7 @@ const main = async () => {
     if (alert.notified_at) continue;
 
     const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
-      alert.user_id
+      alert.user_id,
     );
     if (userError) {
       console.error(`Erro ao buscar usuÃ¡rio ${alert.user_id}:`, userError.message);

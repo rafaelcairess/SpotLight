@@ -94,9 +94,7 @@ const run = async () => {
 
       if (!batch.length) continue;
 
-      const { error } = await supabase
-        .from("steam_apps")
-        .upsert(batch, { onConflict: "app_id" });
+      const { error } = await supabase.from("steam_apps").upsert(batch, { onConflict: "app_id" });
 
       if (error) throw error;
       synced += batch.length;
@@ -157,7 +155,7 @@ const run = async () => {
       urls.push("https://api.steampowered.com/ISteamApps/GetAppList/v2/");
       if (STEAM_API_KEY) {
         urls.push(
-          `https://api.steampowered.com/ISteamApps/GetAppList/v2/?key=${encodeURIComponent(STEAM_API_KEY)}`
+          `https://api.steampowered.com/ISteamApps/GetAppList/v2/?key=${encodeURIComponent(STEAM_API_KEY)}`,
         );
       }
       urls.push("https://api.steampowered.com/ISteamApps/GetAppList/v0002/");
@@ -165,13 +163,13 @@ const run = async () => {
       if (STEAM_API_KEY) {
         urls.push(
           `https://api.steampowered.com/ISteamApps/GetAppList/v0002/?key=${encodeURIComponent(
-            STEAM_API_KEY
-          )}`
+            STEAM_API_KEY,
+          )}`,
         );
         urls.push(
           `https://steamcommunity.com/ISteamApps/GetAppList/v0002/?key=${encodeURIComponent(
-            STEAM_API_KEY
-          )}`
+            STEAM_API_KEY,
+          )}`,
         );
       }
     }

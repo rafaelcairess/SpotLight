@@ -98,7 +98,11 @@ export function PasswordResetForm({ onBackToLogin }: PasswordResetFormProps) {
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        <button type="button" onClick={onBackToLogin} className="text-primary hover:underline font-medium">
+        <button
+          type="button"
+          onClick={onBackToLogin}
+          className="text-primary hover:underline font-medium"
+        >
           {t("auth.form.backToLogin")}
         </button>
       </p>

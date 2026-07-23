@@ -28,21 +28,15 @@ export function useSendFeedback() {
         throw new Error("Mensagem é obrigatória");
       }
 
-      const name =
-        payload.name?.trim() ||
-        profile?.display_name ||
-        profile?.username ||
-        null;
+      const name = payload.name?.trim() || profile?.display_name || profile?.username || null;
       const email = payload.email?.trim() || user?.email || null;
 
-      const { error } = await supabase
-        .from("feedback")
-        .insert({
-          user_id: user?.id ?? null,
-          name,
-          email,
-          message,
-        });
+      const { error } = await supabase.from("feedback").insert({
+        user_id: user?.id ?? null,
+        name,
+        email,
+        message,
+      });
 
       if (error) throw error;
       return {

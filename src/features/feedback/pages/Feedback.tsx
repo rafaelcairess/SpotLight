@@ -55,7 +55,11 @@ export default function Feedback() {
 
       <main className="pt-24 md:pt-28 pb-12">
         <div className="container mx-auto px-4">
-          <SectionHeader title={t("feedback.title")} subtitle={t("feedback.anonymous")} icon={MessageSquare} />
+          <SectionHeader
+            title={t("feedback.title")}
+            subtitle={t("feedback.anonymous")}
+            icon={MessageSquare}
+          />
 
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
             <form
@@ -143,8 +147,12 @@ export default function Feedback() {
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div>
-                              <p className="text-sm font-semibold">{item.name || t("feedback.anonymousLabel")}</p>
-                              {item.email && <p className="text-xs text-muted-foreground">{item.email}</p>}
+                              <p className="text-sm font-semibold">
+                                {item.name || t("feedback.anonymousLabel")}
+                              </p>
+                              {item.email && (
+                                <p className="text-xs text-muted-foreground">{item.email}</p>
+                              )}
                             </div>
                             <span className="text-[11px] text-muted-foreground">
                               {format(new Date(item.created_at), "Pp", { locale: dateLocale })}

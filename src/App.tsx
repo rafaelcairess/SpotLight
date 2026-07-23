@@ -34,12 +34,17 @@ const MostPlayed = lazy(() => import("@/features/most-played/pages/MostPlayed"))
 const Feedback = lazy(() => import("@/features/feedback/pages/Feedback"));
 const Alerts = lazy(() => import("@/features/alerts/pages/Alerts"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
-const OnboardingModal = lazy(() => loadWhenIdle(() => import("@/features/onboarding/components/OnboardingModal")));
-const WhatsNewModal = lazy(() => loadWhenIdle(() => import("@/features/onboarding/components/WhatsNewModal")));
+const OnboardingModal = lazy(() =>
+  loadWhenIdle(() => import("@/features/onboarding/components/OnboardingModal")),
+);
+const WhatsNewModal = lazy(() =>
+  loadWhenIdle(() => import("@/features/onboarding/components/WhatsNewModal")),
+);
 const GamePage = lazy(() => import("@/features/games/pages/GamePage"));
 const ListPage = lazy(() => import("@/features/lists/pages/ListPage"));
 const Admin = lazy(() => import("@/features/admin/pages/Admin"));
 const Friends = lazy(() => import("@/features/friends/pages/Friends"));
+const ProfileEdit = lazy(() => import("@/features/profile/pages/ProfileEdit"));
 
 const queryClient = new QueryClient();
 
@@ -52,29 +57,30 @@ const App = () => (
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Suspense fallback={<div className="min-h-screen bg-background" aria-busy="true" />}>
-          <Routes>
-            <Route path="/" element={<Explore />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/collections" element={<Collections />} />
-            <Route path="/collections/:categoryId" element={<CollectionDetail />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/promocoes" element={<Promotions />} />
-            <Route path="/comunidade" element={<Community />} />
-            <Route path="/top" element={<TopGames />} />
-            <Route path="/mais-jogados" element={<MostPlayed />} />
-            <Route path="/feedback" element={<Feedback />} />
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/u/:username" element={<PublicProfile />} />
-            <Route path="/game/:appId" element={<GamePage />} />
-            <Route path="/lists/:listId" element={<ListPage />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/friends" element={<Friends />} />
-            {/* Adicione todas as rotas acima do catch-all "*" */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <OnboardingModal />
-          <WhatsNewModal />
+            <Routes>
+              <Route path="/" element={<Explore />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/edit" element={<ProfileEdit />} />
+              <Route path="/collections" element={<Collections />} />
+              <Route path="/collections/:categoryId" element={<CollectionDetail />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/promocoes" element={<Promotions />} />
+              <Route path="/comunidade" element={<Community />} />
+              <Route path="/top" element={<TopGames />} />
+              <Route path="/mais-jogados" element={<MostPlayed />} />
+              <Route path="/feedback" element={<Feedback />} />
+              <Route path="/alerts" element={<Alerts />} />
+              <Route path="/u/:username" element={<PublicProfile />} />
+              <Route path="/game/:appId" element={<GamePage />} />
+              <Route path="/lists/:listId" element={<ListPage />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/friends" element={<Friends />} />
+              {/* Adicione todas as rotas acima do catch-all "*" */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <OnboardingModal />
+            <WhatsNewModal />
           </Suspense>
         </BrowserRouter>
       </>

@@ -32,10 +32,7 @@ export default function Alerts() {
     }).format(value);
   };
 
-  const gameMap = useMemo(
-    () => new Map(games.map((game) => [game.app_id, game])),
-    [games]
-  );
+  const gameMap = useMemo(() => new Map(games.map((game) => [game.app_id, game])), [games]);
 
   if (!authLoading && !user) {
     navigate("/auth");
@@ -66,8 +63,7 @@ export default function Alerts() {
             <div className="space-y-4">
               {alerts.map((alert) => {
                 const game = gameMap.get(alert.game_id);
-                const targetValue =
-                  alert.target_price !== null ? Number(alert.target_price) : null;
+                const targetValue = alert.target_price !== null ? Number(alert.target_price) : null;
 
                 return (
                   <div
@@ -76,11 +72,19 @@ export default function Alerts() {
                   >
                     <div className="w-full sm:w-40 h-24 rounded-lg overflow-hidden bg-secondary/40">
                       {game?.image && (
-                        <img src={game.image} alt={game.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                        <img
+                          src={game.image}
+                          alt={game.title}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-cover"
+                        />
                       )}
                     </div>
                     <div className="flex-1 space-y-2">
-                      <h3 className="text-lg font-semibold">{game?.title || `App ${alert.game_id}`}</h3>
+                      <h3 className="text-lg font-semibold">
+                        {game?.title || `App ${alert.game_id}`}
+                      </h3>
                       <p className="text-sm text-muted-foreground">
                         {t("alerts.target")}: {formatCurrency(targetValue)}
                       </p>

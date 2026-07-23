@@ -78,7 +78,8 @@ const Search = () => {
             </div>
             {query && (
               <p className="text-muted-foreground">
-                {t("search.showingFor")} <span className="text-foreground font-medium">"{query}"</span>
+                {t("search.showingFor")}{" "}
+                <span className="text-foreground font-medium">"{query}"</span>
               </p>
             )}
           </div>

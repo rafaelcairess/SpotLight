@@ -11,9 +11,7 @@ interface LoadingSkeletonProps {
 
 const LoadingSkeleton = ({ variant = "card", count = 6 }: LoadingSkeletonProps) => {
   if (variant === "banner") {
-    return (
-      <div className="w-full aspect-[21/9] md:aspect-[21/8] rounded-2xl skeleton-shimmer" />
-    );
+    return <div className="w-full aspect-[21/9] md:aspect-[21/8] rounded-2xl skeleton-shimmer" />;
   }
 
   if (variant === "ranking") {
@@ -40,10 +38,7 @@ const LoadingSkeleton = ({ variant = "card", count = 6 }: LoadingSkeletonProps) 
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {Array.from({ length: count }).map((_, i) => (
-          <div
-            key={i}
-            className="aspect-[16/10] rounded-xl skeleton-shimmer"
-          />
+          <div key={i} className="aspect-[16/10] rounded-xl skeleton-shimmer" />
         ))}
       </div>
     );

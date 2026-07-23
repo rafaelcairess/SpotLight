@@ -36,18 +36,15 @@ const SectionHeader = ({
         )}
         <div>
           <h2 className="text-xl md:text-2xl font-bold">{title}</h2>
-          {subtitle && (
-            <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>}
         </div>
       </div>
 
       {actions ? (
-        <div className="flex items-center gap-2">
-          {actions}
-        </div>
+        <div className="flex items-center gap-2">{actions}</div>
       ) : (
-        actionLabel && actionHref && (
+        actionLabel &&
+        actionHref && (
           <Link
             to={actionHref}
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors group"

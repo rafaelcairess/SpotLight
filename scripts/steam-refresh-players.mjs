@@ -53,7 +53,12 @@ const run = async () => {
           const activePlayers = await fetchPlayerCount(game.app_id);
           return activePlayers === null
             ? null
-            : { app_id: game.app_id, title: game.title, active_players: activePlayers, last_synced: now };
+            : {
+                app_id: game.app_id,
+                title: game.title,
+                active_players: activePlayers,
+                last_synced: now,
+              };
         } catch (refreshError) {
           console.warn(`[rankings] ${game.app_id}: ${refreshError.message || refreshError}`);
           failed += 1;

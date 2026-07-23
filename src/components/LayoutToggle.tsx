@@ -24,11 +24,8 @@ const LayoutToggle = ({ value, onChange }: LayoutToggleProps) => {
         variant="ghost"
         size="icon"
         onClick={() => onChange("standard")}
-        className={cn(
-          "h-8 w-8",
-          value === "standard" && "bg-primary/10 text-primary"
-        )}
-        aria-label={t("layout.standard", { defaultValue: "Layout padrão" })}
+        className={cn("h-8 w-8", value === "standard" && "bg-primary/10 text-primary")}
+        aria-label={t("layout.standard", { defaultValue: "Layout padrï¿½o" })}
       >
         <LayoutGrid className="h-4 w-4" />
       </Button>
@@ -37,10 +34,7 @@ const LayoutToggle = ({ value, onChange }: LayoutToggleProps) => {
         variant="ghost"
         size="icon"
         onClick={() => onChange("compact")}
-        className={cn(
-          "h-8 w-8",
-          value === "compact" && "bg-primary/10 text-primary"
-        )}
+        className={cn("h-8 w-8", value === "compact" && "bg-primary/10 text-primary")}
         aria-label={t("layout.compact", { defaultValue: "Layout compacto" })}
       >
         <Grid3X3 className="h-4 w-4" />

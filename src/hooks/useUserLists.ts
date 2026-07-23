@@ -101,7 +101,12 @@ export function useCreateUserList() {
       if (!user?.id) throw new Error("Not authenticated");
       const { data, error } = await supabase
         .from("user_lists")
-        .insert({ user_id: user.id, name, description: description || null, is_public: is_public ?? false })
+        .insert({
+          user_id: user.id,
+          name,
+          description: description || null,
+          is_public: is_public ?? false,
+        })
         .select()
         .single();
       if (error) throw error;
@@ -133,7 +138,15 @@ export function useAddGameToList() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ listId, appId, note }: { listId: string; appId: number; note?: string }) => {
+    mutationFn: async ({
+      listId,
+      appId,
+      note,
+    }: {
+      listId: string;
+      appId: number;
+      note?: string;
+    }) => {
       const { data, error } = await supabase
         .from("user_list_games")
         .insert({ list_id: listId, app_id: appId, note: note || null })

@@ -81,7 +81,7 @@ const CategoryCard = ({ category, index = 0 }: CategoryCardProps) => {
         "transition-all duration-300 hover:-translate-y-1",
         category.featured &&
           "ring-2 ring-primary/40 shadow-[0_0_30px_rgba(34,197,94,0.25)] hover:scale-[1.02]",
-        "animate-fade-in"
+        "animate-fade-in",
       )}
       style={{ animationDelay: `${index * 100}ms` }}
     >
@@ -104,9 +104,7 @@ const CategoryCard = ({ category, index = 0 }: CategoryCardProps) => {
         </h3>
 
         {/* Description */}
-        <p className="text-xs md:text-sm text-muted-foreground max-w-[200px]">
-          {description}
-        </p>
+        <p className="text-xs md:text-sm text-muted-foreground max-w-[200px]">{description}</p>
       </div>
 
       {/* Corner Accent */}

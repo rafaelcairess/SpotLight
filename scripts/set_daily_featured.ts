@@ -57,15 +57,13 @@ const run = async () => {
   const index = seed % games.length;
   const appId = games[index].app_id;
 
-  const { error: upsertError } = await supabase
-    .from("daily_featured")
-    .upsert(
-      {
-        featured_date: today,
-        app_id: appId,
-      },
-      { onConflict: "featured_date" }
-    );
+  const { error: upsertError } = await supabase.from("daily_featured").upsert(
+    {
+      featured_date: today,
+      app_id: appId,
+    },
+    { onConflict: "featured_date" },
+  );
 
   if (upsertError) throw upsertError;
   console.log(`[daily_featured] Definido ${today}: ${appId}`);

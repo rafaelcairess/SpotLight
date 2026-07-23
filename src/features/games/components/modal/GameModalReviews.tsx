@@ -3,15 +3,7 @@
  */
 
 import { useState } from "react";
-import {
-  ThumbsUp,
-  ThumbsDown,
-  Clock,
-  Trash2,
-  Pencil,
-  Smile,
-  BadgeCheck,
-} from "lucide-react";
+import { ThumbsUp, ThumbsDown, Clock, Trash2, Pencil, Smile, BadgeCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useReviewsByGame, useDeleteReview } from "@/hooks/useReviews";
@@ -27,7 +19,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getDateLocale } from "@/i18n/utils";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import ReviewForm from "@/features/reviews/components/ReviewForm";
 import { cn } from "@/lib/utils";
@@ -73,7 +71,7 @@ export const GameModalReviews = ({ appId, gameTitle }: GameModalReviewsProps) =>
   const handleToggleReaction = async (
     reviewId: string,
     reaction: ReviewReactionType,
-    userSet: Set<ReviewReactionType>
+    userSet: Set<ReviewReactionType>,
   ) => {
     if (!user) {
       navigate("/auth");
@@ -137,9 +135,7 @@ export const GameModalReviews = ({ appId, gameTitle }: GameModalReviewsProps) =>
         <div className="space-y-3">
           {visibleReviews.map((review) => {
             const author =
-              review.profiles?.display_name ||
-              review.profiles?.username ||
-              t("profile.reviews");
+              review.profiles?.display_name || review.profiles?.username || t("profile.reviews");
             const isMine = !!user && review.user_id === user.id;
 
             return (
@@ -147,7 +143,7 @@ export const GameModalReviews = ({ appId, gameTitle }: GameModalReviewsProps) =>
                 key={review.id}
                 className={cn(
                   "rounded-lg border border-border/50 bg-secondary/20 p-4 space-y-3",
-                  isMine && "border-primary/40 bg-primary/5"
+                  isMine && "border-primary/40 bg-primary/5",
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -200,7 +196,7 @@ export const GameModalReviews = ({ appId, gameTitle }: GameModalReviewsProps) =>
                           "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
                           review.is_positive
                             ? "bg-emerald-500/10 text-emerald-500"
-                            : "bg-rose-500/10 text-rose-500"
+                            : "bg-rose-500/10 text-rose-500",
                         )}
                       >
                         {review.is_positive ? (
@@ -232,15 +228,13 @@ export const GameModalReviews = ({ appId, gameTitle }: GameModalReviewsProps) =>
                 <p className="text-sm text-foreground/90 whitespace-pre-wrap">{review.content}</p>
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   {reactionItems.map((item) => {
-                    const counts =
-                      reactionData?.counts.get(review.id) ?? {
-                        like: 0,
-                        dislike: 0,
-                        funny: 0,
-                        useful: 0,
-                      };
-                    const userSet =
-                      reactionData?.userReactions.get(review.id) ?? new Set();
+                    const counts = reactionData?.counts.get(review.id) ?? {
+                      like: 0,
+                      dislike: 0,
+                      funny: 0,
+                      useful: 0,
+                    };
+                    const userSet = reactionData?.userReactions.get(review.id) ?? new Set();
                     const isActive = userSet.has(item.type);
 
                     return (
@@ -252,7 +246,7 @@ export const GameModalReviews = ({ appId, gameTitle }: GameModalReviewsProps) =>
                         aria-label={item.label}
                         className={cn(
                           "inline-flex items-center gap-1 rounded-full border border-border/40 bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:border-primary/40 hover:text-foreground",
-                          isActive && "border-primary/50 bg-primary/10 text-primary"
+                          isActive && "border-primary/50 bg-primary/10 text-primary",
                         )}
                       >
                         <item.icon className="h-3.5 w-3.5" />

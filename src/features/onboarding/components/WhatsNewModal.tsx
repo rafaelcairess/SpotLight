@@ -3,15 +3,7 @@
  */
 
 import { useEffect, useState } from "react";
-import {
-  Gamepad2,
-  Trophy,
-  BarChart2,
-  Bug,
-  Sparkles,
-  List,
-  Zap,
-} from "lucide-react";
+import { Gamepad2, Trophy, BarChart2, Bug, Sparkles, List, Zap } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -46,7 +38,8 @@ const CHANGELOG_ITEMS: ChangelogItem[] = [
     icon: Trophy,
     color: "text-yellow-400",
     title: "Conquistas SpotLight",
-    description: "Desbloqueie badges ao adicionar jogos, escrever reviews e conectar-se com jogadores.",
+    description:
+      "Desbloqueie badges ao adicionar jogos, escrever reviews e conectar-se com jogadores.",
     type: "feature",
   },
   {
@@ -67,7 +60,8 @@ const CHANGELOG_ITEMS: ChangelogItem[] = [
     icon: Gamepad2,
     color: "text-blue-400",
     title: "Página individual de jogo",
-    description: "Cada jogo agora tem sua própria página com reviews da comunidade e detalhes completos.",
+    description:
+      "Cada jogo agora tem sua própria página com reviews da comunidade e detalhes completos.",
     type: "feature",
   },
   {
@@ -114,12 +108,20 @@ export default function WhatsNewModal() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) handleClose();
+      }}
+    >
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader className="space-y-3">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-xs font-semibold">
+            <Badge
+              variant="outline"
+              className="bg-primary/10 text-primary border-primary/30 text-xs font-semibold"
+            >
               O que há de novo
             </Badge>
           </div>
@@ -143,11 +145,15 @@ export default function WhatsNewModal() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-0.5">
                     <p className="text-sm font-semibold leading-tight">{item.title}</p>
-                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${TYPE_COLORS[item.type]}`}>
+                    <span
+                      className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${TYPE_COLORS[item.type]}`}
+                    >
                       {TYPE_LABELS[item.type]}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {item.description}
+                  </p>
                 </div>
               </div>
             );
