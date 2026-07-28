@@ -32,4 +32,7 @@ supabase/.temp/
 *.ntvs*
 *.njsproj
 *.sln
+!backend/SpotLight.sln
+**/bin/
+**/obj/
 *.sw?

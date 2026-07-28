@@ -1,0 +1,19 @@
+<!-- Descreve como a API será compilada e quais pacotes externos utiliza. -->
+<!-- O SDK Web adiciona os recursos do ASP.NET Core. -->
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <!-- Usa a versão LTS .NET 8. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- Faz o compilador alertar sobre valores null possivelmente incorretos. -->
+    <Nullable>enable</Nullable>
+    <!-- Importa namespaces comuns automaticamente para reduzir repetição. -->
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Gera a especificação OpenAPI e a interface Swagger. -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+</Project>
