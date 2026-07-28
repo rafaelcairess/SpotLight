@@ -1,0 +1,2 @@
+ALTER TABLE public.user_games ADD COLUMN IF NOT EXISTS hours_played_manual NUMERIC(10,2) DEFAULT NULL;
+ALTER TABLE public.user_games ADD COLUMN IF NOT EXISTS hours_override BOOLEAN NOT NULL DEFAULT FALSE;;

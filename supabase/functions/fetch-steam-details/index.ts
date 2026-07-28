@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { authorizeRateLimitedRequest } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin":
@@ -122,6 +123,17 @@ serve(async (req) => {
   const STEAM_API_KEY = Deno.env.get("STEAM_API_KEY") || "";
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    return json(500, { error: "server_not_configured" });
+  }
+
+  const authorization = await authorizeRateLimitedRequest(req, "fetch-steam-details", 60, 60);
+  if (authorization.status === "unauthorized") {
+    return json(401, { error: "unauthorized" });
+  }
+  if (authorization.status === "rate_limited") {
+    return json(429, { error: "rate_limit_exceeded", retry_after_seconds: 60 });
+  }
+  if (authorization.status === "server_not_configured") {
     return json(500, { error: "server_not_configured" });
   }
 

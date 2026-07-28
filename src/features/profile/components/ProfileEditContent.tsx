@@ -33,7 +33,6 @@ interface ProfileEditContentProps {
   onDisplayNameChange: (value: string) => void;
   onUsernameChange: (value: string) => void;
   onBioChange: (value: string) => void;
-  onSteamIdChange: (value: string) => void;
   onProfileVisibilityChange: (value: string) => void;
   onLibraryVisibilityChange: (value: string) => void;
   onReviewsVisibilityChange: (value: string) => void;
@@ -42,7 +41,6 @@ interface ProfileEditContentProps {
   onDeleteTextChange: (value: string) => void;
   onSaveGeneral: (event: FormEvent) => void;
   onUploadAvatar: (event: ChangeEvent<HTMLInputElement>) => void;
-  onSaveSteam: () => void;
   onSavePrivacy: () => void;
   onDeleteAccount: () => void;
 }
@@ -174,17 +172,16 @@ export function ProfileEditContent(props: ProfileEditContentProps) {
       <div className="max-w-2xl space-y-6">
         <SectionTitle
           title="Contas conectadas"
-          description="Identificadores usados para importar sua atividade."
+          description="Identidades verificadas usadas para importar sua atividade."
         />
         <div className="space-y-2">
-          <Label>Perfil ou Steam ID</Label>
-          <Input
-            value={props.steamId}
-            onChange={(event) => props.onSteamIdChange(event.target.value)}
-            placeholder="https://steamcommunity.com/id/..."
-          />
+          <Label>Steam ID verificado</Label>
+          <Input value={props.steamId || "Conta Steam não conectada"} readOnly disabled />
+          <p className="text-xs text-muted-foreground">
+            Por segurança, a identidade Steam não pode ser digitada manualmente. Alterações exigirão
+            uma nova confirmação pela Steam.
+          </p>
         </div>
-        <Button onClick={props.onSaveSteam}>Salvar Steam</Button>
         <div className="border-t border-border/40 pt-5 text-sm text-muted-foreground">
           Xbox e PlayStation serão configurados aqui quando as integrações estiverem disponíveis.
         </div>

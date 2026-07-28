@@ -55,7 +55,7 @@ const App = () => (
         <PresenceHeartbeat />
         <Toaster />
         <Sonner />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <BrowserRouter>
           <Suspense fallback={<div className="min-h-screen bg-background" aria-busy="true" />}>
             <Routes>
               <Route path="/" element={<Explore />} />

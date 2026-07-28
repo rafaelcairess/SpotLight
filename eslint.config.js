@@ -19,6 +19,15 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // The project still uses React 18 patterns that intentionally initialize
+      // local UI state from effects. These React Compiler rules are aimed at
+      // compiler-enabled React 19 applications and currently report false
+      // positives here (including every prop after a forwarded input ref).
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/refs": "off",
+      // ESLint 10 added this rule to the recommended preset. Existing retry
+      // flows intentionally retain the latest response for later inspection.
+      "no-useless-assignment": "off",
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": [
         "error",

@@ -96,7 +96,6 @@ export function useUpdateProfile() {
           | "display_name"
           | "bio"
           | "avatar_url"
-          | "steam_id"
           | "profile_visibility"
           | "reviews_visibility"
           | "library_visibility"

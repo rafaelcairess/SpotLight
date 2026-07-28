@@ -96,14 +96,19 @@ export default function ProfileEdit() {
   const uploadAvatar = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
-    if (!file.type.startsWith("image/") || file.size > 2 * 1024 * 1024) {
-      toast({ title: "Use uma imagem de até 2 MB.", variant: "destructive" });
+    const allowedAvatarTypes = new Map([
+      ["image/jpeg", "jpg"],
+      ["image/png", "png"],
+      ["image/webp", "webp"],
+    ]);
+    const extension = allowedAvatarTypes.get(file.type);
+    if (!extension || file.size > 2 * 1024 * 1024) {
+      toast({ title: "Use JPG, PNG ou WebP de até 2 MB.", variant: "destructive" });
       return;
     }
 
     setUploading(true);
     try {
-      const extension = file.name.split(".").pop() || "png";
       const path = `${user.id}/avatar.${extension}`;
       const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
       if (error) throw error;
@@ -194,7 +199,6 @@ export default function ProfileEdit() {
               onDisplayNameChange={setDisplayName}
               onUsernameChange={setUsername}
               onBioChange={setBio}
-              onSteamIdChange={setSteamId}
               onProfileVisibilityChange={setProfileVisibility}
               onLibraryVisibilityChange={setLibraryVisibility}
               onReviewsVisibilityChange={setReviewsVisibility}
@@ -203,7 +207,6 @@ export default function ProfileEdit() {
               onDeleteTextChange={setDeleteText}
               onSaveGeneral={saveGeneral}
               onUploadAvatar={uploadAvatar}
-              onSaveSteam={() => void save({ steam_id: steamId.trim() || null })}
               onSavePrivacy={() =>
                 void save({
                   profile_visibility: profileVisibility,

@@ -3,6 +3,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { authorizeRateLimitedRequest } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin":
@@ -95,6 +96,17 @@ serve(async (req) => {
 
   if (req.method !== "POST") {
     return json(405, { error: "method_not_allowed" });
+  }
+
+  const authorization = await authorizeRateLimitedRequest(req, "search-steam", 30, 60);
+  if (authorization.status === "server_not_configured") {
+    return json(500, { error: "server_not_configured" });
+  }
+  if (authorization.status === "unauthorized") {
+    return json(401, { error: "unauthorized" });
+  }
+  if (authorization.status === "rate_limited") {
+    return json(429, { error: "rate_limit_exceeded", retry_after_seconds: 60 });
   }
 
   let payload: {

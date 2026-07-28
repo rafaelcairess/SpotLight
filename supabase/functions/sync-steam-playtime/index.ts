@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { isSteamId64, minutesToHours, parseSteamInput } from "../_shared/steam-sync.ts";
+import { isSteamId64, minutesToHours } from "../_shared/steam-sync.ts";
+import { consumeUserRateLimit } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin":
@@ -18,16 +19,6 @@ const fetchJson = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return res.json();
-};
-
-const resolveVanityUrl = async (key: string, vanity: string) => {
-  const url =
-    `https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=${key}` +
-    `&vanityurl=${encodeURIComponent(vanity)}`;
-  const data = await fetchJson(url);
-  if (data?.response?.success !== 1) return null;
-  const steamId = data?.response?.steamid;
-  return typeof steamId === "string" && steamId.length > 0 ? steamId : null;
 };
 
 serve(async (req) => {
@@ -160,12 +151,10 @@ serve(async (req) => {
   }
 
   const payload: {
-    steam_id?: string;
     import_all?: boolean;
     sync_platinums?: boolean;
     platinum_offset?: number;
   } = rawPayload as {
-    steam_id?: string;
     import_all?: boolean;
     sync_platinums?: boolean;
     platinum_offset?: number;
@@ -181,25 +170,20 @@ serve(async (req) => {
     return json(500, { error: "profile_fetch_failed" });
   }
 
-  const candidate = parseSteamInput(payload.steam_id || profile?.steam_id);
-  if (!candidate) {
+  const steamId = profile?.steam_id?.trim() || "";
+  if (!steamId) {
     return json(400, { error: "missing_steam_id" });
+  }
+  if (!isSteamId64(steamId)) {
+    return json(409, { error: "steam_identity_requires_reconnect" });
+  }
+
+  const allowed = await consumeUserRateLimit(adminSupabase, user.id, "sync-steam-playtime", 6, 60);
+  if (!allowed) {
+    return json(429, { error: "rate_limit_exceeded", retry_after_seconds: 60 });
   }
 
   const importAll = payload.import_all === true;
-
-  const steamId =
-    candidate.type === "steamid"
-      ? candidate.value
-      : await resolveVanityUrl(STEAM_API_KEY, candidate.value);
-
-  if (!steamId || !isSteamId64(steamId)) {
-    return json(404, { error: "steam_id_not_found" });
-  }
-
-  if (profile?.steam_id !== steamId) {
-    await adminSupabase.from("profiles").update({ steam_id: steamId }).eq("user_id", user.id);
-  }
 
   const includeAppInfo = importAll || payload.sync_platinums === true ? 1 : 0;
   const ownedUrl =

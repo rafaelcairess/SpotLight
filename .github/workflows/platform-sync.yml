@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Trigger sync-steam-playtime (todos os usuários)
         run: |
-          curl -s -X POST \
+          curl --fail-with-body --silent --show-error -X POST \
             "$SUPABASE_URL/functions/v1/sync-steam-playtime" \
             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
             -H "Content-Type: application/json" \
@@ -35,7 +35,7 @@ jobs:
     steps:
       - name: Trigger sync-xbox-library (todos os usuários)
         run: |
-          curl -s -X POST \
+          curl --fail-with-body --silent --show-error -X POST \
             "$SUPABASE_URL/functions/v1/sync-xbox-library" \
             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
             -H "Content-Type: application/json" \
@@ -52,7 +52,7 @@ jobs:
     steps:
       - name: Trigger sync-psn-trophies (todos os usuários)
         run: |
-          curl -s -X POST \
+          curl --fail-with-body --silent --show-error -X POST \
             "$SUPABASE_URL/functions/v1/sync-psn-trophies" \
             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
             -H "Content-Type: application/json" \

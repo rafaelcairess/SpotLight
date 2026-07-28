@@ -49,6 +49,13 @@ describe("Steam synchronization helpers", () => {
     expect(minutesToHours(1)).toBe(0.02);
     expect(minutesToHours(-10)).toBe(0);
   });
+
+  it("never accepts a Steam identity from the sync request body", () => {
+    const source = workspaceFile("supabase/functions/sync-steam-playtime/index.ts");
+    expect(source).not.toContain("payload.steam_id");
+    expect(source).toContain("profile?.steam_id");
+    expect(source).toContain("steam_identity_requires_reconnect");
+  });
 });
 
 describe("RLS privacy contract", () => {
@@ -71,5 +78,14 @@ describe("RLS privacy contract", () => {
     );
     expect(privateGuard).toContain('CREATE POLICY "Private games are owner only"');
     expect(privateGuard).toContain("user_id = auth.uid() OR is_private = false");
+  });
+
+  it("hardens platform identities, social graph, rate limits and avatars", () => {
+    const hardening = workspaceFile("supabase/migrations/20260728000000_security_hardening.sql");
+    expect(hardening).toContain("REVOKE UPDATE (steam_id)");
+    expect(hardening).toContain("profiles_steam_id_unique");
+    expect(hardening).toContain('DROP POLICY IF EXISTS "Accepted friendships are visible"');
+    expect(hardening).toContain("consume_function_rate_limit");
+    expect(hardening).toContain("Avatar uploads require safe owner path");
   });
 });
