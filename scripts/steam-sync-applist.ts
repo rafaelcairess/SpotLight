@@ -65,7 +65,9 @@ const fetchJson = async (url: string) => {
     },
   });
   if (!res.ok) {
-    const error = new Error(`HTTP ${res.status} for ${url}`) as Error & { status?: number };
+    const error = new Error(`Steam upstream request failed with HTTP ${res.status}`) as Error & {
+      status?: number;
+    };
     error.status = res.status;
     throw error;
   }
@@ -142,7 +144,7 @@ const run = async () => {
     const data = await fetchJson(GITHUB_APP_LIST_URL);
     const apps: { appid: number; name: string }[] = Array.isArray(data) ? data : [];
     if (!apps.length) {
-      throw new Error(`No apps found in GitHub app list from ${GITHUB_APP_LIST_URL}`);
+      throw new Error("No apps found in the configured GitHub app list.");
     }
     await upsertBatch(apps);
   };
@@ -180,13 +182,13 @@ const run = async () => {
         const data = await fetchJson(url);
         const apps: { appid: number; name: string }[] = data?.applist?.apps ?? [];
         if (!apps.length) {
-          throw new Error(`No apps found in Steam app list from ${url}`);
+          throw new Error("No apps found in the Steam app list response.");
         }
         await upsertBatch(apps);
         return;
       } catch (error) {
         lastError = error as Error;
-        console.warn(`App list fetch failed for ${url}: ${lastError.message}`);
+        console.warn(`App list endpoint failed: ${lastError.message}`);
       }
     }
 

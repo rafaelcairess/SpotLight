@@ -1,36 +1,22 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  buildSafeRedirect,
+  clearNonceCookie,
+  getCookie,
+  oauthNonceCookies,
+  oauthSecurityHeaders,
+} from "../_shared/oauth-security.ts";
 
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...oauthSecurityHeaders },
   });
-
-const ALLOWED_ORIGINS = [
-  "https://spot-light-xi.vercel.app",
-  "http://localhost:5173",
-  "http://localhost:3000",
-];
-
-const buildRedirect = (value: string | null, fallback: string) => {
-  if (!value) return fallback;
-  try {
-    const u = new URL(value);
-    if (u.protocol !== "http:" && u.protocol !== "https:") return fallback;
-    const fallbackOrigin = new URL(fallback).origin;
-    if (ALLOWED_ORIGINS.includes(u.origin) || u.origin === fallbackOrigin) {
-      return u.toString();
-    }
-    return fallback;
-  } catch {
-    return fallback;
-  }
-};
 
 const fetchJson = async (url: string) => {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  if (!res.ok) throw new Error(`upstream_http_${res.status}`);
   return res.json();
 };
 
@@ -56,23 +42,20 @@ const fetchSteamPlayerSummary = async (
     return player && typeof player === "object" ? (player as SteamPlayerSummary) : null;
   } catch (error) {
     // Uma falha na foto/nome da Steam não deve impedir o login.
-    console.error("steam_profile_fetch_error:", error);
+    console.error(
+      "steam_profile_fetch_error:",
+      error instanceof Error ? error.message : "unknown_error",
+    );
     return null;
   }
 };
 
-/** Extrai o valor de um cookie pelo nome */
-const getCookie = (cookieHeader: string | null, name: string): string | null => {
-  if (!cookieHeader) return null;
-  for (const part of cookieHeader.split(";")) {
-    const [k, v] = part.trim().split("=");
-    if (k === name) return v ?? null;
-  }
-  return null;
-};
-
 serve(async (req) => {
   try {
+    if (req.method !== "GET") {
+      return json(405, { error: "method_not_allowed" });
+    }
+
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
     const STEAM_API_KEY = Deno.env.get("STEAM_API_KEY") || "";
@@ -82,13 +65,19 @@ serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const fallbackSite = Deno.env.get("SITE_URL") || Deno.env.get("PUBLIC_SITE_URL") || url.origin;
+    if (url.search.length > 16384) {
+      return json(414, { error: "request_too_large" });
+    }
+    const fallbackSite =
+      Deno.env.get("SITE_URL") ||
+      Deno.env.get("PUBLIC_SITE_URL") ||
+      "https://spot-light-xi.vercel.app";
 
-    const safeRedirect = buildRedirect(url.searchParams.get("redirect"), fallbackSite);
+    const safeRedirect = buildSafeRedirect(url.searchParams.get("redirect"), fallbackSite);
 
     // ── Validação CSRF via nonce ──────────────────────────────────────
     const nonceFromUrl = url.searchParams.get("nonce");
-    const nonceFromCookie = getCookie(req.headers.get("cookie"), "steam_nonce");
+    const nonceFromCookie = getCookie(req.headers.get("cookie"), oauthNonceCookies.steam);
 
     if (!nonceFromUrl || !nonceFromCookie || nonceFromUrl !== nonceFromCookie) {
       return json(403, { error: "csrf_nonce_mismatch" });
@@ -104,6 +93,30 @@ serve(async (req) => {
       return json(400, { error: "missing_openid_claim" });
     }
 
+    const claimedId = openIdParams.get("openid.claimed_id") || "";
+    const identity = openIdParams.get("openid.identity") || "";
+    const opEndpoint = openIdParams.get("openid.op_endpoint") || "";
+    const returnTo = openIdParams.get("openid.return_to") || "";
+    const match = claimedId.match(/^https:\/\/steamcommunity\.com\/openid\/id\/(\d{17})$/);
+
+    let assertedReturnTo: URL;
+    try {
+      assertedReturnTo = new URL(returnTo);
+    } catch {
+      return json(400, { error: "invalid_openid_return_to" });
+    }
+
+    if (
+      !match ||
+      identity !== claimedId ||
+      opEndpoint !== "https://steamcommunity.com/openid/login" ||
+      assertedReturnTo.origin !== url.origin ||
+      assertedReturnTo.pathname !== url.pathname ||
+      assertedReturnTo.searchParams.get("nonce") !== nonceFromUrl
+    ) {
+      return json(400, { error: "invalid_openid_assertion" });
+    }
+
     openIdParams.set("openid.mode", "check_authentication");
 
     const verifyRes = await fetch("https://steamcommunity.com/openid/login", {
@@ -117,12 +130,10 @@ serve(async (req) => {
     }
 
     const verifyText = await verifyRes.text();
-    if (!verifyText.includes("is_valid:true")) {
+    if (!/(?:^|\r?\n)is_valid:true(?:\r?\n|$)/.test(verifyText)) {
       return json(401, { error: "steam_invalid" });
     }
 
-    const claimedId = openIdParams.get("openid.claimed_id") || "";
-    const match = claimedId.match(/https?:\/\/steamcommunity\.com\/openid\/id\/(\d{17})/);
     const steamId = match?.[1];
 
     if (!steamId) {
@@ -396,7 +407,8 @@ serve(async (req) => {
       status: 302,
       headers: {
         Location: actionLink,
-        "Set-Cookie": "steam_nonce=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0",
+        "Set-Cookie": clearNonceCookie(oauthNonceCookies.steam),
+        ...oauthSecurityHeaders,
       },
     });
   } catch (err) {

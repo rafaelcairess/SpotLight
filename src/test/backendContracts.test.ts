@@ -56,6 +56,19 @@ describe("Steam synchronization helpers", () => {
     expect(source).toContain("profile?.steam_id");
     expect(source).toContain("steam_identity_requires_reconnect");
   });
+
+  it("never includes a secret-bearing Steam URL in an upstream exception", () => {
+    const files = [
+      "supabase/functions/sync-steam-playtime/index.ts",
+      "supabase/functions/fetch-steam-details/index.ts",
+      "supabase/functions/steam-auth-callback/index.ts",
+      "scripts/steam-sync-popular.mjs",
+      "scripts/steam-sync-applist.ts",
+    ];
+    for (const file of files) {
+      expect(workspaceFile(file)).not.toContain("for ${url}");
+    }
+  });
 });
 
 describe("RLS privacy contract", () => {
@@ -87,5 +100,40 @@ describe("RLS privacy contract", () => {
     expect(hardening).toContain('DROP POLICY IF EXISTS "Accepted friendships are visible"');
     expect(hardening).toContain("consume_function_rate_limit");
     expect(hardening).toContain("Avatar uploads require safe owner path");
+  });
+
+  it("closes anonymous follows and protects server-owned game and review fields", () => {
+    const hardening = workspaceFile("supabase/migrations/20260728010000_pentest_hardening.sql");
+    const legacyPolicyCleanup = workspaceFile(
+      "supabase/migrations/20260728011000_close_legacy_follows_policy.sql",
+    );
+    expect(hardening).toContain('DROP POLICY IF EXISTS "Follows visíveis por todos"');
+    expect(hardening).toContain("follower_id = auth.uid() OR following_id = auth.uid()");
+    expect(legacyPolicyCleanup).toContain("FROM pg_policies");
+    expect(legacyPolicyCleanup).toContain("auth.uid() IS NOT NULL");
+    expect(hardening).toContain("REVOKE INSERT, UPDATE ON TABLE public.user_games");
+    expect(hardening).not.toMatch(/GRANT UPDATE \([^)]*hours_played,/s);
+    expect(hardening).toContain("RATE_LIMIT:60");
+    expect(hardening).toContain("DAILY_LIMIT:20");
+    expect(hardening).toContain("AVATAR_URL_NOT_ALLOWED");
+  });
+});
+
+describe("OAuth boundary contract", () => {
+  it("allows localhost redirects only behind an explicit server flag", () => {
+    const helper = workspaceFile("supabase/functions/_shared/oauth-security.ts");
+    expect(helper).toContain('Deno.env.get("ALLOW_LOCAL_REDIRECTS") === "true"');
+    expect(helper).toContain("target.origin === fallbackUrl.origin");
+    expect(helper).toContain("__Host-spotlight_steam_nonce");
+  });
+
+  it("requires GET and validates the complete Steam OpenID assertion", () => {
+    const start = workspaceFile("supabase/functions/steam-auth-start/index.ts");
+    const callback = workspaceFile("supabase/functions/steam-auth-callback/index.ts");
+    expect(start).toContain('req.method !== "GET"');
+    expect(callback).toContain('req.method !== "GET"');
+    expect(callback).toContain('opEndpoint !== "https://steamcommunity.com/openid/login"');
+    expect(callback).toContain("assertedReturnTo.searchParams.get");
+    expect(callback).toContain("identity !== claimedId");
   });
 });

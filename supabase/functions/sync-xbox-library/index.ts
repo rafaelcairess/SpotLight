@@ -43,6 +43,10 @@ const getXboxHeaders = (xstsToken: string, userHash: string) => ({
 });
 
 serve(async (req) => {
+  if (req.method !== "POST") {
+    return json(405, { error: "method_not_allowed" });
+  }
+
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
@@ -165,7 +169,7 @@ serve(async (req) => {
 
     return json(200, { synced: titles.length, inserted: inserts.length });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return json(500, { error: "sync_failed", detail: message });
+    console.error("xbox_sync_failed:", err instanceof Error ? err.message : "unknown_error");
+    return json(500, { error: "sync_failed" });
   }
 });

@@ -242,7 +242,6 @@ export function useUpdateGame() {
         Pick<
           UserGame,
           | "status"
-          | "hours_played"
           | "hours_played_manual"
           | "hours_override"
           | "is_favorite"

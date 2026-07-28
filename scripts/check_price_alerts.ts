@@ -88,7 +88,7 @@ type PriceAlert = {
 const fetchJson = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
-    throw new Error(`HTTP ${res.status} for ${url}`);
+    throw new Error(`Upstream request failed with HTTP ${res.status}`);
   }
   return res.json();
 };

@@ -20,6 +20,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  if (req.method !== "POST") {
+    return json(405, { error: "method_not_allowed" });
+  }
 
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   const authHeader = req.headers.get("Authorization") || "";
@@ -68,8 +71,8 @@ serve(async (req) => {
   });
 
   if (!response.ok) {
-    const errorBody = await response.text();
-    return json(500, { error: "email_failed", details: errorBody });
+    console.error("email_provider_failed:", response.status);
+    return json(502, { error: "email_failed" });
   }
 
   return json(200, { ok: true });

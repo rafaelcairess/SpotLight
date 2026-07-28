@@ -1,34 +1,28 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-
-const ALLOWED_ORIGINS = [
-  "https://spot-light-xi.vercel.app",
-  "http://localhost:5173",
-  "http://localhost:3000",
-];
-
-const buildRedirect = (value: string | null, fallback: string) => {
-  if (!value) return fallback;
-  try {
-    const u = new URL(value);
-    if (u.protocol !== "http:" && u.protocol !== "https:") return fallback;
-    // Permite origens explicitamente listadas ou a mesma origem do fallback
-    const fallbackOrigin = new URL(fallback).origin;
-    if (ALLOWED_ORIGINS.includes(u.origin) || u.origin === fallbackOrigin) {
-      return u.toString();
-    }
-    return fallback;
-  } catch {
-    return fallback;
-  }
-};
+import {
+  buildSafeRedirect,
+  oauthNonceCookies,
+  oauthSecurityHeaders,
+  setNonceCookie,
+} from "../_shared/oauth-security.ts";
 
 serve((req) => {
+  if (req.method !== "GET") {
+    return new Response(JSON.stringify({ error: "method_not_allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json", ...oauthSecurityHeaders },
+    });
+  }
+
   const url = new URL(req.url);
   const origin = url.origin;
-  const fallbackSite = Deno.env.get("SITE_URL") || Deno.env.get("PUBLIC_SITE_URL") || origin;
+  const fallbackSite =
+    Deno.env.get("SITE_URL") ||
+    Deno.env.get("PUBLIC_SITE_URL") ||
+    "https://spot-light-xi.vercel.app";
 
   const requestedRedirect = url.searchParams.get("redirect");
-  const safeRedirect = buildRedirect(requestedRedirect, fallbackSite);
+  const safeRedirect = buildSafeRedirect(requestedRedirect, fallbackSite);
 
   // Gera nonce aleatório para proteção CSRF
   const nonce = crypto.randomUUID();
@@ -48,13 +42,12 @@ serve((req) => {
 
   const steamLoginUrl = `https://steamcommunity.com/openid/login?${params.toString()}`;
 
-  // Armazena nonce em cookie HttpOnly com validade de 10 minutos
-  const cookieMaxAge = 60 * 10;
   return new Response(null, {
     status: 302,
     headers: {
       Location: steamLoginUrl,
-      "Set-Cookie": `steam_nonce=${nonce}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${cookieMaxAge}`,
+      "Set-Cookie": setNonceCookie(oauthNonceCookies.steam, nonce),
+      ...oauthSecurityHeaders,
     },
   });
 });

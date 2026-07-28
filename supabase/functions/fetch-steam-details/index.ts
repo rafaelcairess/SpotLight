@@ -93,7 +93,7 @@ const normalizePriceInfo = (details: SteamPriceDetails | null | undefined) => {
 
 const fetchJson = async (url: string) => {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  if (!res.ok) throw new Error(`steam_upstream_http_${res.status}`);
   return res.json();
 };
 
@@ -314,6 +314,10 @@ serve(async (req) => {
 
     return json(200, { status: "ok", app_id: appId, locale });
   } catch (error) {
-    return json(500, { error: "fetch_failed", details: `${error?.message ?? error}` });
+    console.error(
+      "steam_details_fetch_failed:",
+      error instanceof Error ? error.message : "unknown_error",
+    );
+    return json(502, { error: "fetch_failed" });
   }
 });

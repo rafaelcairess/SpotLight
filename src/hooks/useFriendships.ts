@@ -155,7 +155,7 @@ export function useAcceptFriendRequest() {
     if (!friendship) throw new Error("Friend request missing");
     const { error } = await supabase
       .from("friend_requests")
-      .update({ status: "accepted", updated_at: new Date().toISOString() })
+      .update({ status: "accepted" })
       .eq("id", friendship.id);
     if (error) throw error;
   });

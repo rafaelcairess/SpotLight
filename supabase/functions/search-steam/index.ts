@@ -84,7 +84,7 @@ const fetchJson = async (url: string) => {
     },
   });
   if (!res.ok) {
-    throw new Error(`HTTP ${res.status} for ${url}`);
+    throw new Error(`steam_upstream_http_${res.status}`);
   }
   return res.json();
 };
@@ -173,6 +173,7 @@ serve(async (req) => {
 
     return json(200, { items });
   } catch (error) {
-    return json(500, { error: "search_failed", details: `${error?.message ?? error}` });
+    console.error("steam_search_failed:", error instanceof Error ? error.message : "unknown_error");
+    return json(502, { error: "search_failed" });
   }
 });

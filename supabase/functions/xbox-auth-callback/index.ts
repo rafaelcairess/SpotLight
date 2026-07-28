@@ -1,5 +1,13 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  buildSafeRedirect,
+  clearNonceCookie,
+  decodeOAuthState,
+  getCookie,
+  oauthNonceCookies,
+  oauthSecurityHeaders,
+} from "../_shared/oauth-security.ts";
 
 /**
  * xbox-auth-callback
@@ -19,19 +27,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...oauthSecurityHeaders },
   });
 
-const getCookie = (cookieHeader: string | null, name: string): string | null => {
-  if (!cookieHeader) return null;
-  for (const part of cookieHeader.split(";")) {
-    const [k, v] = part.trim().split("=");
-    if (k === name) return v ?? null;
-  }
-  return null;
-};
-
 serve(async (req) => {
+  if (req.method !== "GET") {
+    return json(405, { error: "method_not_allowed" });
+  }
+
   const XBOX_CLIENT_ID = Deno.env.get("XBOX_CLIENT_ID") || "";
   const XBOX_CLIENT_SECRET = Deno.env.get("XBOX_CLIENT_SECRET") || "";
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
@@ -42,45 +45,35 @@ serve(async (req) => {
   }
 
   const url = new URL(req.url);
-  const fallbackSite = Deno.env.get("SITE_URL") || Deno.env.get("PUBLIC_SITE_URL") || url.origin;
+  if (url.search.length > 8192) {
+    return json(414, { error: "request_too_large" });
+  }
+  const fallbackSite =
+    Deno.env.get("SITE_URL") ||
+    Deno.env.get("PUBLIC_SITE_URL") ||
+    "https://spot-light-xi.vercel.app";
 
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const error = url.searchParams.get("error");
 
   if (error) {
-    return json(400, { error: "xbox_auth_denied", detail: error });
+    return json(400, { error: "xbox_auth_denied" });
   }
 
-  if (!code || !state) {
+  if (!code || code.length > 4096 || !state) {
     return json(400, { error: "missing_code_or_state" });
   }
 
   // ── Validação CSRF ──────────────────────────────────────────────
-  const [nonceFromState, encodedRedirect] = state.split(":");
-  const nonceFromCookie = getCookie(req.headers.get("cookie"), "xbox_nonce");
+  const decodedState = decodeOAuthState(state);
+  const nonceFromCookie = getCookie(req.headers.get("cookie"), oauthNonceCookies.xbox);
 
-  if (!nonceFromState || !nonceFromCookie || nonceFromState !== nonceFromCookie) {
+  if (!decodedState || !nonceFromCookie || decodedState.nonce !== nonceFromCookie) {
     return json(403, { error: "csrf_nonce_mismatch" });
   }
 
-  const ALLOWED_ORIGINS = [
-    "https://spot-light-xi.vercel.app",
-    "http://localhost:5173",
-    "http://localhost:3000",
-  ];
-  const safeRedirectRaw = encodedRedirect ? decodeURIComponent(encodedRedirect) : fallbackSite;
-  let safeRedirect = fallbackSite;
-  try {
-    const u = new URL(safeRedirectRaw);
-    if (u.protocol === "http:" || u.protocol === "https:") {
-      if (ALLOWED_ORIGINS.includes(u.origin) || u.origin === new URL(fallbackSite).origin) {
-        safeRedirect = u.toString();
-      }
-    }
-  } catch {
-    /* usa fallbackSite */
-  }
+  const safeRedirect = buildSafeRedirect(decodedState.redirect, fallbackSite);
   // ───────────────────────────────────────────────────────────────
 
   const callbackUrl = `${url.origin}/functions/v1/xbox-auth-callback`;
@@ -283,7 +276,8 @@ serve(async (req) => {
     status: 302,
     headers: {
       Location: actionLink,
-      "Set-Cookie": "xbox_nonce=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0",
+      "Set-Cookie": clearNonceCookie(oauthNonceCookies.xbox),
+      ...oauthSecurityHeaders,
     },
   });
 });

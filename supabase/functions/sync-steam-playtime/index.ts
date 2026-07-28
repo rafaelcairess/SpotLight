@@ -17,7 +17,7 @@ const json = (status: number, body: Record<string, unknown>) =>
 
 const fetchJson = async (url: string) => {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  if (!res.ok) throw new Error(`steam_upstream_http_${res.status}`);
   return res.json();
 };
 
@@ -208,9 +208,12 @@ serve(async (req) => {
     const data = await fetchJson(ownedUrl);
     games = Array.isArray(data?.response?.games) ? data.response.games : [];
   } catch (error) {
+    console.error(
+      "steam_owned_games_fetch_failed:",
+      error instanceof Error ? error.message : "unknown_error",
+    );
     return json(502, {
       error: "steam_fetch_failed",
-      detail: `${(error as Error)?.message ?? error}`,
     });
   }
 

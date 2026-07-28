@@ -1,4 +1,10 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import {
+  buildSafeRedirect,
+  oauthNonceCookies,
+  oauthSecurityHeaders,
+  setNonceCookie,
+} from "../_shared/oauth-security.ts";
 
 /**
  * psn-auth-start
@@ -14,39 +20,31 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
  *   SITE_URL       — URL base do frontend
  */
 
-const buildRedirect = (value: string | null, baseOrigin: string) => {
-  if (!value) return baseOrigin;
-  try {
-    const resolved = new URL(value, baseOrigin);
-    if (resolved.origin !== baseOrigin) return baseOrigin;
-    return resolved.toString();
-  } catch {
-    return baseOrigin;
-  }
-};
-
 serve((req) => {
+  if (req.method !== "GET") {
+    return new Response(JSON.stringify({ error: "method_not_allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json", ...oauthSecurityHeaders },
+    });
+  }
+
   const PSN_CLIENT_ID = Deno.env.get("PSN_CLIENT_ID") || "";
   if (!PSN_CLIENT_ID) {
     return new Response(JSON.stringify({ error: "psn_not_configured" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
+      status: 503,
+      headers: { "Content-Type": "application/json", ...oauthSecurityHeaders },
     });
   }
 
   const url = new URL(req.url);
   const origin = url.origin;
-  const fallbackSite = Deno.env.get("SITE_URL") || Deno.env.get("PUBLIC_SITE_URL") || origin;
-
-  let baseOrigin = origin;
-  try {
-    baseOrigin = new URL(fallbackSite).origin;
-  } catch {
-    baseOrigin = origin;
-  }
+  const fallbackSite =
+    Deno.env.get("SITE_URL") ||
+    Deno.env.get("PUBLIC_SITE_URL") ||
+    "https://spot-light-xi.vercel.app";
 
   const requestedRedirect = url.searchParams.get("redirect");
-  const safeRedirect = buildRedirect(requestedRedirect, baseOrigin);
+  const safeRedirect = buildSafeRedirect(requestedRedirect, fallbackSite);
 
   // Nonce CSRF
   const nonce = crypto.randomUUID();
@@ -62,13 +60,12 @@ serve((req) => {
   });
 
   const psnLoginUrl = `https://ca.account.sony.com/api/authz/v3/oauth/authorize?${params}`;
-  const cookieMaxAge = 60 * 10;
-
   return new Response(null, {
     status: 302,
     headers: {
       Location: psnLoginUrl,
-      "Set-Cookie": `psn_nonce=${nonce}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${cookieMaxAge}`,
+      "Set-Cookie": setNonceCookie(oauthNonceCookies.psn, nonce),
+      ...oauthSecurityHeaders,
     },
   });
 });
