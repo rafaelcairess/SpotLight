@@ -1,0 +1,45 @@
+<!-- Descreve o projeto separado que executa os testes da API. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Usa a mesma versão do .NET que o projeto testado. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- Importa automaticamente namespaces comuns. -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Ativa os alertas do compilador relacionados a null. -->
+    <Nullable>enable</Nullable>
+
+    <!-- Impede a publicação deste projeto como pacote NuGet. -->
+    <IsPackable>false</IsPackable>
+    <!-- Identifica explicitamente que este é um projeto de testes. -->
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Coleta cobertura: quais partes do código foram executadas pelos testes. -->
+    <PackageReference Include="coverlet.collector" Version="10.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <!-- Integra este projeto ao comando "dotnet test". -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <!-- Framework que fornece [Fact] e Assert. -->
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <!-- Permite que Visual Studio e outras ferramentas descubram testes xUnit. -->
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Disponibiliza os tipos do xUnit sem "using Xunit" em cada arquivo. -->
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Permite que os testes utilizem as classes públicas da API. -->
+    <ProjectReference Include="..\SpotLight.Api\SpotLight.Api.csproj" />
+  </ItemGroup>
+
+</Project>

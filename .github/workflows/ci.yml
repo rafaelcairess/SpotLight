@@ -39,3 +39,36 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_CLI_UI_LANGUAGE: en
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore backend/SpotLight.sln
+
+      - name: Check formatting
+        run: dotnet format backend/SpotLight.sln --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build backend/SpotLight.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test backend/SpotLight.sln --configuration Release --no-build
+
+      - name: Audit packages
+        shell: bash
+        run: |
+          dotnet list backend/SpotLight.sln package --vulnerable --include-transitive | tee vulnerabilities.txt
+          if grep -q "has the following vulnerable packages" vulnerabilities.txt; then
+            exit 1
+          fi
