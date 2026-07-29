@@ -1,3 +1,6 @@
+// Importa o método AddSupabaseAuthentication criado dentro do projeto.
+using SpotLight.Api.Authentication;
+
 // WebApplication é a classe central do ASP.NET Core.
 // CreateBuilder lê argumentos do terminal, appsettings.json e variáveis de ambiente.
 // O builder configura tudo que a API precisa antes de ser iniciada.
@@ -13,9 +16,17 @@ builder.Services.AddEndpointsApiExplorer();
 // Registra o Swagger/OpenAPI, usado para documentar e testar as rotas.
 builder.Services.AddSwaggerGen();
 
+// Registra respostas no formato Problem Details para erros inesperados.
+// Esse é um formato HTTP padronizado, em vez de devolver stack traces ao cliente.
+builder.Services.AddProblemDetails();
+
 // Registra o relógio real como uma única instância durante a execução.
 // TimeProvider pode ser substituído por um relógio falso nos testes.
 builder.Services.AddSingleton(TimeProvider.System);
+
+// Configura a validação dos tokens do Supabase e a política de usuário autenticado.
+// A API usa somente as chaves públicas do JWKS; nenhum segredo entra no código.
+builder.Services.AddSupabaseAuthentication(builder.Configuration);
 
 // Lê Cors:AllowedOrigins do appsettings.json e converte o valor para string[].
 // Se a configuração não existir, "?? []" fornece uma lista vazia em vez de null.
@@ -40,6 +51,10 @@ builder.Services.AddCors(options =>
 // Constrói a aplicação depois que todos os serviços foram registrados.
 var app = builder.Build();
 
+// Converte exceções não tratadas em uma resposta Problem Details genérica.
+// Detalhes internos ficam nos logs do servidor e não são vazados para o navegador.
+app.UseExceptionHandler();
+
 // Habilita a documentação interativa somente no ambiente de desenvolvimento.
 if (app.Environment.IsDevelopment())
 {
@@ -53,7 +68,10 @@ if (app.Environment.IsDevelopment())
 // Aplica a política CORS "Frontend" a cada requisição.
 app.UseCors("Frontend");
 
-// Ativa a etapa que verificará autorização quando adicionarmos usuários e políticas.
+// Lê e valida o Bearer token antes de executar os controllers protegidos.
+app.UseAuthentication();
+
+// Verifica se o usuário autenticado cumpre a política exigida pela rota.
 app.UseAuthorization();
 
 // Conecta [Route], [HttpGet] e outros atributos dos controllers às rotas HTTP.

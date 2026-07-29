@@ -16,6 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Inicia a API em memória para testar autenticação e rotas HTTP reais. -->
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.29" />
     <!-- Coleta cobertura: quais partes do código foram executadas pelos testes. -->
     <PackageReference Include="coverlet.collector" Version="10.0.1">
       <PrivateAssets>all</PrivateAssets>

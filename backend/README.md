@@ -18,6 +18,17 @@ A rota inicial confirma que o servidor está funcionando:
 GET http://localhost:5080/api/health
 ```
 
+Também existe uma primeira rota protegida:
+
+```http
+GET http://localhost:5080/api/me
+Authorization: Bearer <access-token-do-usuário>
+```
+
+Ela valida o token emitido pelo Supabase e devolve somente a identidade do
+usuário autenticado. Leia [`AUTHENTICATION_GUIDE.md`](AUTHENTICATION_GUIDE.md)
+para acompanhar o caminho completo da requisição.
+
 ## Executar localmente
 
 ```powershell

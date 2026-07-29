@@ -12,6 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Valida os access tokens JWT enviados pelo frontend. -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.29" />
     <!-- Gera a especificação OpenAPI e a interface Swagger. -->
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>

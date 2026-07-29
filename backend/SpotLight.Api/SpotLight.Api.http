@@ -4,3 +4,13 @@ GET {{SpotLight.Api_HostAddress}}/api/health
 Accept: application/json
 
 ###
+
+# Copie temporariamente um access token da sessão do frontend para testar.
+# Nunca envie esse token para o GitHub.
+@AccessToken = SUBSTITUA_PELO_ACCESS_TOKEN
+
+GET {{SpotLight.Api_HostAddress}}/api/me
+Accept: application/json
+Authorization: Bearer {{AccessToken}}
+
+###
