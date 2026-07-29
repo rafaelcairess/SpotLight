@@ -2,9 +2,10 @@
 
 # SpotLight
 
-**Steam, Xbox, PlayStation. Tudo em um perfil só.**
+**Sua biblioteca, seus destaques e sua história gamer em um só perfil.**
 
 [![Deploy](https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)](https://spot-light-xi.vercel.app)
+[![CI](https://github.com/rafaelcairess/SpotLight/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rafaelcairess/SpotLight/actions/workflows/ci.yml)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
@@ -36,9 +37,22 @@ O SpotLight nasceu para resolver exatamente isso.
 
 ## O que é o SpotLight
 
-O SpotLight é o seu perfil gamer completo. Conecte Steam, Xbox e PlayStation — suas bibliotecas, horas jogadas, platinas e troféus são sincronizados automaticamente para um único lugar. Quando você platinar um jogo no PS5 e terminar outro no PC, ambos aparecem no mesmo perfil, com o mesmo histórico. Você para de precisar abrir cada plataforma separada para enxergar sua vida como jogador.
+O SpotLight é um perfil gamer que reúne biblioteca, horas jogadas, destaques e conquistas em uma única vitrine. Hoje, a integração com a Steam já importa a biblioteca e sincroniza as horas automaticamente. Jogos e platinas de Xbox e PlayStation podem ser organizados manualmente enquanto as integrações oficiais dessas plataformas continuam em desenvolvimento.
 
-Além de centralizar o que você já tem, o SpotLight ajuda a descobrir o próximo jogo: catálogo curado, rankings, promoções em tempo real e recomendações baseadas na sua biblioteca real.
+Além de organizar o que você já jogou, o SpotLight ajuda a descobrir o próximo jogo com catálogo curado, rankings, promoções e dados atualizados da Steam.
+
+### Status atual
+
+| Status               | Funcionalidade                                                                 |
+| -------------------- | ------------------------------------------------------------------------------ |
+| Disponível           | Login, importação da biblioteca e sincronização de horas pela Steam            |
+| Disponível           | Perfil público, privacidade, amigos, comentários, reviews e listas             |
+| Disponível           | Jogos favoritos, vitrines de platinas e identificação manual da plataforma     |
+| Disponível           | Explorar, busca, promoções, Top Games e ranking de jogadores ativos            |
+| Em desenvolvimento   | Login e sincronização automática da biblioteca Xbox                            |
+| Em desenvolvimento   | Login, biblioteca e troféus da PlayStation                                     |
+| Experimental / local | API C# com validação JWT/JWKS e rota protegida `/api/me`                       |
+| Planejado            | Integração do frontend com a API C# e migração gradual das regras hoje no Deno |
 
 ---
 
@@ -133,13 +147,32 @@ Além de centralizar o que você já tem, o SpotLight ajuda a descobrir o próxi
 | Estado / Dados      | TanStack Query (React Query)                 |
 | Backend             | Supabase (PostgreSQL + Auth + RLS + Storage) |
 | Edge Functions      | Supabase Edge Functions (Deno)               |
-| API C#              | ASP.NET Core 8 (migração gradual)            |
+| API C#              | ASP.NET Core 8 (experimental e local)        |
 | Deploy              | Vercel                                       |
 | CI/CD               | GitHub Actions                               |
 | Internacionalização | react-i18next (PT, EN, ES)                   |
 | Tratamento de erros | React Error Boundaries                       |
 
-### Edge Functions (Deno)
+### Migração do backend C#
+
+A API ASP.NET Core já valida os tokens assimétricos emitidos pelo Supabase e
+possui a rota protegida `/api/me`. Ela ainda não está conectada ao frontend nem
+hospedada: nesta fase, funciona localmente como base didática para a migração.
+
+#### Roadmap
+
+- [x] Estrutura inicial da API e health check
+- [x] Autenticação C# com JWT/JWKS do Supabase
+- [ ] PostgreSQL com Entity Framework Core
+- [ ] Leitura e edição de perfis pela API C#
+- [ ] Migração da sincronização Steam para C#
+- [ ] Conexão do frontend com a nova API
+- [ ] Hospedagem da API no Render
+
+<details>
+<summary><strong>Edge Functions atuais (Deno)</strong></summary>
+
+<br>
 
 | Função                                 | Descrição                                                           |
 | -------------------------------------- | ------------------------------------------------------------------- |
@@ -155,86 +188,7 @@ Além de centralizar o que você já tem, o SpotLight ajuda a descobrir o próxi
 | `search-steam`                         | Pesquisa jogos na Steam para o catálogo                             |
 | `send-price-alert-email`               | Dispara e-mail de alerta de preço                                   |
 
----
-
-## Rodando localmente
-
-### Pré-requisitos
-
-- Node.js 20+
-- .NET SDK 8 para executar a nova API C#
-- npm
-- Conta no [Supabase](https://supabase.com) com projeto criado
-
-### 1. Clone o repositório
-
-```bash
-git clone https://github.com/rafaelcairess/SpotLight.git
-cd SpotLight
-```
-
-### 2. Instale as dependências
-
-```bash
-npm install
-```
-
-### 3. Configure as variáveis de ambiente
-
-```bash
-cp .env.example .env
-```
-
-| Variável                        | Descrição                    |
-| ------------------------------- | ---------------------------- |
-| `VITE_SUPABASE_URL`             | URL do seu projeto Supabase  |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Chave publicável do Supabase |
-
-> As variáveis das Edge Functions (Steam API Key, Xbox Client ID/Secret, etc.) são configuradas no painel do Supabase em _Settings → Edge Functions → Secrets_.
-
-### 4. Configure o banco de dados
-
-```bash
-supabase db push
-```
-
-Ou aplique manualmente as migrations em `supabase/migrations/` no SQL Editor do Supabase.
-
-### 5. Inicie o servidor
-
-```bash
-npm run dev
-```
-
-Acesse em `http://localhost:5173`.
-
-### 6. Execute a API C#
-
-Em outro terminal:
-
-```powershell
-dotnet restore backend\SpotLight.sln
-dotnet run --project backend\SpotLight.Api --urls http://localhost:5080
-```
-
-- Health check: `http://localhost:5080/api/health`
-- Swagger: `http://localhost:5080/swagger`
-- Guia didático: [`backend/README.md`](backend/README.md)
-
----
-
-## Scripts disponíveis
-
-```bash
-npm run dev              # Servidor de desenvolvimento
-npm run build            # Build de produção
-npm run preview          # Preview do build localmente
-npm run lint             # Lint com ESLint
-npm test                 # Testes com Vitest
-npm run sync:steam       # Sincroniza jogos populares da Steam
-npm run check:alerts     # Verifica e dispara alertas de preço
-npm run set:featured     # Define o jogo em destaque do dia
-```
+</details>
 
 ---
 
@@ -282,9 +236,17 @@ backend/
 
 ---
 
+## Contribuição
+
+O README principal apresenta o produto. Instruções de instalação, testes,
+variáveis de ambiente e padrões de contribuição estão em
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+---
+
 ## Segurança
 
-- **RLS (Row Level Security)** ativo em todas as tabelas — usuários só acessam seus próprios dados
+- **RLS (Row Level Security)** aplica regras de propriedade e respeita a privacidade configurada para perfis, bibliotecas e conteúdo público
 - **CSRF protection** com nonce em cookie HttpOnly nos fluxos Steam OpenID e Xbox OAuth
 - **JWT/JWKS assimétrico** validado pela API C# sem armazenar o segredo de assinatura
 - **Rate limiting** persistente para comentários, reviews, amizades e outras escritas
