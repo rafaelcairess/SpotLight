@@ -10,8 +10,17 @@
 [![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com)
+[![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com)
 
 **[→ Acessar o site](https://spot-light-xi.vercel.app)**
+
+<br>
+
+<a href="https://spot-light-xi.vercel.app">
+  <img src="docs/screenshots/explorar.webp" alt="Página Explorar do SpotLight com jogos em destaque e ranking em alta" width="100%">
+</a>
+
+<sub>Descubra jogos em destaque, tendências da Steam e recomendações em um só lugar.</sub>
 
 </div>
 
@@ -30,6 +39,45 @@ O SpotLight nasceu para resolver exatamente isso.
 O SpotLight é o seu perfil gamer completo. Conecte Steam, Xbox e PlayStation — suas bibliotecas, horas jogadas, platinas e troféus são sincronizados automaticamente para um único lugar. Quando você platinar um jogo no PS5 e terminar outro no PC, ambos aparecem no mesmo perfil, com o mesmo histórico. Você para de precisar abrir cada plataforma separada para enxergar sua vida como jogador.
 
 Além de centralizar o que você já tem, o SpotLight ajuda a descobrir o próximo jogo: catálogo curado, rankings, promoções em tempo real e recomendações baseadas na sua biblioteca real.
+
+---
+
+## Veja o SpotLight em funcionamento
+
+### Um perfil para toda a sua história nos games
+
+<a href="https://spot-light-xi.vercel.app/u/aeb">
+  <img src="docs/screenshots/perfil-publico.webp" alt="Perfil público no SpotLight com jogo favorito, nível e jogos platinados" width="100%">
+</a>
+
+<p align="center">
+  <sub>Jogo favorito, nível, biblioteca e platinas de diferentes plataformas na mesma vitrine.</sub>
+</p>
+
+<table>
+  <tr>
+    <td width="50%">
+      <a href="https://spot-light-xi.vercel.app/top">
+        <img src="docs/screenshots/top-games.webp" alt="Top Games do SpotLight em formato de cards">
+      </a>
+    </td>
+    <td width="50%">
+      <a href="https://spot-light-xi.vercel.app/mais-jogados">
+        <img src="docs/screenshots/mais-jogados.webp" alt="Ranking de jogos com mais jogadores ativos na Steam">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <strong>Top Games</strong><br>
+      <sub>Os jogos mais bem avaliados pela comunidade.</sub>
+    </td>
+    <td align="center">
+      <strong>Mais jogados</strong><br>
+      <sub>Jogadores ativos na Steam, com atualização periódica.</sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -85,6 +133,7 @@ Além de centralizar o que você já tem, o SpotLight ajuda a descobrir o próxi
 | Estado / Dados      | TanStack Query (React Query)                 |
 | Backend             | Supabase (PostgreSQL + Auth + RLS + Storage) |
 | Edge Functions      | Supabase Edge Functions (Deno)               |
+| API C#              | ASP.NET Core 8 (migração gradual)            |
 | Deploy              | Vercel                                       |
 | CI/CD               | GitHub Actions                               |
 | Internacionalização | react-i18next (PT, EN, ES)                   |
@@ -112,7 +161,8 @@ Além de centralizar o que você já tem, o SpotLight ajuda a descobrir o próxi
 
 ### Pré-requisitos
 
-- Node.js 18+
+- Node.js 20+
+- .NET SDK 8 para executar a nova API C#
 - npm
 - Conta no [Supabase](https://supabase.com) com projeto criado
 
@@ -157,6 +207,19 @@ npm run dev
 ```
 
 Acesse em `http://localhost:5173`.
+
+### 6. Execute a API C#
+
+Em outro terminal:
+
+```powershell
+dotnet restore backend\SpotLight.sln
+dotnet run --project backend\SpotLight.Api --urls http://localhost:5080
+```
+
+- Health check: `http://localhost:5080/api/health`
+- Swagger: `http://localhost:5080/swagger`
+- Guia didático: [`backend/README.md`](backend/README.md)
 
 ---
 
@@ -210,6 +273,11 @@ src/
 supabase/
 ├── functions/           # Edge Functions (Deno)
 └── migrations/          # Migrations SQL versionadas
+
+backend/
+├── SpotLight.Api/       # API ASP.NET Core comentada e didática
+├── SpotLight.Api.Tests/ # Testes automatizados em C# e xUnit
+└── SpotLight.sln        # Solution que reúne os projetos .NET
 ```
 
 ---
@@ -218,10 +286,9 @@ supabase/
 
 - **RLS (Row Level Security)** ativo em todas as tabelas — usuários só acessam seus próprios dados
 - **CSRF protection** com nonce em cookie HttpOnly nos fluxos Steam OpenID e Xbox OAuth
-- **JWT verification** configurado por função nas Edge Functions
+- **JWT/JWKS assimétrico** validado pela API C# sem armazenar o segredo de assinatura
+- **Rate limiting** persistente para comentários, reviews, amizades e outras escritas
 - Origens de redirect validadas contra lista de domínios permitidos explícita
-
----
 
 ---
 
