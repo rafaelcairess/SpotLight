@@ -10,31 +10,7 @@ import type { SupportedLocale } from "@/i18n/utils";
 import { getPosterImage } from "@/lib/steam";
 import { isLikelyGame } from "@/lib/gameFilters";
 import { sortByPopularity } from "@/lib/sort";
-
-type GameRow = {
-  app_id: number;
-  title: string;
-  image: string | null;
-  short_description: string | null;
-  genre: string | null;
-  tags: string[] | null;
-  active_players: number | null;
-  community_rating: number | null;
-  price: string | null;
-  price_original: string | null;
-  discount_percent: number | null;
-  release_date: string | null;
-  developer: string | null;
-  publisher: string | null;
-  platforms: string[] | null;
-  steam_url: string | null;
-  last_synced: string;
-  background_image: string | null;
-  trailer_url: string | null;
-  trailer_thumbnail: string | null;
-  screenshot_urls: string[] | null;
-  media_synced_at: string | null;
-};
+import { mapGameRow, type GameRow } from "@/features/games/data/gameMapper";
 
 type GameLocalizationRow = {
   app_id: number;
@@ -45,30 +21,6 @@ type GameLocalizationRow = {
   tags: string[] | null;
   updated_at: string;
 };
-
-// Mapeia o formato do banco para o formato usado pela UI.
-export const mapGameRow = (row: GameRow): GameData => ({
-  app_id: row.app_id,
-  title: row.title,
-  image: row.image || "",
-  short_description: row.short_description || undefined,
-  genre: row.genre || undefined,
-  tags: row.tags || undefined,
-  activePlayers: row.active_players || undefined,
-  communityRating: row.community_rating || undefined,
-  price: row.price || undefined,
-  priceOriginal: row.price_original || undefined,
-  discountPercent: row.discount_percent || undefined,
-  releaseDate: row.release_date || undefined,
-  developer: row.developer || undefined,
-  publisher: row.publisher || undefined,
-  platforms: row.platforms || undefined,
-  backgroundImage: row.background_image || undefined,
-  trailerUrl: row.trailer_url || undefined,
-  trailerThumbnail: row.trailer_thumbnail || undefined,
-  screenshots: row.screenshot_urls || undefined,
-  mediaSyncedAt: row.media_synced_at || undefined,
-});
 
 type SteamAppRow = {
   app_id: number;

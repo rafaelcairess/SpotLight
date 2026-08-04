@@ -9,24 +9,7 @@ import { TOP_GAMES_SERIES_CURATED } from "@/features/top/data/topGamesSeriesCura
 import { includesAnyNormalized, normalizeText } from "@/lib/text";
 import { getPosterImage } from "@/lib/steam";
 import { isLikelyGame } from "@/lib/gameFilters";
-
-type GameRow = {
-  app_id: number;
-  title: string;
-  image: string | null;
-  short_description: string | null;
-  genre: string | null;
-  tags: string[] | null;
-  active_players: number | null;
-  community_rating: number | null;
-  price: string | null;
-  price_original: string | null;
-  discount_percent: number | null;
-  release_date: string | null;
-  developer: string | null;
-  publisher: string | null;
-  platforms: string[] | null;
-};
+import { mapGameRows, type GameRow } from "@/features/games/data/gameMapper";
 
 export interface RankedGame extends GameData {
   isCurated: boolean;
@@ -38,24 +21,6 @@ type SteamAppRow = {
   name: string;
   is_game: boolean | null;
 };
-
-const mapGameRow = (row: GameRow): GameData => ({
-  app_id: row.app_id,
-  title: row.title,
-  image: row.image || "",
-  short_description: row.short_description || undefined,
-  genre: row.genre || undefined,
-  tags: row.tags || undefined,
-  activePlayers: row.active_players || undefined,
-  communityRating: row.community_rating || undefined,
-  price: row.price || undefined,
-  priceOriginal: row.price_original || undefined,
-  discountPercent: row.discount_percent || undefined,
-  releaseDate: row.release_date || undefined,
-  developer: row.developer || undefined,
-  publisher: row.publisher || undefined,
-  platforms: row.platforms || undefined,
-});
 
 // Cria um placeholder quando nao temos detalhes completos no catalogo.
 const buildPlaceholderGame = (appId: number, title: string): GameData => ({
@@ -133,8 +98,8 @@ export function useTopGamesRanking(genreFilter = "", tagFilter = "", limit = 100
       if (curatedError) throw curatedError;
       if (popularError) throw popularError;
 
-      const curatedPool = ((curatedData || []) as GameRow[]).map(mapGameRow);
-      const popularPool = ((popularData || []) as GameRow[]).map(mapGameRow);
+      const curatedPool = mapGameRows((curatedData || []) as GameRow[]);
+      const popularPool = mapGameRows((popularData || []) as GameRow[]);
       const takenIds = new Set<number>();
 
       // Primeiro preenche a lista com a curadoria (por ordem declarada).

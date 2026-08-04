@@ -5,13 +5,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Globe, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Header from "@/components/Header";
+import { PageContainer, PageShell } from "@/components/PageShell";
 import { useUserListById, useUserListGames } from "@/hooks/useUserLists";
 import { useGamesByIds } from "@/hooks/useGames";
-import GameCard from "@/features/games/components/GameCard";
-import { useState } from "react";
+import { GameGrid } from "@/features/games/components/GameGrid";
 import GameModal from "@/features/games/components/GameModal";
-import { GameData } from "@/types/game";
+import { useGameSelection } from "@/features/games/hooks/useGameSelection";
 
 export default function ListPage() {
   const { listId } = useParams<{ listId: string }>();
@@ -21,15 +20,14 @@ export default function ListPage() {
   const appIds = listGames.map((g) => g.app_id);
   const { data: catalogGames = [], isLoading: catalogLoading } = useGamesByIds(appIds);
 
-  const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
+  const { selectedGame, isGameOpen, openGame, closeGame } = useGameSelection();
 
   const isLoading = listLoading || gamesLoading || catalogLoading;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="pt-24 container mx-auto px-4 max-w-4xl">
+      <PageShell>
+        <PageContainer width="narrow">
           <div className="animate-pulse space-y-4">
             <div className="h-8 w-48 bg-secondary rounded" />
             <div className="h-4 w-64 bg-secondary rounded" />
@@ -39,30 +37,28 @@ export default function ListPage() {
               ))}
             </div>
           </div>
-        </main>
-      </div>
+        </PageContainer>
+      </PageShell>
     );
   }
 
   if (!list) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="pt-24 container mx-auto px-4 max-w-4xl text-center">
+      <PageShell>
+        <PageContainer width="narrow" className="text-center">
           <p className="text-muted-foreground">Lista não encontrada ou privada.</p>
           <Button variant="ghost" className="mt-4" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
-        </main>
-      </div>
+        </PageContainer>
+      </PageShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="pt-24 pb-12 container mx-auto px-4 max-w-4xl space-y-6">
+    <PageShell>
+      <PageContainer width="narrow" className="space-y-6 pb-12">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2 -ml-2">
           <ArrowLeft className="w-4 h-4" />
           Voltar
@@ -86,19 +82,16 @@ export default function ListPage() {
             <p className="text-muted-foreground">Esta lista não tem jogos ainda.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5">
-            {catalogGames.map((game) => (
-              <GameCard key={game.app_id} game={game} onClick={() => setSelectedGame(game)} />
-            ))}
-          </div>
+          <GameGrid
+            games={catalogGames}
+            layout="posters"
+            posterColumns={5}
+            onGameSelect={openGame}
+          />
         )}
-      </main>
+      </PageContainer>
 
-      <GameModal
-        game={selectedGame}
-        isOpen={!!selectedGame}
-        onClose={() => setSelectedGame(null)}
-      />
-    </div>
+      <GameModal game={selectedGame} isOpen={isGameOpen} onClose={closeGame} />
+    </PageShell>
   );
 }

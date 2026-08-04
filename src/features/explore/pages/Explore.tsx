@@ -3,6 +3,7 @@ import { Clock3, Flame, Layers3, Orbit, Sparkles } from "lucide-react";
 import { PageContainer, PageShell } from "@/components/PageShell";
 import FeaturedBanner from "@/features/explore/components/FeaturedBanner";
 import GameCard from "@/features/games/components/GameCard";
+import { GameGrid } from "@/features/games/components/GameGrid";
 import GameModal from "@/features/games/components/GameModal";
 import SectionHeader from "@/components/SectionHeader";
 import CategoryCard from "@/features/collections/components/CategoryCard";
@@ -20,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import { rankNoteworthyReleases, rankQualityGames } from "@/lib/discovery";
 import { isMatureGame } from "@/lib/matureFilter";
 import { isLikelyGame } from "@/lib/gameFilters";
+import { useGameSelection } from "@/features/games/hooks/useGameSelection";
 
 const PAGE_SIZE = 20;
 const FEATURED_CATEGORY_IDS = [
@@ -37,7 +39,7 @@ export default function Explore() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [showMature] = useMaturePreference();
-  const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
+  const { selectedGame, openGame, closeGame } = useGameSelection<GameData>();
   const [discoverLimit, setDiscoverLimit] = useState(PAGE_SIZE);
   const [layoutMode, setLayoutMode] = useLayoutPreference(
     STORAGE_KEYS.layoutMode.explore,
@@ -90,12 +92,7 @@ export default function Explore() {
     ? dailyFeaturedGame
     : qualityGames[0] || popularGames[0] || null;
 
-  const gridClass =
-    layoutMode === "compact"
-      ? "grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5"
-      : "grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 md:gap-6";
-
-  const openGame = (game: GameData) => setSelectedGame(game);
+  const catalogLayout = layoutMode === "compact" ? "posters" : "cards";
 
   return (
     <PageShell mainClassName="pb-0">
@@ -177,17 +174,7 @@ export default function Explore() {
             {t("home.newWorthPlayingEmpty")}
           </div>
         ) : (
-          <div className={gridClass}>
-            {newReleases.map((game, index) => (
-              <GameCard
-                key={game.app_id}
-                game={game}
-                index={index}
-                variant={layoutMode === "compact" ? "poster" : "default"}
-                onClick={() => openGame(game)}
-              />
-            ))}
-          </div>
+          <GameGrid games={newReleases} layout={catalogLayout} onGameSelect={openGame} />
         )}
       </PageContainer>
 
@@ -205,24 +192,18 @@ export default function Explore() {
               {t("home.recommendationsEmpty")}
             </div>
           ) : (
-            <div className={gridClass}>
-              {recommendedGames.map((game, index) => (
-                <GameCard
-                  key={game.app_id}
-                  game={game}
-                  index={index}
-                  variant={layoutMode === "compact" ? "poster" : "default"}
-                  contextLabel={
-                    game.matchedTags.length
-                      ? t("home.recommendationReason", {
-                          tags: game.matchedTags.join(" • "),
-                        })
-                      : t("home.recommendationQualityReason")
-                  }
-                  onClick={() => openGame(game)}
-                />
-              ))}
-            </div>
+            <GameGrid
+              games={recommendedGames}
+              layout={catalogLayout}
+              onGameSelect={openGame}
+              getContextLabel={(game) =>
+                game.matchedTags.length
+                  ? t("home.recommendationReason", {
+                      tags: game.matchedTags.join(" • "),
+                    })
+                  : t("home.recommendationQualityReason")
+              }
+            />
           )}
         </PageContainer>
       )}
@@ -238,17 +219,11 @@ export default function Explore() {
           <LoadingSkeleton variant="card" count={5} />
         ) : (
           <>
-            <div className={gridClass}>
-              {acclaimedGames.slice(0, discoverLimit).map((game, index) => (
-                <GameCard
-                  key={game.app_id}
-                  game={game}
-                  index={index}
-                  variant={layoutMode === "compact" ? "poster" : "default"}
-                  onClick={() => openGame(game)}
-                />
-              ))}
-            </div>
+            <GameGrid
+              games={acclaimedGames.slice(0, discoverLimit)}
+              layout={catalogLayout}
+              onGameSelect={openGame}
+            />
             {acclaimedGames.length > discoverLimit && (
               <div className="flex justify-center mt-8">
                 <Button
@@ -267,17 +242,7 @@ export default function Explore() {
       {showMature && matureGames.length > 0 && (
         <PageContainer as="section" className="mb-11 md:mb-20">
           <SectionHeader title={t("home.matureTitle")} subtitle={t("home.matureSubtitle")} />
-          <div className={gridClass}>
-            {matureGames.map((game, index) => (
-              <GameCard
-                key={game.app_id}
-                game={game}
-                index={index}
-                variant={layoutMode === "compact" ? "poster" : "default"}
-                onClick={() => openGame(game)}
-              />
-            ))}
-          </div>
+          <GameGrid games={matureGames} layout={catalogLayout} onGameSelect={openGame} />
         </PageContainer>
       )}
 
@@ -291,11 +256,7 @@ export default function Explore() {
         </PageContainer>
       </footer>
 
-      <GameModal
-        game={selectedGame}
-        isOpen={Boolean(selectedGame)}
-        onClose={() => setSelectedGame(null)}
-      />
+      <GameModal game={selectedGame} isOpen={Boolean(selectedGame)} onClose={closeGame} />
     </PageShell>
   );
 }

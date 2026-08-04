@@ -2,18 +2,16 @@
  * Página da feature promotions.
  */
 
-import Header from "@/components/Header";
+import { PageContainer, PageShell } from "@/components/PageShell";
 import PromotionsBar from "@/features/promotions/components/PromotionsBar";
 
 const Promotions = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
-      <main className="pt-24 md:pt-28 pb-12">
+    <PageShell>
+      <PageContainer className="pb-12">
         <PromotionsBar />
-      </main>
-    </div>
+      </PageContainer>
+    </PageShell>
   );
 };
 

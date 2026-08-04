@@ -30,7 +30,7 @@ import {
 } from "@/hooks/useFriendships";
 import { useProfileCounts } from "@/hooks/useProfileCounts";
 import GameModal from "@/features/games/components/GameModal";
-import { GameData } from "@/types/game";
+import { useGameSelection } from "@/features/games/hooks/useGameSelection";
 import { useTranslation } from "react-i18next";
 import { canViewProfileSection } from "@/lib/profilePrivacy";
 import { ProfileHero } from "@/features/profile/components/ProfileHero";
@@ -92,8 +92,7 @@ const PublicProfile = () => {
   const followUser = useFollowUser();
   const unfollowUser = useUnfollowUser();
 
-  const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { selectedGame, isGameOpen, openGame, closeGame } = useGameSelection();
 
   const platinumGames = userGames.filter((g) => g.is_platinumed);
 
@@ -165,16 +164,6 @@ const PublicProfile = () => {
       acceptFriendRequest.mutate({ otherUserId: userId, friendship });
     if (friendshipState === "outgoing" || friendshipState === "friends")
       removeFriendship.mutate({ otherUserId: userId, friendship });
-  };
-
-  const handleOpenGame = (game: GameData) => {
-    setSelectedGame(game);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedGame(null);
   };
 
   return (
@@ -289,7 +278,7 @@ const PublicProfile = () => {
                   games={userGames}
                   isLoading={gamesLoading}
                   readOnly
-                  onGameSelect={handleOpenGame}
+                  onGameSelect={openGame}
                 />
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
@@ -307,7 +296,7 @@ const PublicProfile = () => {
                   readOnly
                   highlightPlatinum
                   cardTone="completed"
-                  onGameSelect={handleOpenGame}
+                  onGameSelect={openGame}
                 />
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
@@ -362,7 +351,7 @@ const PublicProfile = () => {
         </section>
       </PageContainer>
 
-      <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />
+      <GameModal game={selectedGame} isOpen={isGameOpen} onClose={closeGame} />
     </PageShell>
   );
 };

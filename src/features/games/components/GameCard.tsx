@@ -9,11 +9,13 @@ import { cn } from "@/lib/utils";
 import { getPosterImage } from "@/lib/steam";
 import { formatPlayers, getRatingColorClass, isFreePrice } from "@/lib/format";
 
+export type GameCardVariant = "default" | "compact" | "ranking" | "ranking-featured" | "poster";
+
 interface GameCardProps {
   game: GameData;
   onClick?: () => void;
   index?: number;
-  variant?: "default" | "compact" | "ranking" | "ranking-featured" | "poster";
+  variant?: GameCardVariant;
   rank?: number;
   contextLabel?: string;
 }

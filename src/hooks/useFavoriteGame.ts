@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { GameData } from "@/types/game";
-import { mapGameRow } from "@/hooks/useGames";
+import { mapGameRow } from "@/features/games/data/gameMapper";
 
 export function useFavoriteGame(profileUserId?: string, appId?: number | null) {
   return useQuery({

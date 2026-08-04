@@ -32,7 +32,7 @@ import { ProfileHero } from "@/features/profile/components/ProfileHero";
 import { ProfileTabBar } from "@/features/profile/components/ProfileTabBar";
 import { UserAvatar } from "@/features/profile/components/UserAvatar";
 import GameModal from "@/features/games/components/GameModal";
-import { GameData } from "@/types/game";
+import { useGameSelection } from "@/features/games/hooks/useGameSelection";
 import { useTranslation } from "react-i18next";
 import { useSyncSteamPlaytime } from "@/hooks/useSteamPlaytime";
 import { useToast } from "@/hooks/use-toast";
@@ -58,8 +58,7 @@ const Profile = () => {
   );
   const { data: friends = [], isLoading: friendsLoading } = useFriends(profile?.user_id);
   const { data: contentCounts } = useProfileCounts(profile?.user_id, true, true);
-  const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { selectedGame, isGameOpen, openGame, closeGame } = useGameSelection();
   const [isPlatinumPickerOpen, setIsPlatinumPickerOpen] = useState(false);
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -90,15 +89,6 @@ const Profile = () => {
 
   const platinumGames = userGames.filter((g) => g.is_platinumed);
 
-  const handleOpenGame = (game: GameData) => {
-    setSelectedGame(game);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedGame(null);
-  };
   return (
     <PageShell>
       <PageContainer width="content" className="pb-16">
@@ -187,7 +177,7 @@ const Profile = () => {
               <ProfileLibrarySections
                 games={userGames}
                 isLoading={gamesLoading}
-                onGameSelect={handleOpenGame}
+                onGameSelect={openGame}
               />
             </TabsContent>
 
@@ -232,7 +222,7 @@ const Profile = () => {
                 emptyMessage={t("profile.emptyPlatinums")}
                 highlightPlatinum
                 cardTone="completed"
-                onGameSelect={handleOpenGame}
+                onGameSelect={openGame}
               />
             </TabsContent>
 
@@ -262,7 +252,7 @@ const Profile = () => {
                 isLoading={hiddenLoading}
                 emptyMessage={t("profile.hiddenEmpty")}
                 showHidden
-                onGameSelect={handleOpenGame}
+                onGameSelect={openGame}
               />
             </TabsContent>
 
@@ -304,7 +294,7 @@ const Profile = () => {
 
       <PlatinumGamePicker open={isPlatinumPickerOpen} onOpenChange={setIsPlatinumPickerOpen} />
 
-      <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />
+      <GameModal game={selectedGame} isOpen={isGameOpen} onClose={closeGame} />
     </PageShell>
   );
 };

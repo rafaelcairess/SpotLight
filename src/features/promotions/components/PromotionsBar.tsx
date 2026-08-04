@@ -5,13 +5,13 @@
 import { useState } from "react";
 import { DollarSign } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
-import GameCard from "@/features/games/components/GameCard";
+import { GameGrid } from "@/features/games/components/GameGrid";
 import GameModal from "@/features/games/components/GameModal";
+import { useGameSelection } from "@/features/games/hooks/useGameSelection";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import LayoutToggle from "@/components/LayoutToggle";
 import { useLayoutPreference } from "@/hooks/useLayoutPreference";
 import { useDiscountedGamesPaged } from "@/hooks/useGames";
-import { GameData } from "@/types/game";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 
@@ -24,15 +24,9 @@ const PromotionsBar = () => {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const [cooldown, setCooldown] = useState(false);
 
-  const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { selectedGame, isGameOpen, openGame, closeGame } = useGameSelection();
   const [layoutMode, setLayoutMode] = useLayoutPreference();
   const { t } = useTranslation();
-
-  const handleGameClick = (game: GameData) => {
-    setSelectedGame(game);
-    setIsModalOpen(true);
-  };
 
   const handlePageChange = (nextPage: number) => {
     if (cooldown || isFetching || nextPage === page) return;
@@ -41,18 +35,8 @@ const PromotionsBar = () => {
     setTimeout(() => setCooldown(false), 400);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedGame(null);
-  };
-
-  const gridClass =
-    layoutMode === "compact"
-      ? "grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 md:gap-6"
-      : "grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 md:gap-6";
-
   return (
-    <section className="container mx-auto px-4 mb-12 md:mb-16">
+    <section className="mb-12 md:mb-16">
       <SectionHeader
         title={t("promotions.title")}
         subtitle={t("promotions.subtitle")}
@@ -66,17 +50,13 @@ const PromotionsBar = () => {
         <div className="text-center py-8 text-muted-foreground">{t("promotions.empty")}</div>
       ) : (
         <>
-          <div className={gridClass}>
-            {games.map((game, idx) => (
-              <GameCard
-                key={game.app_id}
-                game={game}
-                index={idx}
-                variant={layoutMode === "compact" ? "compact" : "default"}
-                onClick={() => handleGameClick(game)}
-              />
-            ))}
-          </div>
+          <GameGrid
+            games={games}
+            layout={layoutMode === "compact" ? "posters" : "cards"}
+            posterColumns={4}
+            cardVariant={layoutMode === "compact" ? "compact" : "default"}
+            onGameSelect={openGame}
+          />
 
           <div className="flex items-center justify-center gap-3 mt-8">
             <Button
@@ -100,7 +80,7 @@ const PromotionsBar = () => {
         </>
       )}
 
-      <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />
+      <GameModal game={selectedGame} isOpen={isGameOpen} onClose={closeGame} />
     </section>
   );
 };

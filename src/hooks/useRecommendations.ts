@@ -7,25 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { GameData } from "@/types/game";
 import { rankPersonalRecommendations, type RecommendationProfileGame } from "@/lib/recommendations";
-
-type GameRow = {
-  app_id: number;
-  title: string;
-  image: string | null;
-  short_description: string | null;
-  genre: string | null;
-  tags: string[] | null;
-  active_players: number | null;
-  community_rating: number | null;
-  price: string | null;
-  price_original: string | null;
-  discount_percent: number | null;
-  release_date: string | null;
-  developer: string | null;
-  publisher: string | null;
-  platforms: string[] | null;
-  steam_url: string | null;
-};
+import { mapGameRow, type GameRow } from "@/features/games/data/gameMapper";
 
 type UserGameRow = {
   app_id: number;
@@ -52,24 +34,6 @@ export interface RecommendedGame extends GameData {
   recommendationScore: number;
   matchedTags: string[];
 }
-
-const mapGameRow = (row: GameRow): GameData => ({
-  app_id: row.app_id,
-  title: row.title,
-  image: row.image || "",
-  short_description: row.short_description || undefined,
-  genre: row.genre || undefined,
-  tags: row.tags || undefined,
-  activePlayers: row.active_players ?? undefined,
-  communityRating: row.community_rating ?? undefined,
-  price: row.price || undefined,
-  priceOriginal: row.price_original || undefined,
-  discountPercent: row.discount_percent ?? undefined,
-  releaseDate: row.release_date || undefined,
-  developer: row.developer || undefined,
-  publisher: row.publisher || undefined,
-  platforms: row.platforms || undefined,
-});
 
 const mapCandidate = (row: CandidateGameRow): GameData => ({
   app_id: row.app_id,

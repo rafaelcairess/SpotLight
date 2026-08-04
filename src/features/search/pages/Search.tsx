@@ -5,11 +5,12 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Search as SearchIcon, ArrowLeft } from "lucide-react";
-import Header from "@/components/Header";
-import GameCard from "@/features/games/components/GameCard";
+import { PageContainer, PageShell } from "@/components/PageShell";
+import { GameGrid } from "@/features/games/components/GameGrid";
 import GameModal from "@/features/games/components/GameModal";
+import { useGameSelection } from "@/features/games/hooks/useGameSelection";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
-import { GameData } from "@/types/game";
+import type { GameData } from "@/types/game";
 import { useEnsureGameDetails, useGameById, useSearchCatalog } from "@/hooks/useGames";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
@@ -17,8 +18,8 @@ import { useTranslation } from "react-i18next";
 const Search = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
-  const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { selectedGame, isGameOpen, openGame, closeGame, setSelectedGame } =
+    useGameSelection<GameData>();
   const { toast } = useToast();
   const { t } = useTranslation();
   const { data: results = [], isLoading } = useSearchCatalog(query, 40);
@@ -30,11 +31,10 @@ const Search = () => {
     if (fullGame && selectedAppId === fullGame.app_id) {
       setSelectedGame(fullGame);
     }
-  }, [fullGame, selectedAppId]);
+  }, [fullGame, selectedAppId, setSelectedGame]);
 
   const handleGameClick = async (game: GameData & { hasDetails?: boolean }) => {
-    setSelectedGame(game);
-    setIsModalOpen(true);
+    openGame(game);
     setSelectedAppId(game.app_id);
 
     if (!game.hasDetails) {
@@ -50,77 +50,63 @@ const Search = () => {
   };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedGame(null);
+    closeGame();
     setSelectedAppId(null);
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <PageShell>
+      <PageContainer className="pb-12">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {t("search.backHome")}
+        </Link>
 
-      <main className="pt-24 md:pt-28 pb-12">
-        <div className="container mx-auto px-4">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t("search.backHome")}
-          </Link>
-
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <SearchIcon className="w-5 h-5 text-primary" />
-              </div>
-              <h1 className="text-2xl md:text-3xl font-bold">{t("search.title")}</h1>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <SearchIcon className="w-5 h-5 text-primary" />
             </div>
-            {query && (
-              <p className="text-muted-foreground">
-                {t("search.showingFor")}{" "}
-                <span className="text-foreground font-medium">"{query}"</span>
-              </p>
-            )}
+            <h1 className="text-2xl md:text-3xl font-bold">{t("search.title")}</h1>
           </div>
-
-          {isLoading ? (
-            <LoadingSkeleton variant="card" count={6} />
-          ) : !query ? (
-            <div className="text-center py-12">
-              <SearchIcon className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-              <p className="text-muted-foreground">{t("search.emptyPrompt")}</p>
-            </div>
-          ) : results.length === 0 ? (
-            <div className="text-center py-12">
-              <SearchIcon className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">{t("search.emptyTitle")}</h3>
-              <p className="text-muted-foreground">{t("search.emptyDescription")}</p>
-            </div>
-          ) : (
-            <>
-              <p className="text-sm text-muted-foreground mb-6">
-                {results.length === 1
-                  ? t("search.resultsCount", { count: results.length })
-                  : t("search.resultsCountPlural", { count: results.length })}
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {results.map((game, idx) => (
-                  <GameCard
-                    key={game.app_id}
-                    game={game}
-                    index={idx}
-                    onClick={() => handleGameClick(game)}
-                  />
-                ))}
-              </div>
-            </>
+          {query && (
+            <p className="text-muted-foreground">
+              {t("search.showingFor")}{" "}
+              <span className="text-foreground font-medium">"{query}"</span>
+            </p>
           )}
         </div>
-      </main>
 
-      <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />
-    </div>
+        {isLoading ? (
+          <LoadingSkeleton variant="card" count={6} />
+        ) : !query ? (
+          <div className="text-center py-12">
+            <SearchIcon className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+            <p className="text-muted-foreground">{t("search.emptyPrompt")}</p>
+          </div>
+        ) : results.length === 0 ? (
+          <div className="text-center py-12">
+            <SearchIcon className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">{t("search.emptyTitle")}</h3>
+            <p className="text-muted-foreground">{t("search.emptyDescription")}</p>
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground mb-6">
+              {results.length === 1
+                ? t("search.resultsCount", { count: results.length })
+                : t("search.resultsCountPlural", { count: results.length })}
+            </p>
+            <GameGrid games={results} onGameSelect={handleGameClick} />
+          </>
+        )}
+      </PageContainer>
+
+      <GameModal game={selectedGame} isOpen={isGameOpen} onClose={handleCloseModal} />
+    </PageShell>
   );
 };
 
