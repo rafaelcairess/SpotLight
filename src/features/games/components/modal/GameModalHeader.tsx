@@ -21,17 +21,13 @@ export const GameModalHeader = ({ game, variant = "compact" }: GameModalHeaderPr
 
   if (variant === "page") {
     return (
-      <section className="relative min-h-[31rem] overflow-hidden rounded-[1.75rem] border border-white/[0.1] bg-card shadow-[0_34px_100px_hsl(226_75%_2%/0.66)] sm:min-h-[34rem]">
-        <img
-          src={game.backgroundImage || game.image}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+      <section className="relative min-h-[29rem] overflow-hidden rounded-2xl border border-white/[0.1] bg-card shadow-[0_24px_70px_hsl(226_75%_2%/0.58)] sm:min-h-[34rem] sm:rounded-[1.75rem]">
+        <img src={game.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/10" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-black/25" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
 
-        <div className="relative flex min-h-[31rem] items-end p-5 sm:min-h-[34rem] sm:p-8 lg:p-12">
+        <div className="relative flex min-h-[29rem] items-end p-5 sm:min-h-[34rem] sm:p-8 lg:p-12">
           <div className="grid w-full items-end gap-6 sm:grid-cols-[10rem_minmax(0,1fr)] lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-9">
             <div className="hidden aspect-[2/3] overflow-hidden rounded-2xl border border-white/[0.14] bg-black/40 shadow-2xl sm:block">
               <img
@@ -55,7 +51,7 @@ export const GameModalHeader = ({ game, variant = "compact" }: GameModalHeaderPr
                   <span className="text-xs font-medium text-foreground/70">{game.releaseDate}</span>
                 )}
               </div>
-              <h1 className="max-w-4xl font-logo text-4xl font-extrabold leading-[0.96] tracking-[-0.055em] text-white [text-wrap:balance] sm:text-5xl lg:text-6xl">
+              <h1 className="max-w-4xl break-words font-logo text-[2.35rem] font-extrabold leading-[0.98] tracking-[-0.045em] text-white [text-wrap:balance] sm:text-5xl sm:tracking-[-0.055em] lg:text-6xl">
                 {game.title}
               </h1>
               <div className="mt-5 flex flex-wrap items-center gap-3 text-sm">
@@ -85,7 +81,7 @@ export const GameModalHeader = ({ game, variant = "compact" }: GameModalHeaderPr
                   </span>
                 )}
               </div>
-              <Button onClick={openSteam} size="lg" className="mt-6 gap-2 px-6">
+              <Button onClick={openSteam} size="lg" className="mt-6 w-full gap-2 px-4 min-[390px]:w-auto sm:px-6">
                 <img src={steamIcon} alt="" className="h-5 w-5" />
                 {t("gameModal.viewOnSteam")}
                 <ExternalLink className="opacity-75" />
@@ -98,9 +94,9 @@ export const GameModalHeader = ({ game, variant = "compact" }: GameModalHeaderPr
   }
 
   return (
-    <div className="border-b border-white/[0.07] bg-gradient-to-br from-background via-background/95 to-card p-4 sm:p-6">
-      <div className="flex items-start gap-4">
-        <div className="aspect-[2/3] w-24 flex-shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black/40 sm:w-28 md:w-32">
+    <div className="border-b border-white/[0.07] bg-gradient-to-br from-background via-background/95 to-card p-3 pr-12 sm:p-6 sm:pr-12">
+      <div className="flex items-start gap-3 sm:gap-4">
+        <div className="aspect-[2/3] w-20 flex-shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black/40 sm:w-28 sm:rounded-xl md:w-32">
           <img
             src={poster}
             alt={game.title}
@@ -112,7 +108,7 @@ export const GameModalHeader = ({ game, variant = "compact" }: GameModalHeaderPr
           />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="font-logo text-2xl font-bold tracking-[-0.04em] md:text-3xl">
+          <h2 className="line-clamp-2 break-words font-logo text-xl font-bold leading-tight tracking-[-0.035em] sm:text-2xl md:text-3xl">
             {game.title}
           </h2>
           {game.genre && (
@@ -122,7 +118,7 @@ export const GameModalHeader = ({ game, variant = "compact" }: GameModalHeaderPr
           )}
           <Button
             onClick={openSteam}
-            className="mt-5 gap-2 bg-[#1b6ca8] px-5 text-white shadow-lg shadow-[#1b6ca8]/20 hover:bg-[#2387c8]"
+            className="mt-4 w-full gap-2 bg-[#1b6ca8] px-3 text-xs text-white shadow-lg shadow-[#1b6ca8]/20 hover:bg-[#2387c8] sm:mt-5 sm:w-auto sm:px-5 sm:text-sm"
           >
             <img src={steamIcon} alt="" className="h-5 w-5" />
             {t("gameModal.viewOnSteam")}

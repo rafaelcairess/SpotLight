@@ -259,8 +259,8 @@ export default function OnboardingModal() {
       return (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">{t("onboarding.matureStepDescription")}</p>
-          <div className="flex items-center justify-between rounded-lg border border-border/40 bg-secondary/30 px-4 py-3">
-            <div>
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-border/40 bg-secondary/30 px-3 py-3 sm:px-4">
+            <div className="min-w-0">
               <p className="text-sm font-medium">{t("profileEdit.matureTitle")}</p>
               <p className="text-xs text-muted-foreground">{t("profileEdit.matureDescription")}</p>
             </div>
@@ -367,7 +367,7 @@ export default function OnboardingModal() {
         else setOpen(nextOpen);
       }}
     >
-      <DialogContent className="max-w-2xl max-h-[92vh] flex flex-col min-h-0 p-4 sm:p-6">
+      <DialogContent className="flex max-h-[calc(100dvh-1rem)] min-h-0 max-w-2xl flex-col overflow-hidden p-4 sm:max-h-[92vh] sm:p-6">
         <DialogHeader>
           <div className="flex items-center gap-2 text-primary">
             <Sparkles className="w-4 h-4" />
@@ -381,20 +381,26 @@ export default function OnboardingModal() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-4">{renderStep()}</div>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pr-1">
+          {renderStep()}
+        </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-4">
-          <Button type="button" variant="ghost" onClick={closeOnboarding}>
+        <div className="grid grid-cols-1 gap-2 border-t border-white/[0.06] pt-3 min-[420px]:flex min-[420px]:flex-wrap min-[420px]:items-center min-[420px]:justify-between min-[420px]:pt-4">
+          <Button type="button" variant="ghost" className="w-full min-[420px]:w-auto" onClick={closeOnboarding}>
             {t("common.actions.skip")}
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-2 gap-2 min-[420px]:flex min-[420px]:items-center">
             {step > 0 && (
               <Button type="button" variant="outline" onClick={() => setStep(step - 1)}>
                 {t("common.actions.back")}
               </Button>
             )}
             {step < stepTitles.length - 1 ? (
-              <Button type="button" onClick={() => setStep(step + 1)}>
+              <Button
+                type="button"
+                className={step === 0 ? "col-span-2 min-[420px]:col-auto" : undefined}
+                onClick={() => setStep(step + 1)}
+              >
                 {t("common.actions.next")}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>

@@ -74,12 +74,12 @@ export function AddToListButton({ appId }: AddToListButtonProps) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button type="button" variant="outline" size="sm" className="gap-2">
+        <Button type="button" variant="outline" size="sm" className="w-full gap-2 sm:w-auto">
           <List className="w-4 h-4" />
           Adicionar a lista
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-2" align="start">
+      <PopoverContent className="w-[min(14rem,calc(100vw-2rem))] p-2" align="start">
         {lists.length === 0 ? (
           <div className="text-center py-3 space-y-2">
             <p className="text-xs text-muted-foreground">Você não tem listas ainda.</p>

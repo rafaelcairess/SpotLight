@@ -139,8 +139,8 @@ export function GameModalMedia({
       {!!screenshots.length && (
         <div
           className={cn(
-            "grid grid-cols-2 gap-2",
-            variant === "page" ? "lg:grid-cols-3" : "sm:grid-cols-3",
+            "flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:overflow-visible",
+            variant === "page" ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-3",
           )}
         >
           {screenshots.map((url, index) => (
@@ -148,7 +148,7 @@ export function GameModalMedia({
               key={url}
               type="button"
               onClick={() => setSelectedScreenshot(url)}
-              className="overflow-hidden rounded-md bg-black/20"
+              className="w-[78%] shrink-0 snap-center overflow-hidden rounded-lg bg-black/20 min-[420px]:w-[65%] sm:w-auto sm:shrink"
               aria-label={`Ampliar captura de tela ${index + 1}`}
             >
               <img
@@ -187,16 +187,16 @@ export function GameModalMedia({
                   event.stopPropagation();
                   moveScreenshot(-1);
                 }}
-                className="absolute left-3 z-20 grid h-16 w-16 place-items-center rounded-full bg-black/75 text-white shadow-xl hover:scale-105 hover:bg-black sm:left-8"
+              className="absolute left-2 z-20 grid h-11 w-11 place-items-center rounded-full bg-black/75 text-white shadow-xl hover:bg-black sm:left-8 sm:h-16 sm:w-16 sm:hover:scale-105"
                 aria-label="Imagem anterior"
               >
-                <ChevronLeft className="h-10 w-10" />
+                <ChevronLeft className="h-7 w-7 sm:h-10 sm:w-10" />
               </button>
             )}
             <img
               src={selectedScreenshot}
               alt={`Captura de tela ${selectedIndex + 1} ampliada`}
-              className="max-h-[82vh] max-w-[90vw] rounded-lg object-contain shadow-2xl ring-1 ring-white/20"
+              className="max-h-[82dvh] max-w-[94vw] rounded-lg object-contain shadow-2xl ring-1 ring-white/20 sm:max-w-[90vw]"
               onClick={(event) => event.stopPropagation()}
             />
             {screenshots.length > 1 && (
@@ -207,10 +207,10 @@ export function GameModalMedia({
                   event.stopPropagation();
                   moveScreenshot(1);
                 }}
-                className="absolute right-3 z-20 grid h-16 w-16 place-items-center rounded-full bg-black/75 text-white shadow-xl hover:scale-105 hover:bg-black sm:right-8"
+                className="absolute right-2 z-20 grid h-11 w-11 place-items-center rounded-full bg-black/75 text-white shadow-xl hover:bg-black sm:right-8 sm:h-16 sm:w-16 sm:hover:scale-105"
                 aria-label="Próxima imagem"
               >
-                <ChevronRight className="h-10 w-10" />
+                <ChevronRight className="h-7 w-7 sm:h-10 sm:w-10" />
               </button>
             )}
             <span className="absolute bottom-5 z-20 rounded-full bg-black/70 px-3 py-1 text-xs text-white">

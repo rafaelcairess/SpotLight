@@ -24,13 +24,32 @@ const NON_GAME_TITLE_PATTERNS = [
   /\bpack\b/i,
   /\bskin\b/i,
   /\bcosmetic\b/i,
+  /\bdownloadable content\b/i,
+  /\bseason(?:al)? loot\b/i,
+  /\bpremium currency\b/i,
+  /\bbutim da temporada\b/i,
   /\btrilha sonora\b/i,
   /\bpacote\b/i,
   /\bpasse\b/i,
   /\bexpansao\b/i,
 ];
 
-const NON_GAME_TAG_MARKERS = ["dlc", "soundtrack", "demo", "expansion", "season pass", "artbook"];
+const NON_GAME_TAG_MARKERS = [
+  "dlc",
+  "soundtrack",
+  "demo",
+  "expansion",
+  "season pass",
+  "artbook",
+  "utilities",
+  "utility",
+  "software",
+  "video production",
+  "photo editing",
+  "animation & modeling",
+  "game development",
+  "downloadable content",
+];
 
 type GameLike = {
   title?: string;

@@ -87,7 +87,7 @@ export default function TopGames() {
               {t("common.status.noResults")}
             </div>
           ) : layoutMode === "compact" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
               {ranking.map((game, index) => (
                 <GameCard
                   key={game.app_id}
@@ -106,26 +106,30 @@ export default function TopGames() {
                   key={game.app_id}
                   type="button"
                   onClick={() => handleOpenGame(game)}
-                  className="w-full text-left rounded-xl border border-border/40 bg-card/50 hover:border-primary/40 transition-colors p-3"
+                  className="w-full rounded-xl border border-border/40 bg-card/50 p-2.5 text-left transition-colors hover:border-primary/40 sm:p-3"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 text-center">
-                      <span className="text-lg font-bold text-primary">#{index + 1}</span>
+                  <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                    <div className="w-8 shrink-0 text-center sm:w-10">
+                      <span className="text-base font-bold text-primary sm:text-lg">#{index + 1}</span>
                     </div>
                     <img
                       src={game.image}
                       alt={game.title}
                       loading="lazy"
                       decoding="async"
-                      className="w-24 h-14 rounded object-cover"
+                      className="h-11 w-16 shrink-0 rounded object-cover sm:h-14 sm:w-24"
                     />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold truncate">{game.title}</p>
                       <p className="text-xs text-muted-foreground truncate">
                         {game.genre || t("common.status.noneFound")}
                       </p>
+                      <p className="mt-0.5 truncate text-[11px] text-muted-foreground sm:hidden">
+                        {numberFormatter.format(game.activePlayers || 0)}{" "}
+                        {t("common.time.playingNow").toLowerCase()}
+                      </p>
                     </div>
-                    <div className="text-right min-w-[160px]">
+                    <div className="hidden min-w-[160px] text-right sm:block">
                       <p className="text-xs text-muted-foreground">
                         {numberFormatter.format(game.activePlayers || 0)}{" "}
                         {t("common.time.playingNow").toLowerCase()}

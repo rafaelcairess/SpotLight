@@ -35,7 +35,7 @@ export function UserAvatar({
   displayName,
   username,
   size = "md",
-  shape = "circle",
+  shape = "square",
   imageFit = "cover",
   className,
 }: UserAvatarProps) {

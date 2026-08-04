@@ -33,10 +33,10 @@ export function ProfileTabBar({
   ];
 
   return (
-    <div className="-mx-5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] md:-mx-7 md:px-7 [&::-webkit-scrollbar]:hidden">
+    <div className="-mx-4 overflow-x-auto overscroll-x-contain px-4 pb-1 [scrollbar-width:none] md:-mx-7 md:px-7 [&::-webkit-scrollbar]:hidden">
       <TabsList className="h-auto w-max min-w-full justify-start">
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value} className="gap-2">
+          <TabsTrigger key={tab.value} value={tab.value} className="min-h-11 snap-start gap-2">
             <tab.icon className="h-4 w-4" />
             {tab.label}
           </TabsTrigger>

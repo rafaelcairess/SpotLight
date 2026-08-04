@@ -75,6 +75,7 @@ export const resources = {
         featuredEmpty:
           "Nenhum jogo encontrado. Rode o sync da Steam para popular o catálogo.",
         popularTitle: "Em alta agora",
+        topPosition: "Mais jogado agora",
         popularSubtitle: "Muita gente jogando e aprovação consistente na Steam",
         viewRanking: "Ver ranking completo",
         newWorthPlayingTitle: "Novidades que valem atenção",
@@ -96,7 +97,10 @@ export const resources = {
         matureHide: "Ocultar",
         matureEmpty: "Nenhum jogo 18+ encontrado no catálogo.",
         recommendationsTitle: "Recomendações pessoais",
-        recommendationsSubtitle: "Baseado no que você joga e avalia",
+        recommendationsSubtitle:
+          "Afinadas com seus favoritos, horas jogadas e avaliações — com qualidade e variedade",
+        recommendationReason: "Combina com {{tags}}",
+        recommendationQualityReason: "Escolha confiável para descobrir",
         recommendationsEmpty:
           "Avalie os jogos que você já jogou — a gente monta as recomendações com base nisso.",
         footerTagline: "Um perfil para toda a sua vida nos games.",
@@ -734,6 +738,7 @@ export const resources = {
         featuredEmpty:
           "No games found. Run the Steam sync to populate the catalog.",
         popularTitle: "Trending now",
+        topPosition: "Most played right now",
         popularSubtitle: "Strong player activity and consistently positive Steam reviews",
         viewRanking: "View full ranking",
         newWorthPlayingTitle: "New releases worth your time",
@@ -755,7 +760,10 @@ export const resources = {
         matureHide: "Hide",
         matureEmpty: "No 18+ games found in the catalog.",
         recommendationsTitle: "Personal recommendations",
-        recommendationsSubtitle: "Based on what you play and review",
+        recommendationsSubtitle:
+          "Tuned to your favorites, playtime and reviews — with quality and variety",
+        recommendationReason: "Matches your taste in {{tags}}",
+        recommendationQualityReason: "A trusted discovery pick",
         recommendationsEmpty:
           "Rate the games you've already played — we'll build recommendations from that.",
         footerTagline: "One profile for your entire gaming life.",
@@ -1391,6 +1399,7 @@ export const resources = {
         featuredEmpty:
           "No se encontraron juegos. Ejecuta el sync de Steam para llenar el catálogo.",
         popularTitle: "En tendencia ahora",
+        topPosition: "Más jugado ahora",
         popularSubtitle: "Muchos jugadores activos y valoraciones positivas consistentes en Steam",
         viewRanking: "Ver ranking completo",
         newWorthPlayingTitle: "Novedades que valen la pena",
@@ -1412,7 +1421,10 @@ export const resources = {
         matureHide: "Ocultar",
         matureEmpty: "No se encontraron juegos 18+ en el catálogo.",
         recommendationsTitle: "Recomendaciones personales",
-        recommendationsSubtitle: "Basado en lo que juegas y calificas",
+        recommendationsSubtitle:
+          "Afinadas con tus favoritos, horas jugadas y reseñas — con calidad y variedad",
+        recommendationReason: "Coincide con tu gusto por {{tags}}",
+        recommendationQualityReason: "Una elección confiable para descubrir",
         recommendationsEmpty:
           "Califica los juegos que ya jugaste — nosotros armamos las recomendaciones con eso.",
         footerTagline: "Un perfil para toda tu vida en los games.",

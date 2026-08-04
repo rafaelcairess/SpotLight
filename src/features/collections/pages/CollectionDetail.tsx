@@ -185,7 +185,7 @@ const CollectionDetail = () => {
             className={`relative rounded-2xl overflow-hidden mb-8 bg-gradient-to-br ${category.gradient} border border-border/30`}
           >
             <div className="absolute inset-0 hero-gradient opacity-30" />
-            <div className="relative p-8 md:p-12">
+            <div className="relative p-5 sm:p-8 md:p-12">
               <h1 className="text-3xl md:text-4xl font-bold mb-2">
                 {t(`categories.${category.id}.name`, { defaultValue: category.name })}
               </h1>

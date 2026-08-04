@@ -2,7 +2,7 @@
  * Componente da feature games.
  */
 
-import { Users, Star, ExternalLink } from "lucide-react";
+import { Users, Star, ExternalLink, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { GameData } from "@/types/game";
 import { cn } from "@/lib/utils";
@@ -13,25 +13,83 @@ interface GameCardProps {
   game: GameData;
   onClick?: () => void;
   index?: number;
-  variant?: "default" | "compact" | "ranking" | "poster";
+  variant?: "default" | "compact" | "ranking" | "ranking-featured" | "poster";
   rank?: number;
+  contextLabel?: string;
 }
 
-const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameCardProps) => {
+const GameCard = ({
+  game,
+  onClick,
+  index = 0,
+  variant = "default",
+  rank,
+  contextLabel,
+}: GameCardProps) => {
   const { t } = useTranslation();
+
+  if (variant === "ranking-featured") {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="group relative min-h-64 h-full w-full overflow-hidden rounded-2xl border border-white/[0.09] bg-card text-left shadow-[0_18px_50px_hsl(224_60%_2%/0.38)] transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_24px_65px_hsl(224_60%_2%/0.56)]"
+      >
+        <img
+          src={game.image}
+          alt={game.title}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          loading="lazy"
+          decoding="async"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-black/5" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/15 to-transparent opacity-60" />
+
+        <div className="absolute left-4 top-4 flex items-center gap-2">
+          <span className="grid h-9 min-w-9 place-items-center rounded-lg border border-white/15 bg-black/70 px-2 font-logo text-sm font-bold text-white backdrop-blur-md">
+            #1
+          </span>
+          {!!game.activePlayers && (
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/65 px-2.5 py-2 text-xs text-white backdrop-blur-md">
+              <Users className="h-3.5 w-3.5" />
+              {formatPlayers(game.activePlayers)}
+            </span>
+          )}
+        </div>
+
+        <div className="absolute inset-x-0 bottom-0 p-5">
+          <p className="eyebrow mb-2 text-blue-300">{t("home.topPosition")}</p>
+          <h3 className="line-clamp-2 font-logo text-2xl font-bold tracking-[-0.04em] text-white">
+            {game.title}
+          </h3>
+          {!!game.communityRating && (
+            <span
+              className={cn(
+                "mt-2 inline-flex items-center gap-1.5 text-sm font-semibold",
+                getRatingColorClass(game.communityRating),
+              )}
+            >
+              <Star className="h-4 w-4 fill-current" />
+              {game.communityRating}%
+            </span>
+          )}
+        </div>
+      </button>
+    );
+  }
 
   if (variant === "ranking") {
     return (
       <button
         type="button"
         onClick={onClick}
-        className="game-card group flex min-h-[4.75rem] w-full items-center gap-3 p-3 text-left sm:gap-4"
+        className="game-card group flex min-h-[4.5rem] w-full items-center gap-2.5 p-2.5 text-left sm:min-h-[4.75rem] sm:gap-4 sm:p-3"
         style={{ animationDelay: `${index * 50}ms` }}
       >
-        <div className="w-7 flex-shrink-0 text-center sm:w-8">
+        <div className="w-6 flex-shrink-0 text-center sm:w-8">
           <span
             className={cn(
-              "text-2xl font-bold",
+              "text-xl font-bold sm:text-2xl",
               rank === 1 && "text-gradient-accent",
               rank === 2 && "text-slate-300",
               rank === 3 && "text-amber-700",
@@ -42,7 +100,7 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
           </span>
         </div>
 
-        <div className="relative h-12 w-[4.5rem] flex-shrink-0 overflow-hidden rounded-lg sm:w-20">
+        <div className="relative h-11 w-16 flex-shrink-0 overflow-hidden rounded-lg sm:h-12 sm:w-20">
           <img
             src={game.image}
             alt={game.title}
@@ -89,7 +147,7 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
       <button
         type="button"
         onClick={onClick}
-        className="group relative w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-card/60 text-left shadow-[0_14px_36px_hsl(224_60%_2%/0.3)] transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_24px_60px_hsl(224_60%_2%/0.58)]"
+        className="group relative w-full overflow-hidden rounded-xl border border-white/[0.08] bg-card/60 text-left shadow-[0_10px_28px_hsl(224_60%_2%/0.28)] transition-all duration-300 hover:border-primary/40 sm:rounded-2xl sm:hover:-translate-y-1 sm:hover:shadow-[0_24px_60px_hsl(224_60%_2%/0.58)]"
         style={{ animationDelay: `${index * 50}ms` }}
       >
         <div className="aspect-[2/3] relative">
@@ -123,7 +181,13 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
             )}
           </div>
 
-          <div className="absolute inset-x-0 bottom-0 p-3.5">
+          <div className="absolute inset-x-0 bottom-0 p-2.5 sm:p-3.5">
+            {contextLabel && (
+              <span className="mb-1.5 flex items-center gap-1 truncate text-[10px] font-medium text-blue-200/90">
+                <Sparkles className="h-3 w-3 shrink-0" />
+                <span className="truncate">{contextLabel}</span>
+              </span>
+            )}
             <h3 className="truncate text-sm font-semibold text-white transition-colors group-hover:text-blue-200">
               {game.title}
             </h3>
@@ -188,6 +252,12 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
       </div>
 
       <div className="p-4">
+        {contextLabel && (
+          <span className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-primary">
+            <Sparkles className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{contextLabel}</span>
+          </span>
+        )}
         <h3 className="font-semibold text-sm md:text-base truncate group-hover:text-primary transition-colors">
           {game.title}
         </h3>

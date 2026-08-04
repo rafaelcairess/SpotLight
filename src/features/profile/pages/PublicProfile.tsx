@@ -245,7 +245,7 @@ const PublicProfile = () => {
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
-            className="w-full space-y-6 px-5 pb-7 pt-5 md:px-7 md:pt-6"
+            className="w-full space-y-5 px-4 pb-5 pt-4 sm:space-y-6 md:px-7 md:pb-7 md:pt-6"
           >
             <ProfileTabBar
               games={contentCounts?.games ?? 0}
@@ -255,8 +255,8 @@ const PublicProfile = () => {
             />
 
             <TabsContent value="overview">
-              <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
-                <div className="space-y-6">
+              <div className="grid items-start gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
+                <div className="space-y-4 sm:space-y-6">
                   <FavoriteGameShowcase userId={userId} appId={profile.favorite_game_app_id} />
                   <PlatinumShowcase
                     userId={userId}
@@ -264,7 +264,7 @@ const PublicProfile = () => {
                     onViewAll={() => setActiveTab("platinum")}
                   />
                   <RecentActivity userId={userId} />
-                  <div className="rounded-lg bg-black/15 p-5">
+                  <div className="rounded-lg bg-black/15 p-3 sm:p-5">
                     <ProfileComments
                       profileUserId={userId!}
                       permission={profile.comments_permission || "public"}

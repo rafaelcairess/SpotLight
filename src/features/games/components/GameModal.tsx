@@ -60,10 +60,10 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
   // Modal principal com areas separadas em componentes menores.
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl p-0 bg-card border-border/50 gap-0 max-h-[90vh] overflow-hidden grid-rows-[auto_1fr]">
+      <DialogContent className="max-h-[calc(100dvh-0.75rem)] w-[calc(100%-0.75rem)] max-w-3xl grid-rows-[auto_1fr] gap-0 overflow-hidden rounded-2xl border-border/50 bg-card p-0 sm:max-h-[90vh] sm:w-full">
         <GameModalHeader game={displayGame} />
 
-        <div className="p-6 space-y-6 overflow-y-auto min-h-0">
+        <div className="min-h-0 space-y-5 overflow-y-auto overscroll-contain p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:space-y-6 sm:p-6">
           <GameModalStats game={displayGame} />
 
           {/* Descricao do jogo */}
@@ -80,7 +80,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
 
           {/* Acoes de biblioteca + review */}
           <div className="pt-4 border-t border-border/50 space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
               <GameLibraryActions
                 appId={Number(displayGame.app_id)}
                 onWriteReview={() => setIsReviewOpen(true)}
@@ -88,7 +88,7 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
               <AddToListButton appId={Number(displayGame.app_id)} />
             </div>
             {isReviewOpen && (
-              <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 space-y-3">
+              <div className="space-y-3 rounded-lg border border-border/50 bg-secondary/20 p-3 sm:p-4">
                 <h3 className="text-sm font-medium text-foreground">
                   {t("gameModal.writeReview")}
                 </h3>

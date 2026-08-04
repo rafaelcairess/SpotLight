@@ -19,6 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { rankNoteworthyReleases, rankQualityGames } from "@/lib/discovery";
 import { isMatureGame } from "@/lib/matureFilter";
+import { isLikelyGame } from "@/lib/gameFilters";
 
 const PAGE_SIZE = 20;
 const FEATURED_CATEGORY_IDS = [
@@ -45,7 +46,10 @@ export default function Explore() {
 
   const { data: popularGames = [], isLoading: popularLoading } = usePopularGames(20);
   const { data: allGames = [], isLoading: allGamesLoading } = useAllGames(300);
-  const { data: recommendedGames = [], isLoading: recommendationsLoading } = useRecommendations(12);
+  const { data: recommendedGames = [], isLoading: recommendationsLoading } = useRecommendations(
+    10,
+    showMature,
+  );
   const { data: dailyFeaturedGame, isLoading: dailyFeaturedLoading } = useDailyFeaturedGame();
 
   const qualityGames = useMemo(() => rankQualityGames(allGames), [allGames]);
@@ -61,6 +65,7 @@ export default function Explore() {
   const matureGames = useMemo(
     () =>
       allGames
+        .filter(isLikelyGame)
         .filter(isMatureGame)
         .filter((game) => (game.communityRating ?? 0) >= 75)
         .sort((a, b) => (b.activePlayers ?? 0) - (a.activePlayers ?? 0))
@@ -77,6 +82,7 @@ export default function Explore() {
 
   const dailyIsRelevant =
     dailyFeaturedGame &&
+    isLikelyGame(dailyFeaturedGame) &&
     !isMatureGame(dailyFeaturedGame) &&
     (dailyFeaturedGame.communityRating ?? 0) >= 82 &&
     (dailyFeaturedGame.activePlayers ?? 0) >= 200;
@@ -86,14 +92,14 @@ export default function Explore() {
 
   const gridClass =
     layoutMode === "compact"
-      ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"
-      : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6";
+      ? "grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5"
+      : "grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 md:gap-6";
 
   const openGame = (game: GameData) => setSelectedGame(game);
 
   return (
     <PageShell mainClassName="pb-0">
-      <PageContainer as="section" className="mb-10 md:mb-14">
+      <PageContainer as="section" className="mb-9 md:mb-14">
         {featuredGame ? (
           <FeaturedBanner game={featuredGame} onExplore={() => openGame(featuredGame)} />
         ) : dailyFeaturedLoading || allGamesLoading ? (
@@ -103,7 +109,7 @@ export default function Explore() {
         )}
       </PageContainer>
 
-      <PageContainer as="section" className="mb-14 md:mb-20">
+      <PageContainer as="section" className="mb-11 md:mb-20">
         <SectionHeader
           title={t("home.exploreCollectionsTitle")}
           subtitle={t("home.exploreCollectionsSubtitle")}
@@ -111,14 +117,14 @@ export default function Explore() {
           actionLabel={t("home.viewAll")}
           actionHref="/collections"
         />
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+        <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-4">
           {categories.slice(0, 4).map((category, index) => (
             <CategoryCard key={category.id} category={category} index={index} compact />
           ))}
         </div>
       </PageContainer>
 
-      <PageContainer as="section" className="mb-14 md:mb-20">
+      <PageContainer as="section" className="mb-11 md:mb-20">
         <SectionHeader
           title={t("home.popularTitle")}
           subtitle={t("home.popularSubtitle")}
@@ -129,32 +135,36 @@ export default function Explore() {
         {popularLoading ? (
           <LoadingSkeleton variant="ranking" count={10} />
         ) : (
-          <div className="premium-surface grid gap-3 p-3 lg:grid-cols-[minmax(14rem,0.62fr)_minmax(0,1.55fr)] lg:p-4">
+          <div className="premium-surface grid items-stretch gap-3 p-3 lg:grid-cols-[minmax(18rem,0.72fr)_minmax(0,1.7fr)] lg:p-4">
             {popularGames[0] && (
               <GameCard
                 game={popularGames[0]}
-                variant="poster"
+                variant="ranking-featured"
                 rank={1}
                 onClick={() => openGame(popularGames[0])}
               />
             )}
-            <div className="grid content-start gap-2 md:grid-cols-2">
+            <div className="grid auto-rows-fr content-stretch gap-2 md:grid-cols-2 xl:grid-cols-3">
               {popularGames.slice(1, 10).map((game, index) => (
-                <GameCard
+                <div
                   key={game.app_id}
-                  game={game}
-                  variant="ranking"
-                  rank={index + 2}
-                  index={index}
-                  onClick={() => openGame(game)}
-                />
+                  className={index === 8 ? "md:col-span-2 xl:col-span-1" : undefined}
+                >
+                  <GameCard
+                    game={game}
+                    variant="ranking"
+                    rank={index + 2}
+                    index={index}
+                    onClick={() => openGame(game)}
+                  />
+                </div>
               ))}
             </div>
           </div>
         )}
       </PageContainer>
 
-      <PageContainer as="section" className="mb-14 md:mb-20">
+      <PageContainer as="section" className="mb-11 md:mb-20">
         <SectionHeader
           title={t("home.newWorthPlayingTitle")}
           subtitle={t("home.newWorthPlayingSubtitle")}
@@ -182,7 +192,7 @@ export default function Explore() {
       </PageContainer>
 
       {user && (
-        <PageContainer as="section" className="mb-14 md:mb-20">
+        <PageContainer as="section" className="mb-11 md:mb-20">
           <SectionHeader
             title={t("home.recommendationsTitle")}
             subtitle={t("home.recommendationsSubtitle")}
@@ -202,6 +212,13 @@ export default function Explore() {
                   game={game}
                   index={index}
                   variant={layoutMode === "compact" ? "poster" : "default"}
+                  contextLabel={
+                    game.matchedTags.length
+                      ? t("home.recommendationReason", {
+                          tags: game.matchedTags.join(" • "),
+                        })
+                      : t("home.recommendationQualityReason")
+                  }
                   onClick={() => openGame(game)}
                 />
               ))}
@@ -210,7 +227,7 @@ export default function Explore() {
         </PageContainer>
       )}
 
-      <PageContainer as="section" className="mb-14 md:mb-20">
+      <PageContainer as="section" className="mb-11 md:mb-20">
         <SectionHeader
           title={t("home.acclaimedTitle")}
           subtitle={t("home.acclaimedSubtitle")}
@@ -248,7 +265,7 @@ export default function Explore() {
       </PageContainer>
 
       {showMature && matureGames.length > 0 && (
-        <PageContainer as="section" className="mb-14 md:mb-20">
+        <PageContainer as="section" className="mb-11 md:mb-20">
           <SectionHeader title={t("home.matureTitle")} subtitle={t("home.matureSubtitle")} />
           <div className={gridClass}>
             {matureGames.map((game, index) => (

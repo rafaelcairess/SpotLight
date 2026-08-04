@@ -65,10 +65,17 @@
     @apply border-border;
   }
 
+  html {
+    overflow-x: hidden;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: "Ubuntu", system-ui, sans-serif;
     min-width: 320px;
+    overflow-x: hidden;
     background-image:
       radial-gradient(circle at 12% -10%, hsl(216 100% 64% / 0.13), transparent 34rem),
       radial-gradient(circle at 88% 10%, hsl(250 80% 60% / 0.07), transparent 32rem);
@@ -217,7 +224,7 @@
   }
 
   .font-logo {
-    font-family: "Sora", "Inter", system-ui, sans-serif;
+    font-family: "Ubuntu", system-ui, sans-serif;
     letter-spacing: -0.01em;
   }
 
@@ -264,6 +271,12 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+    }
+  }
+
+  @media (hover: none) {
+    .game-card:hover {
+      transform: none;
     }
   }
 }

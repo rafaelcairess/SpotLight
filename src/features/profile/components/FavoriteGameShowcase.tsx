@@ -53,7 +53,7 @@ export function FavoriteGameShowcase({
   return (
     <>
       <section className="overflow-hidden rounded-lg bg-black/15">
-        <header className="flex items-center justify-between gap-3 border-b border-white/5 bg-primary/10 px-4 py-2.5">
+        <header className="flex flex-col items-start justify-between gap-1.5 border-b border-white/5 bg-primary/10 px-4 py-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:gap-3">
           <h2 className="text-sm font-medium">Jogo favorito</h2>
           {editable && (
             <button

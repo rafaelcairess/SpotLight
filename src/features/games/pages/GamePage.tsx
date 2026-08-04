@@ -66,7 +66,7 @@ export default function GamePage() {
 
   return (
     <PageShell>
-      <PageContainer className="space-y-6 pb-16">
+      <PageContainer className="space-y-4 pb-12 sm:space-y-6 sm:pb-16">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="-ml-2 gap-2">
           <ArrowLeft />
           {t("common.actions.back")}
@@ -74,10 +74,10 @@ export default function GamePage() {
 
         <GameModalHeader game={game} variant="page" />
 
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-          <div className="min-w-0 space-y-6">
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-6">
+          <div className="min-w-0 space-y-4 sm:space-y-6">
             {game.short_description && (
-              <PageSurface className="p-5 sm:p-7">
+              <PageSurface className="p-4 sm:p-7">
                 <p className="eyebrow mb-3">{t("gamePage.overview")}</p>
                 <h2 className="font-logo text-2xl font-bold tracking-[-0.035em]">
                   {t("gameModal.about")}
@@ -88,11 +88,11 @@ export default function GamePage() {
               </PageSurface>
             )}
 
-            <PageSurface className="p-5 sm:p-7">
+            <PageSurface className="p-4 sm:p-7">
               <GameModalMedia game={game} loading={ensureDetails.isPending} variant="page" />
             </PageSurface>
 
-            <PageSurface className="p-5 sm:p-7">
+            <PageSurface className="p-4 sm:p-7">
               <GameModalReviews appId={numericAppId} gameTitle={game.title} />
             </PageSurface>
           </div>

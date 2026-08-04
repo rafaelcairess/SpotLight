@@ -30,7 +30,14 @@ export function PageShell({ children, className, mainClassName, ambient = true }
           <div className="premium-grid absolute inset-0 opacity-35" />
         </div>
       )}
-      <main className={cn("relative z-10 pt-20 lg:pt-[5.75rem]", mainClassName)}>{children}</main>
+      <main
+        className={cn(
+          "relative z-10 pt-[calc(4.75rem+env(safe-area-inset-top))] lg:pt-[5.75rem]",
+          mainClassName,
+        )}
+      >
+        {children}
+      </main>
     </div>
   );
 }
@@ -48,7 +55,7 @@ export function PageContainer({
 }: PageContainerProps) {
   return (
     <Component
-      className={cn("mx-auto w-full px-4 sm:px-6 lg:px-8", widthClasses[width], className)}
+      className={cn("mx-auto w-full px-3.5 sm:px-6 lg:px-8", widthClasses[width], className)}
       {...props}
     />
   );

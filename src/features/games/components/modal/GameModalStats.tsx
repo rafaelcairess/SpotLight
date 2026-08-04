@@ -20,7 +20,9 @@ export const GameModalStats = ({ game, variant = "compact" }: GameModalStatsProp
   return (
     <div
       className={cn(
-        variant === "page" ? "grid grid-cols-2 gap-3" : "flex flex-wrap items-center gap-6",
+        variant === "page"
+          ? "grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:gap-3"
+          : "grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-6",
       )}
     >
       {game.activePlayers && (
@@ -33,7 +35,7 @@ export const GameModalStats = ({ game, variant = "compact" }: GameModalStatsProp
           <div className="p-2 rounded-lg bg-primary/10">
             <Users className="w-4 h-4 text-primary" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs text-muted-foreground">{t("gameModal.playingNow")}</p>
             <p className="font-semibold">{formatPlayers(game.activePlayers)}</p>
           </div>
@@ -61,7 +63,7 @@ export const GameModalStats = ({ game, variant = "compact" }: GameModalStatsProp
               className={cn("w-4 h-4 fill-current", getRatingColorClass(game.communityRating))}
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs text-muted-foreground">{t("gameModal.rating")}</p>
             <p className={cn("font-semibold", getRatingColorClass(game.communityRating))}>
               {game.communityRating}%
@@ -80,9 +82,9 @@ export const GameModalStats = ({ game, variant = "compact" }: GameModalStatsProp
           <div className="p-2 rounded-lg bg-secondary">
             <Calendar className="w-4 h-4 text-muted-foreground" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs text-muted-foreground">{t("gameModal.release")}</p>
-            <p className="font-semibold">{game.releaseDate}</p>
+            <p className="break-words font-semibold">{game.releaseDate}</p>
           </div>
         </div>
       )}
@@ -97,9 +99,9 @@ export const GameModalStats = ({ game, variant = "compact" }: GameModalStatsProp
           <div className="p-2 rounded-lg bg-secondary">
             <Building className="w-4 h-4 text-muted-foreground" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs text-muted-foreground">{t("gameModal.developer")}</p>
-            <p className="font-semibold">{game.developer}</p>
+            <p className="line-clamp-2 break-words font-semibold">{game.developer}</p>
           </div>
         </div>
       )}

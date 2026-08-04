@@ -80,6 +80,15 @@ const Header = () => {
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isMobileMenuOpen]);
 
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isMobileMenuOpen]);
+
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
     const query = searchQuery.trim();
@@ -157,18 +166,16 @@ const Header = () => {
     );
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.07] bg-background/78 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/68">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.07] bg-background/90 pt-[env(safe-area-inset-top)] backdrop-blur-2xl supports-[backdrop-filter]:bg-background/78">
       <div className="mx-auto max-w-[1560px] px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center gap-3 lg:h-[4.5rem]">
           <Link to="/" className="group flex shrink-0 items-center gap-2.5" aria-label="SpotLight">
-            <div className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-primary/25 bg-primary/10 shadow-[0_0_28px_hsl(var(--primary)/0.14)]">
-              <img
-                src={logoSpotlight}
-                alt=""
-                className="h-[5.5rem] w-[5.5rem] max-w-none object-contain transition-transform duration-500 group-hover:scale-110"
-              />
-            </div>
-            <span className="hidden font-logo text-lg font-bold tracking-[-0.04em] sm:block">
+            <div
+              className="relative h-10 w-10 overflow-hidden rounded-xl border border-primary/25 bg-primary/10 bg-center bg-no-repeat shadow-[0_0_28px_hsl(var(--primary)/0.18)] transition-transform duration-500 group-hover:scale-105"
+              style={{ backgroundImage: `url(${logoSpotlight})`, backgroundSize: "230%" }}
+              aria-hidden="true"
+            />
+            <span className="block font-logo text-base font-bold tracking-[-0.04em] sm:text-lg">
               Spot<span className="text-primary">Light</span>
             </span>
           </Link>
@@ -269,7 +276,7 @@ const Header = () => {
                 </DropdownMenu>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="ml-1 rounded-full p-0.5 ring-offset-background transition hover:ring-2 hover:ring-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                    <button className="ml-1 rounded-xl p-0.5 ring-offset-background transition hover:ring-2 hover:ring-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                       <UserAvatar
                         src={profile?.avatar_url}
                         displayName={profile?.display_name}
@@ -337,18 +344,21 @@ const Header = () => {
             onClick={() => setIsMobileMenuOpen((open) => !open)}
             aria-label={isMobileMenuOpen ? t("header.closeMenu") : t("header.openMenu")}
             aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-navigation"
           >
             {isMobileMenuOpen ? <X /> : <Menu />}
           </Button>
         </div>
 
         {isMobileMenuOpen && (
-          <div className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-white/[0.07] py-4 lg:hidden">
+          <div
+            id="mobile-navigation"
+            className="h-[calc(100dvh-4rem-env(safe-area-inset-top))] max-h-[calc(100dvh-4rem-env(safe-area-inset-top))] overscroll-contain overflow-y-auto border-t border-white/[0.07] bg-background/95 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 lg:hidden"
+          >
             <form onSubmit={handleSearch} className="mb-4">
               <div className="relative">
                 <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  autoFocus
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder={t("header.searchPlaceholder")}

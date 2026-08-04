@@ -33,7 +33,7 @@ export default function ListPage() {
           <div className="animate-pulse space-y-4">
             <div className="h-8 w-48 bg-secondary rounded" />
             <div className="h-4 w-64 bg-secondary rounded" />
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
+            <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="aspect-[2/3] bg-secondary rounded-lg" />
               ))}
@@ -86,7 +86,7 @@ export default function ListPage() {
             <p className="text-muted-foreground">Esta lista não tem jogos ainda.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5">
             {catalogGames.map((game) => (
               <GameCard key={game.app_id} game={game} onClick={() => setSelectedGame(game)} />
             ))}

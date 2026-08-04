@@ -1,4 +1,5 @@
 import { isMatureGame } from "@/lib/matureFilter";
+import { isLikelyGame } from "@/lib/gameFilters";
 import type { GameData } from "@/types/game";
 
 const STEAM_MONTHS: Record<string, number> = {
@@ -56,6 +57,7 @@ const qualityScore = (game: GameData) =>
 export const rankQualityGames = (games: GameData[], includeMature = false) =>
   games
     .filter(hasUsefulCardData)
+    .filter(isLikelyGame)
     .filter((game) => includeMature || !isMatureGame(game))
     .filter((game) => (game.communityRating ?? 0) >= 82)
     .filter((game) => (game.activePlayers ?? 0) >= 200)
@@ -73,6 +75,7 @@ export const rankNoteworthyReleases = (
 
   return games
     .filter(hasUsefulCardData)
+    .filter(isLikelyGame)
     .filter((game) => includeMature || !isMatureGame(game))
     .filter((game) => (game.communityRating ?? 0) >= 75)
     .filter((game) => (game.activePlayers ?? 0) >= 100)

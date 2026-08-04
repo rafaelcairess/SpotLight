@@ -48,8 +48,8 @@ const PromotionsBar = () => {
 
   const gridClass =
     layoutMode === "compact"
-      ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
-      : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6";
+      ? "grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 md:gap-6"
+      : "grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 md:gap-6";
 
   return (
     <section className="container mx-auto px-4 mb-12 md:mb-16">

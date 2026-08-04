@@ -4,11 +4,20 @@ import { isMatureGame } from "@/lib/matureFilter";
 import { getEffectiveHours, hasManualOverride } from "@/lib/playtime";
 import { sortByPopularity } from "@/lib/sort";
 import { parseSteamReleaseDate, rankNoteworthyReleases, rankQualityGames } from "@/lib/discovery";
+import {
+  rankPersonalRecommendations,
+  type RecommendationProfileGame,
+} from "@/lib/recommendations";
 
 describe("game filters", () => {
   it("rejects DLC and soundtrack catalog entries", () => {
     expect(isLikelyGame({ title: "Game Soundtrack" })).toBe(false);
     expect(isLikelyGame({ title: "Game", tags: ["DLC"] })).toBe(false);
+  });
+
+  it("rejects Steam software and seasonal add-ons", () => {
+    expect(isLikelyGame({ title: "OBS Studio", tags: ["Utilities"] })).toBe(false);
+    expect(isLikelyGame({ title: "Butim da Temporada de Skull and Bones" })).toBe(false);
   });
 
   it("keeps regular games", () => {
@@ -87,5 +96,141 @@ describe("discovery ranking", () => {
   it("seleciona lançamentos recentes com tração e boa avaliação", () => {
     const now = new Date("2026-07-21T00:00:00.000Z");
     expect(rankNoteworthyReleases(games, now).map((game) => game.app_id)).toEqual([1]);
+  });
+});
+
+describe("personal recommendations", () => {
+  const profile: RecommendationProfileGame[] = [
+    {
+      app_id: 1,
+      genre: "Action, RPG",
+      tags: ["Turn-Based", "Party-Based RPG"],
+      status: "completed",
+      is_favorite: true,
+      is_platinumed: false,
+      hours_played: 80,
+      hours_played_manual: null,
+      hours_override: false,
+    },
+  ];
+
+  const reviews = [{ app_id: 1, is_positive: true, score: 5 }];
+
+  it("prioritizes an informative taste match over a generic genre", () => {
+    const result = rankPersonalRecommendations({
+      profileGames: profile,
+      reviews,
+      limit: 2,
+      candidates: [
+        {
+          app_id: 2,
+          title: "Generic Action",
+          image: "2.jpg",
+          genre: "Action",
+          tags: ["Singleplayer"],
+          communityRating: 96,
+          activePlayers: 50_000,
+        },
+        {
+          app_id: 3,
+          title: "Tactical Adventure",
+          image: "3.jpg",
+          genre: "RPG",
+          tags: ["Turn-Based"],
+          communityRating: 88,
+          activePlayers: 800,
+        },
+      ],
+    });
+
+    expect(result[0].game.app_id).toBe(3);
+    expect(result[0].matchedTags).toEqual(expect.arrayContaining(["RPG", "Turn-Based"]));
+    expect(result[1].matchedTags).toEqual([]);
+  });
+
+  it("removes owned games, add-ons and candidates without reliable quality", () => {
+    const result = rankPersonalRecommendations({
+      profileGames: profile,
+      reviews,
+      candidates: [
+        {
+          app_id: 1,
+          title: "Meu RPG",
+          image: "owned.jpg",
+          genre: "RPG",
+          communityRating: 99,
+          activePlayers: 5_000,
+        },
+        {
+          app_id: 2,
+          title: "Meu RPG DLC",
+          image: "dlc.jpg",
+          genre: "RPG",
+          communityRating: 99,
+          activePlayers: 5_000,
+        },
+        {
+          app_id: 3,
+          title: "Unknown RPG",
+          image: "unknown.jpg",
+          genre: "RPG",
+          communityRating: 77,
+          activePlayers: 2,
+        },
+      ],
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  it("limits repetition when other genres are available", () => {
+    const candidates = [
+      ...Array.from({ length: 5 }, (_, index) => ({
+        app_id: index + 10,
+        title: `Roguelike ${index}`,
+        image: `${index}.jpg`,
+        genre: "Roguelike",
+        tags: ["Turn-Based"],
+        communityRating: 94 - index,
+        activePlayers: 2_000 - index * 100,
+      })),
+      {
+        app_id: 20,
+        title: "Strategy Pick",
+        image: "strategy.jpg",
+        genre: "Strategy",
+        tags: ["Turn-Based"],
+        communityRating: 89,
+        activePlayers: 900,
+      },
+      {
+        app_id: 21,
+        title: "Party Pick",
+        image: "party.jpg",
+        genre: "Party-Based RPG",
+        tags: ["RPG"],
+        communityRating: 88,
+        activePlayers: 850,
+      },
+      {
+        app_id: 22,
+        title: "Management Pick",
+        image: "management.jpg",
+        genre: "Simulation",
+        tags: ["Party-Based RPG"],
+        communityRating: 88,
+        activePlayers: 800,
+      },
+    ];
+
+    const result = rankPersonalRecommendations({
+      candidates,
+      profileGames: profile,
+      reviews,
+      limit: 6,
+    });
+
+    expect(result.filter(({ game }) => game.genre === "Roguelike")).toHaveLength(3);
+    expect(result.map(({ game }) => game.app_id)).toEqual(expect.arrayContaining([20, 21, 22]));
   });
 });

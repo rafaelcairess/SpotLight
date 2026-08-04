@@ -73,14 +73,14 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/40 bg-black/10 p-3">
+    <div className="grid grid-cols-1 gap-2 rounded-lg border border-border/40 bg-black/10 p-3 sm:flex sm:flex-wrap sm:items-center">
       {!userGame ? (
-        <Button onClick={addToLibrary} disabled={busy} className="gap-2">
+        <Button onClick={addToLibrary} disabled={busy} className="w-full gap-2 sm:w-auto">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
           Adicionar à biblioteca
         </Button>
       ) : (
-        <span className="inline-flex h-9 items-center gap-2 rounded-md bg-emerald-500/10 px-3 text-sm text-emerald-400">
+        <span className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-emerald-500/10 px-3 text-sm text-emerald-400 sm:h-9 sm:min-h-0 sm:w-auto sm:justify-start">
           <Check className="h-4 w-4" /> Na biblioteca
         </span>
       )}
@@ -92,8 +92,8 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
           disabled={busy}
           className={
             userGame.is_platinumed
-              ? "gap-2 border-amber-300/30 shadow-[0_0_12px_rgba(251,191,36,0.12)]"
-              : "gap-2"
+              ? "w-full gap-2 border-amber-300/30 shadow-[0_0_12px_rgba(251,191,36,0.12)] sm:w-auto"
+              : "w-full gap-2 sm:w-auto"
           }
         >
           {userGame.is_platinumed && <PlatformLogo platform={userGame.platinum_platforms?.[0]} />}{" "}
@@ -105,7 +105,7 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
           variant="outline"
           onClick={onWriteReview}
           disabled={busy}
-          className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
+          className="w-full gap-2 border-primary/40 text-primary hover:bg-primary/10 sm:w-auto"
         >
           <BookOpen className="h-4 w-4" />
           Escrever avaliação
@@ -116,7 +116,7 @@ export function GameLibraryActions({ appId, onWriteReview }: GameLibraryActionsP
           variant="ghost"
           onClick={remove}
           disabled={busy}
-          className="ml-auto gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          className="w-full gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive sm:ml-auto sm:w-auto"
         >
           <Trash2 className="h-4 w-4" />
           Remover
