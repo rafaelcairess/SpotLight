@@ -36,6 +36,7 @@ import { useTranslation } from "react-i18next";
 interface CategoryCardProps {
   category: CategoryData;
   index?: number;
+  compact?: boolean;
 }
 
 const iconMap: Record<string, LucideIcon> = {
@@ -63,7 +64,7 @@ const iconMap: Record<string, LucideIcon> = {
   Target,
 };
 
-const CategoryCard = ({ category, index = 0 }: CategoryCardProps) => {
+const CategoryCard = ({ category, index = 0, compact = false }: CategoryCardProps) => {
   const { t } = useTranslation();
   const Icon = iconMap[category.icon] || Sparkles;
   const title = t(`categories.${category.id}.name`, { defaultValue: category.name });
@@ -75,7 +76,8 @@ const CategoryCard = ({ category, index = 0 }: CategoryCardProps) => {
     <Link
       to={`/collections/${category.id}`}
       className={cn(
-        "group relative block aspect-[4/3] overflow-hidden rounded-2xl sm:aspect-[16/10]",
+        "group relative block overflow-hidden rounded-2xl",
+        compact ? "aspect-[5/4] sm:aspect-[16/9]" : "aspect-[4/3] sm:aspect-[16/10]",
         "bg-gradient-to-br",
         category.gradient,
         "border border-white/[0.07] hover:border-primary/40",
@@ -93,20 +95,40 @@ const CategoryCard = ({ category, index = 0 }: CategoryCardProps) => {
       </div>
 
       {/* Content */}
-      <div className="relative flex h-full flex-col items-start justify-end p-5 text-left sm:p-6">
+      <div
+        className={cn(
+          "relative flex h-full flex-col items-start justify-end text-left",
+          compact ? "p-4 sm:p-5" : "p-5 sm:p-6",
+        )}
+      >
         {/* Icon */}
-        <div className="mb-auto grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-black/15 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/30 group-hover:bg-primary/10">
+        <div
+          className={cn(
+            "mb-auto grid place-items-center rounded-xl border border-white/10 bg-black/15 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/30 group-hover:bg-primary/10",
+            compact ? "h-9 w-9" : "h-11 w-11",
+          )}
+        >
           <Icon className="h-5 w-5 text-foreground transition-colors group-hover:text-primary" />
         </div>
 
         {/* Title */}
-        <h3 className="mb-1 flex w-full items-center justify-between gap-3 text-lg font-bold transition-colors group-hover:text-primary md:text-xl">
+        <h3
+          className={cn(
+            "mb-1 flex w-full items-center justify-between gap-3 font-bold transition-colors group-hover:text-primary",
+            compact ? "text-sm sm:text-base" : "text-lg md:text-xl",
+          )}
+        >
           {title}
           <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
         </h3>
 
         {/* Description */}
-        <p className="line-clamp-2 max-w-[230px] text-xs text-muted-foreground md:text-sm">
+        <p
+          className={cn(
+            "line-clamp-2 max-w-[230px] text-muted-foreground",
+            compact ? "hidden text-xs sm:block" : "text-xs md:text-sm",
+          )}
+        >
           {description}
         </p>
       </div>

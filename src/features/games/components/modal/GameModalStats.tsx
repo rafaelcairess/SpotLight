@@ -10,16 +10,26 @@ import { formatPlayers, getRatingColorClass } from "@/lib/format";
 
 interface GameModalStatsProps {
   game: GameData;
+  variant?: "compact" | "page";
 }
 
-export const GameModalStats = ({ game }: GameModalStatsProps) => {
+export const GameModalStats = ({ game, variant = "compact" }: GameModalStatsProps) => {
   const { t } = useTranslation();
 
   // Linha de metricas rapidas do jogo (jogadores, nota, data e estudio).
   return (
-    <div className="flex flex-wrap items-center gap-6">
+    <div
+      className={cn(
+        variant === "page" ? "grid grid-cols-2 gap-3" : "flex flex-wrap items-center gap-6",
+      )}
+    >
       {game.activePlayers && (
-        <div className="flex items-center gap-2">
+        <div
+          className={cn(
+            "flex items-center gap-2",
+            variant === "page" && "rounded-xl border border-white/[0.07] bg-black/15 p-3",
+          )}
+        >
           <div className="p-2 rounded-lg bg-primary/10">
             <Users className="w-4 h-4 text-primary" />
           </div>
@@ -31,7 +41,12 @@ export const GameModalStats = ({ game }: GameModalStatsProps) => {
       )}
 
       {game.communityRating && (
-        <div className="flex items-center gap-2">
+        <div
+          className={cn(
+            "flex items-center gap-2",
+            variant === "page" && "rounded-xl border border-white/[0.07] bg-black/15 p-3",
+          )}
+        >
           <div
             className={cn(
               "p-2 rounded-lg",
@@ -56,7 +71,12 @@ export const GameModalStats = ({ game }: GameModalStatsProps) => {
       )}
 
       {game.releaseDate && (
-        <div className="flex items-center gap-2">
+        <div
+          className={cn(
+            "flex items-center gap-2",
+            variant === "page" && "rounded-xl border border-white/[0.07] bg-black/15 p-3",
+          )}
+        >
           <div className="p-2 rounded-lg bg-secondary">
             <Calendar className="w-4 h-4 text-muted-foreground" />
           </div>
@@ -68,7 +88,12 @@ export const GameModalStats = ({ game }: GameModalStatsProps) => {
       )}
 
       {game.developer && (
-        <div className="flex items-center gap-2">
+        <div
+          className={cn(
+            "flex items-center gap-2",
+            variant === "page" && "rounded-xl border border-white/[0.07] bg-black/15 p-3",
+          )}
+        >
           <div className="p-2 rounded-lg bg-secondary">
             <Building className="w-4 h-4 text-muted-foreground" />
           </div>

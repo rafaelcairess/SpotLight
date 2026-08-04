@@ -25,10 +25,10 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
       <button
         type="button"
         onClick={onClick}
-        className="game-card group flex w-full items-center gap-4 p-3 text-left"
+        className="game-card group flex min-h-[4.75rem] w-full items-center gap-3 p-3 text-left sm:gap-4"
         style={{ animationDelay: `${index * 50}ms` }}
       >
-        <div className="flex-shrink-0 w-8 text-center">
+        <div className="w-7 flex-shrink-0 text-center sm:w-8">
           <span
             className={cn(
               "text-2xl font-bold",
@@ -42,7 +42,7 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
           </span>
         </div>
 
-        <div className="relative w-20 h-12 flex-shrink-0 rounded-md overflow-hidden">
+        <div className="relative h-12 w-[4.5rem] flex-shrink-0 overflow-hidden rounded-lg sm:w-20">
           <img
             src={game.image}
             alt={game.title}
@@ -77,7 +77,7 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
           </div>
         </div>
 
-        <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+        <ExternalLink className="hidden h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 sm:block" />
       </button>
     );
   }
@@ -89,7 +89,7 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
       <button
         type="button"
         onClick={onClick}
-        className="group relative w-full overflow-hidden rounded-2xl border border-white/[0.07] bg-card/50 text-left shadow-[0_12px_30px_hsl(224_60%_2%/0.25)] transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_22px_55px_hsl(224_60%_2%/0.55)]"
+        className="group relative w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-card/60 text-left shadow-[0_14px_36px_hsl(224_60%_2%/0.3)] transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_24px_60px_hsl(224_60%_2%/0.58)]"
         style={{ animationDelay: `${index * 50}ms` }}
       >
         <div className="aspect-[2/3] relative">

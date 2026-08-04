@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Clock3, Flame, Layers3, Orbit, Sparkles } from "lucide-react";
-import Header from "@/components/Header";
+import { PageContainer, PageShell } from "@/components/PageShell";
 import FeaturedBanner from "@/features/explore/components/FeaturedBanner";
 import GameCard from "@/features/games/components/GameCard";
 import GameModal from "@/features/games/components/GameModal";
@@ -92,168 +92,111 @@ export default function Explore() {
   const openGame = (game: GameData) => setSelectedGame(game);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
-      <Header />
+    <PageShell mainClassName="pb-0">
+      <PageContainer as="section" className="mb-10 md:mb-14">
+        {featuredGame ? (
+          <FeaturedBanner game={featuredGame} onExplore={() => openGame(featuredGame)} />
+        ) : dailyFeaturedLoading || allGamesLoading ? (
+          <LoadingSkeleton variant="banner" />
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">{t("home.featuredEmpty")}</div>
+        )}
+      </PageContainer>
 
-      <div className="page-glow pointer-events-none absolute inset-x-0 top-0 h-[58rem]" />
+      <PageContainer as="section" className="mb-14 md:mb-20">
+        <SectionHeader
+          title={t("home.exploreCollectionsTitle")}
+          subtitle={t("home.exploreCollectionsSubtitle")}
+          icon={Layers3}
+          actionLabel={t("home.viewAll")}
+          actionHref="/collections"
+        />
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+          {categories.slice(0, 4).map((category, index) => (
+            <CategoryCard key={category.id} category={category} index={index} compact />
+          ))}
+        </div>
+      </PageContainer>
 
-      <main className="relative pt-20 lg:pt-[5.5rem]">
-        <section className="container mx-auto mb-14 px-4 md:mb-20">
-          {featuredGame ? (
-            <FeaturedBanner game={featuredGame} onExplore={() => openGame(featuredGame)} />
-          ) : dailyFeaturedLoading || allGamesLoading ? (
-            <LoadingSkeleton variant="banner" />
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">{t("home.featuredEmpty")}</div>
-          )}
-        </section>
-
-        <section className="container mx-auto mb-14 px-4 md:mb-20">
-          <SectionHeader
-            title={t("home.popularTitle")}
-            subtitle={t("home.popularSubtitle")}
-            icon={Flame}
-            actionLabel={t("home.viewRanking")}
-            actionHref="/mais-jogados"
-          />
-          {popularLoading ? (
-            <LoadingSkeleton variant="ranking" count={10} />
-          ) : (
-            <div className="surface-panel grid grid-cols-1 gap-2 p-2 lg:grid-cols-2 lg:gap-3 lg:p-3">
-              {[popularGames.slice(0, 5), popularGames.slice(5, 10)].map((column, columnIndex) => (
-                <div className="space-y-2" key={columnIndex}>
-                  {column.map((game, index) => {
-                    const rank = columnIndex * 5 + index + 1;
-                    return (
-                      <GameCard
-                        key={game.app_id}
-                        game={game}
-                        variant="ranking"
-                        rank={rank}
-                        index={rank - 1}
-                        onClick={() => openGame(game)}
-                      />
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="container mx-auto mb-14 px-4 md:mb-20">
-          <SectionHeader
-            title={t("home.newWorthPlayingTitle")}
-            subtitle={t("home.newWorthPlayingSubtitle")}
-            icon={Clock3}
-          />
-          {allGamesLoading ? (
-            <LoadingSkeleton variant="card" count={5} />
-          ) : newReleases.length === 0 ? (
-            <div className="rounded-xl border border-border/40 bg-card/40 p-6 text-muted-foreground">
-              {t("home.newWorthPlayingEmpty")}
-            </div>
-          ) : (
-            <div className={gridClass}>
-              {newReleases.map((game, index) => (
+      <PageContainer as="section" className="mb-14 md:mb-20">
+        <SectionHeader
+          title={t("home.popularTitle")}
+          subtitle={t("home.popularSubtitle")}
+          icon={Flame}
+          actionLabel={t("home.viewRanking")}
+          actionHref="/mais-jogados"
+        />
+        {popularLoading ? (
+          <LoadingSkeleton variant="ranking" count={10} />
+        ) : (
+          <div className="premium-surface grid gap-3 p-3 lg:grid-cols-[minmax(14rem,0.62fr)_minmax(0,1.55fr)] lg:p-4">
+            {popularGames[0] && (
+              <GameCard
+                game={popularGames[0]}
+                variant="poster"
+                rank={1}
+                onClick={() => openGame(popularGames[0])}
+              />
+            )}
+            <div className="grid content-start gap-2 md:grid-cols-2">
+              {popularGames.slice(1, 10).map((game, index) => (
                 <GameCard
                   key={game.app_id}
                   game={game}
+                  variant="ranking"
+                  rank={index + 2}
                   index={index}
-                  variant={layoutMode === "compact" ? "poster" : "default"}
                   onClick={() => openGame(game)}
                 />
               ))}
             </div>
-          )}
-        </section>
-
-        {user && (
-          <section className="container mx-auto mb-14 px-4 md:mb-20">
-            <SectionHeader
-              title={t("home.recommendationsTitle")}
-              subtitle={t("home.recommendationsSubtitle")}
-              icon={Sparkles}
-            />
-            {recommendationsLoading ? (
-              <LoadingSkeleton variant="card" count={5} />
-            ) : recommendedGames.length === 0 ? (
-              <div className="rounded-xl border border-border/40 bg-card/40 p-6 text-muted-foreground">
-                {t("home.recommendationsEmpty")}
-              </div>
-            ) : (
-              <div className={gridClass}>
-                {recommendedGames.map((game, index) => (
-                  <GameCard
-                    key={game.app_id}
-                    game={game}
-                    index={index}
-                    variant={layoutMode === "compact" ? "poster" : "default"}
-                    onClick={() => openGame(game)}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
+          </div>
         )}
+      </PageContainer>
 
-        <section className="container mx-auto mb-14 px-4 md:mb-20">
-          <SectionHeader
-            title={t("home.acclaimedTitle")}
-            subtitle={t("home.acclaimedSubtitle")}
-            icon={Sparkles}
-            actions={<LayoutToggle value={layoutMode} onChange={setLayoutMode} />}
-          />
-          {allGamesLoading ? (
-            <LoadingSkeleton variant="card" count={5} />
-          ) : (
-            <>
-              <div className={gridClass}>
-                {acclaimedGames.slice(0, discoverLimit).map((game, index) => (
-                  <GameCard
-                    key={game.app_id}
-                    game={game}
-                    index={index}
-                    variant={layoutMode === "compact" ? "poster" : "default"}
-                    onClick={() => openGame(game)}
-                  />
-                ))}
-              </div>
-              {acclaimedGames.length > discoverLimit && (
-                <div className="flex justify-center mt-8">
-                  <Button
-                    variant="outline"
-                    onClick={() => setDiscoverLimit((current) => current + PAGE_SIZE)}
-                    className="w-full sm:w-auto sm:min-w-[200px]"
-                  >
-                    {t("common.actions.loadMore")}
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-        </section>
-
-        <section className="container mx-auto mb-14 px-4 md:mb-20">
-          <SectionHeader
-            title={t("home.exploreCollectionsTitle")}
-            subtitle={t("home.exploreCollectionsSubtitle")}
-            icon={Layers3}
-            actionLabel={t("home.viewAll")}
-            actionHref="/collections"
-          />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {categories.map((category, index) => (
-              <CategoryCard key={category.id} category={category} index={index} />
+      <PageContainer as="section" className="mb-14 md:mb-20">
+        <SectionHeader
+          title={t("home.newWorthPlayingTitle")}
+          subtitle={t("home.newWorthPlayingSubtitle")}
+          icon={Clock3}
+        />
+        {allGamesLoading ? (
+          <LoadingSkeleton variant="card" count={5} />
+        ) : newReleases.length === 0 ? (
+          <div className="rounded-xl border border-border/40 bg-card/40 p-6 text-muted-foreground">
+            {t("home.newWorthPlayingEmpty")}
+          </div>
+        ) : (
+          <div className={gridClass}>
+            {newReleases.map((game, index) => (
+              <GameCard
+                key={game.app_id}
+                game={game}
+                index={index}
+                variant={layoutMode === "compact" ? "poster" : "default"}
+                onClick={() => openGame(game)}
+              />
             ))}
           </div>
-        </section>
+        )}
+      </PageContainer>
 
-        {showMature && matureGames.length > 0 && (
-          <section className="container mx-auto mb-14 px-4 md:mb-20">
-            <SectionHeader title={t("home.matureTitle")} subtitle={t("home.matureSubtitle")} />
+      {user && (
+        <PageContainer as="section" className="mb-14 md:mb-20">
+          <SectionHeader
+            title={t("home.recommendationsTitle")}
+            subtitle={t("home.recommendationsSubtitle")}
+            icon={Sparkles}
+          />
+          {recommendationsLoading ? (
+            <LoadingSkeleton variant="card" count={5} />
+          ) : recommendedGames.length === 0 ? (
+            <div className="rounded-xl border border-border/40 bg-card/40 p-6 text-muted-foreground">
+              {t("home.recommendationsEmpty")}
+            </div>
+          ) : (
             <div className={gridClass}>
-              {matureGames.map((game, index) => (
+              {recommendedGames.map((game, index) => (
                 <GameCard
                   key={game.app_id}
                   game={game}
@@ -263,18 +206,72 @@ export default function Explore() {
                 />
               ))}
             </div>
-          </section>
+          )}
+        </PageContainer>
+      )}
+
+      <PageContainer as="section" className="mb-14 md:mb-20">
+        <SectionHeader
+          title={t("home.acclaimedTitle")}
+          subtitle={t("home.acclaimedSubtitle")}
+          icon={Sparkles}
+          actions={<LayoutToggle value={layoutMode} onChange={setLayoutMode} />}
+        />
+        {allGamesLoading ? (
+          <LoadingSkeleton variant="card" count={5} />
+        ) : (
+          <>
+            <div className={gridClass}>
+              {acclaimedGames.slice(0, discoverLimit).map((game, index) => (
+                <GameCard
+                  key={game.app_id}
+                  game={game}
+                  index={index}
+                  variant={layoutMode === "compact" ? "poster" : "default"}
+                  onClick={() => openGame(game)}
+                />
+              ))}
+            </div>
+            {acclaimedGames.length > discoverLimit && (
+              <div className="flex justify-center mt-8">
+                <Button
+                  variant="outline"
+                  onClick={() => setDiscoverLimit((current) => current + PAGE_SIZE)}
+                  className="w-full sm:w-auto sm:min-w-[200px]"
+                >
+                  {t("common.actions.loadMore")}
+                </Button>
+              </div>
+            )}
+          </>
         )}
-      </main>
+      </PageContainer>
+
+      {showMature && matureGames.length > 0 && (
+        <PageContainer as="section" className="mb-14 md:mb-20">
+          <SectionHeader title={t("home.matureTitle")} subtitle={t("home.matureSubtitle")} />
+          <div className={gridClass}>
+            {matureGames.map((game, index) => (
+              <GameCard
+                key={game.app_id}
+                game={game}
+                index={index}
+                variant={layoutMode === "compact" ? "poster" : "default"}
+                onClick={() => openGame(game)}
+              />
+            ))}
+          </div>
+        </PageContainer>
+      )}
 
       <footer className="relative border-t border-white/[0.06] bg-card/20 py-10">
-        <div className="container mx-auto px-4 text-center">
+        <PageContainer className="text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Orbit className="w-5 h-5 text-primary" />
             <span className="font-bold text-gradient-primary">SpotLight</span>
           </div>
           <p className="text-sm text-muted-foreground">{t("home.footerTagline")}</p>
-        </div>
+        </PageContainer>
       </footer>
 
       <GameModal
@@ -282,6 +279,6 @@ export default function Explore() {
         isOpen={Boolean(selectedGame)}
         onClose={() => setSelectedGame(null)}
       />
-    </div>
+    </PageShell>
   );
 }

@@ -7,10 +7,9 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GamepadIcon, Trophy, BookOpen, List, EyeOff, Users } from "lucide-react";
-import Header from "@/components/Header";
+import { PageContainer, PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useUserGames, useHiddenGames } from "@/hooks/useUserGames";
@@ -30,6 +29,7 @@ import { RecentActivity } from "@/features/profile/components/RecentActivity";
 import { PlatinumShowcase } from "@/features/profile/components/PlatinumShowcase";
 import { PlatinumGamePicker } from "@/features/profile/components/PlatinumGamePicker";
 import { ProfileHero } from "@/features/profile/components/ProfileHero";
+import { ProfileTabBar } from "@/features/profile/components/ProfileTabBar";
 import { UserAvatar } from "@/features/profile/components/UserAvatar";
 import GameModal from "@/features/games/components/GameModal";
 import { GameData } from "@/types/game";
@@ -72,9 +72,8 @@ const Profile = () => {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="pt-24 container mx-auto px-4">
+      <PageShell>
+        <PageContainer>
           <div className="animate-pulse space-y-6">
             <div className="flex items-center gap-6">
               <div className="w-24 h-24 rounded-full bg-secondary" />
@@ -84,8 +83,8 @@ const Profile = () => {
               </div>
             </div>
           </div>
-        </main>
-      </div>
+        </PageContainer>
+      </PageShell>
     );
   }
 
@@ -101,11 +100,9 @@ const Profile = () => {
     setSelectedGame(null);
   };
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
-      <main className="mx-auto max-w-6xl px-4 pb-12 pt-24">
-        <section className="overflow-hidden rounded-xl border border-primary/10 bg-gradient-to-br from-primary/10 via-card/80 to-background shadow-2xl shadow-black/20">
+    <PageShell>
+      <PageContainer width="content" className="pb-16">
+        <section className="premium-surface overflow-hidden">
           <ProfileHero
             avatarUrl={profile?.avatar_url}
             displayName={profile?.display_name}
@@ -128,69 +125,26 @@ const Profile = () => {
                 </Button>
               </>
             }
+            stats={[
+              { label: t("profile.games"), value: contentCounts?.games ?? 0 },
+              { label: t("profile.platinums"), value: contentCounts?.platinums ?? 0 },
+              { label: t("profile.reviews"), value: contentCounts?.reviews ?? 0 },
+            ]}
           />
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full px-5 pb-7 md:px-7">
-            <TabsList className="sr-only">
-              <TabsTrigger
-                value="overview"
-                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-              >
-                Visão geral
-              </TabsTrigger>
-              <TabsTrigger
-                value="library"
-                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-              >
-                <GamepadIcon className="w-4 h-4" />
-                {t("profile.library")} ({contentCounts?.games ?? 0})
-              </TabsTrigger>
-              <TabsTrigger
-                value="platinum"
-                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-              >
-                <Trophy className="w-4 h-4" />
-                {t("profile.platinums")} ({contentCounts?.platinums ?? 0})
-              </TabsTrigger>
-              <TabsTrigger
-                value="reviews"
-                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-              >
-                <BookOpen className="w-4 h-4" />
-                {t("profile.reviews")} ({contentCounts?.reviews ?? 0})
-              </TabsTrigger>
-              <TabsTrigger
-                value="lists"
-                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-              >
-                <List className="w-4 h-4" />
-                Listas
-              </TabsTrigger>
-              <TabsTrigger
-                value="hidden"
-                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-              >
-                <EyeOff className="w-4 h-4" />
-                {t("profile.hiddenTab")} ({hiddenGames.length})
-              </TabsTrigger>
-              <TabsTrigger
-                value="friends"
-                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
-              >
-                <Users className="w-4 h-4" /> Amigos ({friends.length})
-              </TabsTrigger>
-            </TabsList>
-
-            {activeTab !== "overview" && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mb-4"
-                onClick={() => setActiveTab("overview")}
-              >
-                ← Voltar ao perfil
-              </Button>
-            )}
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full space-y-6 px-5 pb-7 pt-5 md:px-7 md:pt-6"
+          >
+            <ProfileTabBar
+              owner
+              games={contentCounts?.games ?? 0}
+              platinums={contentCounts?.platinums ?? 0}
+              reviews={contentCounts?.reviews ?? 0}
+              hidden={hiddenGames.length}
+              friends={friends.length}
+            />
 
             <TabsContent value="overview">
               <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
@@ -346,12 +300,12 @@ const Profile = () => {
             </TabsContent>
           </Tabs>
         </section>
-      </main>
+      </PageContainer>
 
       <PlatinumGamePicker open={isPlatinumPickerOpen} onOpenChange={setIsPlatinumPickerOpen} />
 
       <GameModal game={selectedGame} isOpen={isModalOpen} onClose={handleCloseModal} />
-    </div>
+    </PageShell>
   );
 };
 

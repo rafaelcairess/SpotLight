@@ -2,8 +2,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
 import { GameData } from "@/types/game";
+import { cn } from "@/lib/utils";
 
-export function GameModalMedia({ game, loading = false }: { game: GameData; loading?: boolean }) {
+export function GameModalMedia({
+  game,
+  loading = false,
+  variant = "compact",
+}: {
+  game: GameData;
+  loading?: boolean;
+  variant?: "compact" | "page";
+}) {
   const [playing, setPlaying] = useState(false);
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -79,10 +88,23 @@ export function GameModalMedia({ game, loading = false }: { game: GameData; load
   if (!game.trailerUrl && !screenshots.length) return null;
 
   return (
-    <section className="space-y-3">
-      <h3 className="text-sm font-medium text-muted-foreground">Mídia</h3>
+    <section className={variant === "page" ? "space-y-4" : "space-y-3"}>
+      <h3
+        className={
+          variant === "page"
+            ? "font-logo text-xl font-bold"
+            : "text-sm font-medium text-muted-foreground"
+        }
+      >
+        Mídia
+      </h3>
       {game.trailerUrl && (
-        <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
+        <div
+          className={cn(
+            "relative aspect-video overflow-hidden bg-black",
+            variant === "page" ? "rounded-2xl border border-white/[0.08]" : "rounded-lg",
+          )}
+        >
           {playing ? (
             <video
               ref={videoRef}
@@ -115,7 +137,12 @@ export function GameModalMedia({ game, loading = false }: { game: GameData; load
         </div>
       )}
       {!!screenshots.length && (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div
+          className={cn(
+            "grid grid-cols-2 gap-2",
+            variant === "page" ? "lg:grid-cols-3" : "sm:grid-cols-3",
+          )}
+        >
           {screenshots.map((url, index) => (
             <button
               key={url}

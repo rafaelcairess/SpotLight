@@ -53,6 +53,7 @@ export const resources = {
           collections: "Coleções",
           promotions: "Promoções",
           community: "Comunidade",
+          rankings: "Rankings",
           topGames: "Top Games",
           mostPlayed: "Mais jogados",
         },
@@ -65,6 +66,10 @@ export const resources = {
         signOut: "Sair",
         signIn: "Entrar",
         myProfile: "Meu Perfil",
+        friends: "Amigos",
+        mainNavigation: "NavegaÃ§Ã£o principal",
+        openMenu: "Abrir menu",
+        closeMenu: "Fechar menu",
       },
       home: {
         featuredEmpty:
@@ -193,6 +198,11 @@ export const resources = {
         platinums: "Platinados",
         reviews: "Reviews",
         library: "Biblioteca",
+        overview: "Visão geral",
+        games: "Jogos",
+        lists: "Listas",
+        friends: "Amigos",
+        contentNavigation: "Conteúdo do perfil",
         emptyFavorites: "Você ainda não tem jogos favoritos.",
         emptyPlatinums: "Você ainda não platinou nenhum jogo.",
         emptyFollowers: "Ainda sem seguidores.",
@@ -560,6 +570,12 @@ export const resources = {
           description: "Jogos únicos de desenvolvedores independentes",
         },
       },
+      gamePage: {
+        notFound: "Jogo não encontrado.",
+        overview: "Visão geral",
+        details: "Detalhes do jogo",
+        tags: "Tags e recursos",
+      },
       gameModal: {
         playingNow: "Jogando Agora",
         rating: "Avaliação",
@@ -696,6 +712,7 @@ export const resources = {
           collections: "Collections",
           promotions: "Deals",
           community: "Community",
+          rankings: "Rankings",
           topGames: "Top Games",
           mostPlayed: "Most played",
         },
@@ -708,6 +725,10 @@ export const resources = {
         signOut: "Sign out",
         signIn: "Sign in",
         myProfile: "My Profile",
+        friends: "Friends",
+        mainNavigation: "Main navigation",
+        openMenu: "Open menu",
+        closeMenu: "Close menu",
       },
       home: {
         featuredEmpty:
@@ -835,6 +856,11 @@ export const resources = {
         platinums: "Platinums",
         reviews: "Reviews",
         library: "Library",
+        overview: "Overview",
+        games: "Games",
+        lists: "Lists",
+        friends: "Friends",
+        contentNavigation: "Profile content",
         emptyFavorites: "You don't have any favorites yet.",
         emptyPlatinums: "You haven't platinumed any games yet.",
         emptyFollowers: "No followers yet.",
@@ -1202,6 +1228,12 @@ export const resources = {
           description: "Unique games from indie developers",
         },
       },
+      gamePage: {
+        notFound: "Game not found.",
+        overview: "Overview",
+        details: "Game details",
+        tags: "Tags and features",
+      },
       gameModal: {
         playingNow: "Playing now",
         rating: "Rating",
@@ -1337,6 +1369,7 @@ export const resources = {
           collections: "Colecciones",
           promotions: "Ofertas",
           community: "Comunidad",
+          rankings: "Rankings",
           topGames: "Top Games",
           mostPlayed: "Más jugados",
         },
@@ -1349,6 +1382,10 @@ export const resources = {
         signOut: "Salir",
         signIn: "Entrar",
         myProfile: "Mi perfil",
+        friends: "Amigos",
+        mainNavigation: "NavegaciÃ³n principal",
+        openMenu: "Abrir menÃº",
+        closeMenu: "Cerrar menÃº",
       },
       home: {
         featuredEmpty:
@@ -1476,6 +1513,11 @@ export const resources = {
         platinums: "Platinos",
         reviews: "Reviews",
         library: "Biblioteca",
+        overview: "Vista general",
+        games: "Juegos",
+        lists: "Listas",
+        friends: "Amigos",
+        contentNavigation: "Contenido del perfil",
         emptyFavorites: "Aún no tienes juegos favoritos.",
         emptyPlatinums: "Aún no has platinado ningún juego.",
         emptyFollowers: "Aún sin seguidores.",
@@ -1843,6 +1885,12 @@ export const resources = {
           description: "Juegos únicos de desarrolladores independientes",
         },
       },
+      gamePage: {
+        notFound: "Juego no encontrado.",
+        overview: "Vista general",
+        details: "Detalles del juego",
+        tags: "Etiquetas y características",
+      },
       gameModal: {
         playingNow: "Jugando ahora",
         rating: "Valoración",
@@ -1929,4 +1977,3 @@ export const resources = {
     },
   },
 } as const;
-

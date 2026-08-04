@@ -7,27 +7,27 @@
 @layer base {
   :root {
     /* Tema escuro de espaco profundo */
-    --background: 224 48% 5%;
+    --background: 226 52% 4%;
     --foreground: 210 40% 98%;
 
-    --card: 224 38% 8%;
+    --card: 224 42% 8%;
     --card-foreground: 210 40% 98%;
-    --card-hover: 224 34% 11%;
+    --card-hover: 223 38% 12%;
 
     --popover: 222 47% 7%;
     --popover-foreground: 210 40% 98%;
 
     /* Azul eletrico primario */
-    --primary: 217 100% 64%;
-    --primary-foreground: 224 48% 5%;
-    --primary-glow: 217 100% 58%;
+    --primary: 216 100% 64%;
+    --primary-foreground: 226 60% 6%;
+    --primary-glow: 214 100% 67%;
 
     /* Superficies neutras */
     --secondary: 222 30% 14%;
     --secondary-foreground: 210 40% 90%;
 
     --muted: 222 30% 12%;
-    --muted-foreground: 215 20% 55%;
+    --muted-foreground: 215 18% 65%;
 
     /* Accent - laranja quente para destaques */
     --accent: 25 95% 53%;
@@ -36,17 +36,17 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 222 28% 19%;
+    --border: 222 28% 20%;
     --input: 222 30% 15%;
     --ring: 217 91% 60%;
 
-    --radius: 1rem;
+    --radius: 0.875rem;
 
     /* Tokens customizados de gaming */
-    --glow-primary: 0 0 28px hsl(217 100% 64% / 0.28);
+    --glow-primary: 0 12px 40px hsl(216 100% 55% / 0.22);
     --glow-accent: 0 0 20px hsl(25 95% 53% / 0.4);
     --gradient-dark: linear-gradient(180deg, hsl(222 47% 8%) 0%, hsl(222 47% 5%) 100%);
-    --gradient-card: linear-gradient(135deg, hsl(222 47% 10%) 0%, hsl(222 47% 6%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(223 44% 11%) 0%, hsl(226 48% 6%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(217 91% 60% / 0.15) 0%, transparent 50%);
     --gradient-featured: linear-gradient(180deg, transparent 0%, hsl(222 47% 5% / 0.9) 100%);
 
@@ -70,8 +70,8 @@
     font-family: "Inter", system-ui, sans-serif;
     min-width: 320px;
     background-image:
-      radial-gradient(circle at 12% -10%, hsl(217 100% 64% / 0.12), transparent 32rem),
-      radial-gradient(circle at 88% 10%, hsl(260 80% 60% / 0.08), transparent 30rem);
+      radial-gradient(circle at 12% -10%, hsl(216 100% 64% / 0.13), transparent 34rem),
+      radial-gradient(circle at 88% 10%, hsl(250 80% 60% / 0.07), transparent 32rem);
     background-attachment: fixed;
   }
 
@@ -89,7 +89,26 @@
 @layer components {
   /* Efeito de vidro para overlays */
   .glass {
-    @apply bg-card/75 backdrop-blur-2xl border border-white/[0.07];
+    @apply border border-white/[0.08] bg-card/75 backdrop-blur-2xl;
+  }
+
+  .premium-surface {
+    @apply rounded-2xl border border-white/[0.08] bg-card/70 backdrop-blur-xl;
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.035),
+      0 24px 70px hsl(226 70% 2% / 0.36);
+  }
+
+  .premium-grid {
+    background-image:
+      linear-gradient(hsl(216 100% 70% / 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(216 100% 70% / 0.025) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: linear-gradient(to bottom, black, transparent 72%);
+  }
+
+  .eyebrow {
+    @apply text-[0.68rem] font-bold uppercase tracking-[0.2em] text-primary;
   }
 
   .surface-panel {
@@ -108,12 +127,12 @@
 
   /* Animacao de hover dos cards */
   .game-card {
-    @apply relative overflow-hidden rounded-2xl bg-card/70 border border-white/[0.07] transition-all duration-300;
+    @apply relative overflow-hidden rounded-2xl border border-white/[0.08] bg-card/70 transition-all duration-300;
     box-shadow: 0 12px 35px hsl(224 60% 2% / 0.22);
   }
 
   .game-card:hover {
-    @apply border-primary/40 -translate-y-1;
+    @apply -translate-y-1 border-primary/35;
     box-shadow:
       0 22px 50px hsl(224 60% 2% / 0.62),
       var(--glow-primary);
@@ -131,7 +150,7 @@
 
   /* Skeleton de carregamento */
   .skeleton-shimmer {
-    @apply relative overflow-hidden bg-muted;
+    @apply relative overflow-hidden bg-muted/80;
   }
 
   .skeleton-shimmer::after {

@@ -1,20 +1,18 @@
-/**
- * Página individual de um jogo (/game/:appId).
- */
-
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Layers3 } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { PageContainer, PageShell, PageSurface } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
-import Header from "@/components/Header";
 import { GameModalHeader } from "@/features/games/components/modal/GameModalHeader";
 import { GameModalStats } from "@/features/games/components/modal/GameModalStats";
+import { GameModalMedia } from "@/features/games/components/modal/GameModalMedia";
 import { GameModalReviews } from "@/features/games/components/modal/GameModalReviews";
 import { GameModalFooter } from "@/features/games/components/modal/GameModalFooter";
 import { GameLibraryActions } from "@/features/games/components/GameLibraryActions";
-import { useGameById, useEnsureGameDetails } from "@/hooks/useGames";
+import { AddToListButton } from "@/features/games/components/AddToListButton";
+import { useEnsureGameDetails, useGameById } from "@/hooks/useGames";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from "react-i18next";
 
 export default function GamePage() {
   const { appId } = useParams<{ appId: string }>();
@@ -22,112 +20,123 @@ export default function GamePage() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const numericAppId = Number(appId);
-
   const { data: game, isLoading } = useGameById(numericAppId);
   const ensureDetails = useEnsureGameDetails();
   const [detailsRequested, setDetailsRequested] = useState(false);
 
   useEffect(() => {
     if (!numericAppId || detailsRequested || isLoading) return;
-    if (game?.hasDetails !== false) return;
+    if (!game) return;
+    const mediaComplete = game?.mediaSyncedAt && !(game.trailerThumbnail && !game.trailerUrl);
+    if (game?.hasDetails !== false && mediaComplete) return;
     setDetailsRequested(true);
     ensureDetails.mutate(numericAppId, {
-      onError: () => {
-        toast({ title: t("search.loadError"), variant: "destructive" });
-      },
+      onError: () => toast({ title: t("search.loadError"), variant: "destructive" }),
     });
   }, [numericAppId, game, isLoading, detailsRequested, ensureDetails, toast, t]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="pt-24 container mx-auto px-4 max-w-4xl">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 w-48 bg-secondary rounded" />
-            <div className="flex gap-4">
-              <div className="w-32 aspect-[2/3] bg-secondary rounded-lg" />
-              <div className="flex-1 space-y-3">
-                <div className="h-8 w-64 bg-secondary rounded" />
-                <div className="h-4 w-32 bg-secondary rounded" />
-              </div>
-            </div>
+      <PageShell>
+        <PageContainer className="space-y-6 pb-16">
+          <div className="h-11 w-28 rounded-xl skeleton-shimmer" />
+          <div className="min-h-[31rem] rounded-[1.75rem] skeleton-shimmer" />
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+            <div className="h-96 rounded-2xl skeleton-shimmer" />
+            <div className="h-80 rounded-2xl skeleton-shimmer" />
           </div>
-        </main>
-      </div>
+        </PageContainer>
+      </PageShell>
     );
   }
 
   if (!game || !numericAppId) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="pt-24 container mx-auto px-4 max-w-4xl text-center">
-          <p className="text-muted-foreground">Jogo não encontrado.</p>
+      <PageShell>
+        <PageContainer width="narrow" className="py-20 text-center">
+          <p className="text-muted-foreground">{t("gamePage.notFound")}</p>
           <Button variant="ghost" className="mt-4" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
+            <ArrowLeft />
+            {t("common.actions.back")}
           </Button>
-        </main>
-      </div>
+        </PageContainer>
+      </PageShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="pt-24 pb-12 container mx-auto px-4 max-w-4xl space-y-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2 -ml-2">
-          <ArrowLeft className="w-4 h-4" />
-          Voltar
+    <PageShell>
+      <PageContainer className="space-y-6 pb-16">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="-ml-2 gap-2">
+          <ArrowLeft />
+          {t("common.actions.back")}
         </Button>
 
-        {/* Header */}
-        <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
-          <GameModalHeader game={game} />
-          <div className="p-4 sm:p-6 space-y-6">
-            {/* Stats */}
-            <GameModalStats game={game} />
+        <GameModalHeader game={game} variant="page" />
 
-            {/* Descrição */}
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="min-w-0 space-y-6">
             {game.short_description && (
-              <div>
-                <h3 className="text-sm font-semibold mb-2">Sobre o jogo</h3>
-                <p className="text-sm text-foreground/80 leading-relaxed">
+              <PageSurface className="p-5 sm:p-7">
+                <p className="eyebrow mb-3">{t("gamePage.overview")}</p>
+                <h2 className="font-logo text-2xl font-bold tracking-[-0.035em]">
+                  {t("gameModal.about")}
+                </h2>
+                <p className="mt-4 text-base leading-7 text-foreground/78">
                   {game.short_description}
                 </p>
-              </div>
+              </PageSurface>
             )}
 
-            {/* Tags */}
-            {game.tags && game.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {game.tags.slice(0, 12).map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center rounded-full border border-border/50 bg-secondary/30 px-2.5 py-0.5 text-xs text-foreground/80"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
+            <PageSurface className="p-5 sm:p-7">
+              <GameModalMedia game={game} loading={ensureDetails.isPending} variant="page" />
+            </PageSurface>
 
-            {/* Ações da biblioteca */}
-            <div className="pt-2 border-t border-border/50">
-              <GameLibraryActions appId={numericAppId} />
-            </div>
-
-            {/* Footer com preço e link Steam */}
-            <GameModalFooter game={game} />
+            <PageSurface className="p-5 sm:p-7">
+              <GameModalReviews appId={numericAppId} gameTitle={game.title} />
+            </PageSurface>
           </div>
-        </div>
 
-        {/* Reviews da comunidade */}
-        <div className="rounded-xl border border-border/50 bg-card p-4 sm:p-6">
-          <GameModalReviews appId={numericAppId} gameTitle={game.title} />
+          <aside className="space-y-4 lg:sticky lg:top-24">
+            <PageSurface className="space-y-5 p-5">
+              <div>
+                <p className="eyebrow mb-3">{t("gamePage.details")}</p>
+                <GameModalStats game={game} variant="page" />
+              </div>
+
+              <div className="border-t border-white/[0.07] pt-5">
+                <GameLibraryActions appId={numericAppId} />
+                <div className="mt-3">
+                  <AddToListButton appId={numericAppId} />
+                </div>
+              </div>
+
+              {!!game.tags?.length && (
+                <div className="border-t border-white/[0.07] pt-5">
+                  <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
+                    <Layers3 className="h-4 w-4 text-primary" />
+                    {t("gamePage.tags")}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {game.tags.slice(0, 12).map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-xs text-foreground/75"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="border-t border-white/[0.07] pt-5">
+                <GameModalFooter game={game} variant="page" />
+              </div>
+            </PageSurface>
+          </aside>
         </div>
-      </main>
-    </div>
+      </PageContainer>
+    </PageShell>
   );
 }
