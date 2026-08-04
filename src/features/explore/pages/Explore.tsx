@@ -92,11 +92,13 @@ export default function Explore() {
   const openGame = (game: GameData) => setSelectedGame(game);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen overflow-hidden bg-background">
       <Header />
 
-      <main className="pt-20 md:pt-24">
-        <section className="container mx-auto px-4 mb-12 md:mb-16">
+      <div className="page-glow pointer-events-none absolute inset-x-0 top-0 h-[58rem]" />
+
+      <main className="relative pt-20 lg:pt-[5.5rem]">
+        <section className="container mx-auto mb-14 px-4 md:mb-20">
           {featuredGame ? (
             <FeaturedBanner game={featuredGame} onExplore={() => openGame(featuredGame)} />
           ) : dailyFeaturedLoading || allGamesLoading ? (
@@ -106,7 +108,7 @@ export default function Explore() {
           )}
         </section>
 
-        <section className="container mx-auto px-4 mb-12 md:mb-16">
+        <section className="container mx-auto mb-14 px-4 md:mb-20">
           <SectionHeader
             title={t("home.popularTitle")}
             subtitle={t("home.popularSubtitle")}
@@ -117,7 +119,7 @@ export default function Explore() {
           {popularLoading ? (
             <LoadingSkeleton variant="ranking" count={10} />
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="surface-panel grid grid-cols-1 gap-2 p-2 lg:grid-cols-2 lg:gap-3 lg:p-3">
               {[popularGames.slice(0, 5), popularGames.slice(5, 10)].map((column, columnIndex) => (
                 <div className="space-y-2" key={columnIndex}>
                   {column.map((game, index) => {
@@ -139,7 +141,7 @@ export default function Explore() {
           )}
         </section>
 
-        <section className="container mx-auto px-4 mb-12 md:mb-16">
+        <section className="container mx-auto mb-14 px-4 md:mb-20">
           <SectionHeader
             title={t("home.newWorthPlayingTitle")}
             subtitle={t("home.newWorthPlayingSubtitle")}
@@ -167,7 +169,7 @@ export default function Explore() {
         </section>
 
         {user && (
-          <section className="container mx-auto px-4 mb-12 md:mb-16">
+          <section className="container mx-auto mb-14 px-4 md:mb-20">
             <SectionHeader
               title={t("home.recommendationsTitle")}
               subtitle={t("home.recommendationsSubtitle")}
@@ -195,7 +197,7 @@ export default function Explore() {
           </section>
         )}
 
-        <section className="container mx-auto px-4 mb-12 md:mb-16">
+        <section className="container mx-auto mb-14 px-4 md:mb-20">
           <SectionHeader
             title={t("home.acclaimedTitle")}
             subtitle={t("home.acclaimedSubtitle")}
@@ -232,7 +234,7 @@ export default function Explore() {
           )}
         </section>
 
-        <section className="container mx-auto px-4 mb-12 md:mb-16">
+        <section className="container mx-auto mb-14 px-4 md:mb-20">
           <SectionHeader
             title={t("home.exploreCollectionsTitle")}
             subtitle={t("home.exploreCollectionsSubtitle")}
@@ -248,7 +250,7 @@ export default function Explore() {
         </section>
 
         {showMature && matureGames.length > 0 && (
-          <section className="container mx-auto px-4 mb-12 md:mb-16">
+          <section className="container mx-auto mb-14 px-4 md:mb-20">
             <SectionHeader title={t("home.matureTitle")} subtitle={t("home.matureSubtitle")} />
             <div className={gridClass}>
               {matureGames.map((game, index) => (
@@ -265,7 +267,7 @@ export default function Explore() {
         )}
       </main>
 
-      <footer className="border-t border-border/30 py-8">
+      <footer className="relative border-t border-white/[0.06] bg-card/20 py-10">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Orbit className="w-5 h-5 text-primary" />

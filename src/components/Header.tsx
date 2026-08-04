@@ -89,34 +89,38 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
-      <div className="w-full px-4">
-        <div className="flex items-center justify-between h-16 md:h-20">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-background/80 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/70">
+      <div className="mx-auto max-w-[1560px] px-4 sm:px-6">
+        <div className="flex h-16 items-center gap-3 lg:h-[4.5rem]">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group -ml-30 md:-ml-50">
-            <div className="relative">
+          <Link to="/" className="group flex shrink-0 items-center gap-2.5" aria-label="SpotLight">
+            <div className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-primary/20 bg-primary/10 shadow-[0_0_24px_hsl(var(--primary)/0.12)]">
               <img
                 src={logoSpotlight}
                 alt="SpotLight"
                 decoding="async"
-                className="w-[5.25rem] h-[5.25rem] md:w-[6rem] md:h-[6rem] object-contain transition-transform group-hover:scale-110"
+                className="h-[5.5rem] w-[5.5rem] max-w-none object-contain transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 blur-lg bg-primary/20 group-hover:bg-primary/40 transition-colors" />
             </div>
-            <span className="text-xl md:text-2xl font-bold text-gradient-primary font-logo">
+            <span className="hidden text-lg font-bold tracking-[-0.03em] text-foreground sm:block font-logo">
               SpotLight
             </span>
           </Link>
 
           {/* Navegacao desktop */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav
+            className="hidden items-center rounded-xl border border-white/[0.06] bg-white/[0.025] p-1 xl:flex"
+            aria-label="Navegacao principal"
+          >
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  location.pathname === link.href ? "text-primary" : "text-muted-foreground",
+                  "rounded-lg px-3 py-2 text-xs font-medium transition-all hover:bg-white/[0.05] hover:text-foreground 2xl:text-sm",
+                  location.pathname === link.href
+                    ? "bg-primary/10 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.12)]"
+                    : "text-muted-foreground",
                 )}
               >
                 <span className="inline-flex items-center gap-2">
@@ -130,7 +134,7 @@ const Header = () => {
           {/* Barra de busca - desktop */}
           <form
             onSubmit={handleSearch}
-            className="hidden md:flex items-center gap-2 flex-1 max-w-md ml-4 mr-2"
+            className="ml-auto hidden min-w-0 flex-1 items-center lg:flex lg:max-w-[18rem] 2xl:max-w-sm"
           >
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -139,13 +143,13 @@ const Header = () => {
                 placeholder={t("header.searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-secondary/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 placeholder:text-muted-foreground/60"
+                className="h-10 rounded-xl border-white/[0.07] bg-white/[0.035] pl-10 focus:border-primary/40 focus:ring-primary/20 placeholder:text-muted-foreground/60"
               />
             </div>
           </form>
 
           {/* Area de autenticacao - desktop */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden shrink-0 items-center gap-3 xl:flex">
             {!authLoading &&
               (user ? (
                 <div className="flex items-center">
@@ -230,7 +234,7 @@ const Header = () => {
                       />
                     </Link>
                   </div>
-                  <div className="flex items-center gap-3 ml-5">
+                  <div className="ml-3 flex items-center gap-3 border-l border-white/10 pl-3">
                     <button
                       onClick={handleSignOut}
                       className="inline-flex items-center gap-2 text-sm font-medium text-destructive hover:text-destructive/90 transition-colors"
@@ -268,8 +272,10 @@ const Header = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="ml-auto xl:hidden"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
@@ -277,7 +283,7 @@ const Header = () => {
 
         {/* Menu mobile */}
         {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border/30 animate-fade-in">
+          <div className="animate-fade-in border-t border-white/[0.06] py-4 xl:hidden">
             {/* Busca mobile */}
             <form onSubmit={handleSearch} className="mb-4">
               <div className="relative">

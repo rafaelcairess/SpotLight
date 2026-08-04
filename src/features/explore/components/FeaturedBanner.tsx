@@ -23,45 +23,46 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
   };
 
   return (
-    <div className="relative w-full min-h-[360px] aspect-[4/3] sm:min-h-0 sm:aspect-[16/9] lg:aspect-[21/9] xl:aspect-[21/8] rounded-2xl overflow-hidden group">
+    <div className="group relative min-h-[430px] w-full overflow-hidden rounded-[1.75rem] border border-white/10 bg-card shadow-[0_28px_90px_hsl(224_70%_2%/0.72)] sm:min-h-0 sm:aspect-[16/9] lg:aspect-[21/9] xl:aspect-[24/9]">
       {/* Imagem de fundo */}
       <img
         src={game.image}
         alt={game.title}
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.035]"
         fetchPriority="high"
         loading="eager"
         decoding="async"
       />
 
       {/* Overlays de gradiente */}
-      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-      <div className="absolute inset-0 hero-gradient opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/72 to-background/5" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-transparent to-black/20" />
+      <div className="absolute inset-0 bg-[linear-gradient(120deg,hsl(var(--primary)/0.15),transparent_38%)] opacity-70" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
 
       {/* Conteudo */}
-      <div className="relative h-full flex flex-col justify-end p-5 pb-6 sm:p-8 sm:pb-10 md:p-10 md:pb-12 max-w-2xl">
+      <div className="relative flex h-full max-w-3xl flex-col justify-end p-6 sm:p-9 md:p-12 lg:p-14">
         {/* Badge */}
-        <div className="flex items-center gap-2 mb-4 animate-fade-in">
-          <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-primary/20 text-primary rounded-full border border-primary/30">
+        <div className="mb-5 flex items-center gap-2 animate-fade-in">
+          <span className="rounded-full border border-primary/25 bg-primary/15 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-primary backdrop-blur-md">
             {t("featuredBanner.badge")}
           </span>
           {game.genre && (
-            <span className="px-3 py-1 text-xs font-medium bg-secondary/80 rounded-full">
+            <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1.5 text-xs font-medium text-foreground/85 backdrop-blur-md">
               {game.genre}
             </span>
           )}
         </div>
 
         {/* Titulo */}
-        <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4 leading-tight break-words line-clamp-3 animate-fade-in-up">
+        <h1 className="mb-4 line-clamp-3 break-words font-logo text-4xl font-extrabold leading-[0.98] tracking-[-0.055em] text-white animate-fade-in-up sm:text-5xl md:text-6xl lg:text-7xl">
           {game.title}
         </h1>
 
         {/* Estatisticas */}
-        <div className="flex flex-wrap items-center gap-4 sm:gap-6 mb-4 text-sm animate-fade-in">
+        <div className="mb-5 flex flex-wrap items-center gap-3 text-sm animate-fade-in sm:gap-5">
           {game.activePlayers && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 backdrop-blur-md">
               <Users className="w-4 h-4 text-primary" />
               <span className="text-muted-foreground">
                 <span className="text-foreground font-semibold">
@@ -72,7 +73,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
             </div>
           )}
           {game.communityRating && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 backdrop-blur-md">
               <Star
                 className={cn("w-4 h-4 fill-current", getRatingColorClass(game.communityRating))}
               />
@@ -87,18 +88,27 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
 
         {/* Descricao */}
         {game.short_description && (
-          <p className="text-muted-foreground mb-6 line-clamp-2 md:line-clamp-3 max-w-lg animate-fade-in">
+          <p className="mb-7 max-w-xl line-clamp-2 text-sm leading-relaxed text-slate-300 animate-fade-in sm:text-base md:line-clamp-3">
             {game.short_description}
           </p>
         )}
 
         {/* Acoes */}
         <div className="flex flex-wrap items-center gap-3 animate-fade-in-up">
-          <Button size="lg" className="gap-2 glow-primary" onClick={handleOpenSteam}>
+          <Button
+            size="lg"
+            className="h-11 gap-2 rounded-xl px-5 glow-primary sm:h-12 sm:px-7"
+            onClick={handleOpenSteam}
+          >
             <img src={steamIcon} alt="Steam" className="w-4 h-4" />
             {t("gameModal.viewOnSteam")}
           </Button>
-          <Button size="lg" variant="secondary" className="gap-2" onClick={onExplore}>
+          <Button
+            size="lg"
+            variant="secondary"
+            className="h-11 gap-2 rounded-xl border border-white/10 bg-white/10 px-5 backdrop-blur-md hover:bg-white/15 sm:h-12 sm:px-7"
+            onClick={onExplore}
+          >
             <Info className="w-4 h-4" />
             {t("featuredBanner.moreDetails")}
           </Button>

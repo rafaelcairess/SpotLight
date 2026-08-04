@@ -7,20 +7,20 @@
 @layer base {
   :root {
     /* Tema escuro de espaco profundo */
-    --background: 222 47% 5%;
+    --background: 224 48% 5%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 8%;
+    --card: 224 38% 8%;
     --card-foreground: 210 40% 98%;
-    --card-hover: 222 47% 11%;
+    --card-hover: 224 34% 11%;
 
     --popover: 222 47% 7%;
     --popover-foreground: 210 40% 98%;
 
     /* Azul eletrico primario */
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 5%;
-    --primary-glow: 217 91% 50%;
+    --primary: 217 100% 64%;
+    --primary-foreground: 224 48% 5%;
+    --primary-glow: 217 100% 58%;
 
     /* Superficies neutras */
     --secondary: 222 30% 14%;
@@ -36,14 +36,14 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 222 30% 18%;
+    --border: 222 28% 19%;
     --input: 222 30% 15%;
     --ring: 217 91% 60%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     /* Tokens customizados de gaming */
-    --glow-primary: 0 0 20px hsl(217 91% 60% / 0.4);
+    --glow-primary: 0 0 28px hsl(217 100% 64% / 0.28);
     --glow-accent: 0 0 20px hsl(25 95% 53% / 0.4);
     --gradient-dark: linear-gradient(180deg, hsl(222 47% 8%) 0%, hsl(222 47% 5%) 100%);
     --gradient-card: linear-gradient(135deg, hsl(222 47% 10%) 0%, hsl(222 47% 6%) 100%);
@@ -68,13 +68,33 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: "Inter", system-ui, sans-serif;
+    min-width: 320px;
+    background-image:
+      radial-gradient(circle at 12% -10%, hsl(217 100% 64% / 0.12), transparent 32rem),
+      radial-gradient(circle at 88% 10%, hsl(260 80% 60% / 0.08), transparent 30rem);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.28);
+    color: hsl(var(--foreground));
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
   }
 }
 
 @layer components {
   /* Efeito de vidro para overlays */
   .glass {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+    @apply bg-card/75 backdrop-blur-2xl border border-white/[0.07];
+  }
+
+  .surface-panel {
+    @apply rounded-3xl border border-white/[0.06] bg-card/35;
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.025);
   }
 
   /* Efeitos de brilho */
@@ -88,13 +108,14 @@
 
   /* Animacao de hover dos cards */
   .game-card {
-    @apply relative overflow-hidden rounded-xl bg-card border border-border/50 transition-all duration-300;
+    @apply relative overflow-hidden rounded-2xl bg-card/70 border border-white/[0.07] transition-all duration-300;
+    box-shadow: 0 12px 35px hsl(224 60% 2% / 0.22);
   }
 
   .game-card:hover {
-    @apply border-primary/50 -translate-y-1;
+    @apply border-primary/40 -translate-y-1;
     box-shadow:
-      0 20px 40px hsl(222 47% 5% / 0.8),
+      0 22px 50px hsl(224 60% 2% / 0.62),
       var(--glow-primary);
   }
 
@@ -181,6 +202,12 @@
     letter-spacing: -0.01em;
   }
 
+  .page-glow {
+    background:
+      radial-gradient(circle at 15% 5%, hsl(var(--primary) / 0.12), transparent 28rem),
+      radial-gradient(circle at 86% 18%, hsl(265 85% 62% / 0.08), transparent 24rem);
+  }
+
   /* Utilitarios de animacao */
   .animate-float {
     animation: float 6s ease-in-out infinite;
@@ -207,6 +234,17 @@
     }
     50% {
       box-shadow: 0 0 40px hsl(217 91% 60% / 0.5);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
     }
   }
 }

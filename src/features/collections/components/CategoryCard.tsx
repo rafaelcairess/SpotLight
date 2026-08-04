@@ -26,6 +26,7 @@ import {
   Sparkles,
   Flame,
   Target,
+  ArrowUpRight,
   LucideIcon,
 } from "lucide-react";
 import { CategoryData } from "@/types/game";
@@ -74,11 +75,11 @@ const CategoryCard = ({ category, index = 0 }: CategoryCardProps) => {
     <Link
       to={`/collections/${category.id}`}
       className={cn(
-        "group relative block aspect-[4/3] sm:aspect-[16/10] rounded-xl overflow-hidden",
+        "group relative block aspect-[4/3] overflow-hidden rounded-2xl sm:aspect-[16/10]",
         "bg-gradient-to-br",
         category.gradient,
-        "border border-border/30 hover:border-primary/50",
-        "transition-all duration-300 hover:-translate-y-1",
+        "border border-white/[0.07] hover:border-primary/40",
+        "transition-all duration-300 hover:-translate-y-1 shadow-[0_12px_35px_hsl(224_60%_2%/0.22)] hover:shadow-[0_22px_55px_hsl(224_60%_2%/0.48)]",
         category.featured &&
           "ring-2 ring-primary/40 shadow-[0_0_30px_rgba(34,197,94,0.25)] hover:scale-[1.02]",
         "animate-fade-in",
@@ -92,19 +93,22 @@ const CategoryCard = ({ category, index = 0 }: CategoryCardProps) => {
       </div>
 
       {/* Content */}
-      <div className="relative h-full flex flex-col items-center justify-center p-6 text-center">
+      <div className="relative flex h-full flex-col items-start justify-end p-5 text-left sm:p-6">
         {/* Icon */}
-        <div className="mb-4 p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 group-hover:border-primary/30 group-hover:bg-primary/10 transition-all duration-300">
-          <Icon className="w-8 h-8 md:w-10 md:h-10 text-foreground group-hover:text-primary transition-colors" />
+        <div className="mb-auto grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-black/15 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/30 group-hover:bg-primary/10">
+          <Icon className="h-5 w-5 text-foreground transition-colors group-hover:text-primary" />
         </div>
 
         {/* Title */}
-        <h3 className="text-lg md:text-xl font-bold mb-2 group-hover:text-primary transition-colors">
+        <h3 className="mb-1 flex w-full items-center justify-between gap-3 text-lg font-bold transition-colors group-hover:text-primary md:text-xl">
           {title}
+          <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
         </h3>
 
         {/* Description */}
-        <p className="text-xs md:text-sm text-muted-foreground max-w-[200px]">{description}</p>
+        <p className="line-clamp-2 max-w-[230px] text-xs text-muted-foreground md:text-sm">
+          {description}
+        </p>
       </div>
 
       {/* Corner Accent */}

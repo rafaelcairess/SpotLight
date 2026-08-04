@@ -27,16 +27,16 @@ const SectionHeader = ({
   actions,
 }: SectionHeaderProps) => {
   return (
-    <div className={cn("flex items-end justify-between mb-6", className)}>
-      <div className="flex items-center gap-3">
+    <div className={cn("mb-6 flex items-end justify-between gap-4", className)}>
+      <div className="flex min-w-0 items-center gap-3.5">
         {Icon && (
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Icon className="w-5 h-5 text-primary" />
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-primary/15 bg-primary/10 shadow-[0_0_24px_hsl(var(--primary)/0.08)]">
+            <Icon className="h-5 w-5 text-primary" />
           </div>
         )}
         <div>
-          <h2 className="text-xl md:text-2xl font-bold">{title}</h2>
-          {subtitle && <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>}
+          <h2 className="font-logo text-xl font-bold tracking-[-0.03em] md:text-2xl">{title}</h2>
+          {subtitle && <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{subtitle}</p>}
         </div>
       </div>
 
@@ -47,7 +47,7 @@ const SectionHeader = ({
         actionHref && (
           <Link
             to={actionHref}
-            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors group"
+            className="group hidden shrink-0 items-center gap-1 rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-primary sm:flex"
           >
             {actionLabel}
             <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />

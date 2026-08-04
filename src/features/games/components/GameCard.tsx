@@ -22,9 +22,10 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
 
   if (variant === "ranking") {
     return (
-      <div
+      <button
+        type="button"
         onClick={onClick}
-        className="game-card flex items-center gap-4 p-3 cursor-pointer group"
+        className="game-card group flex w-full items-center gap-4 p-3 text-left"
         style={{ animationDelay: `${index * 50}ms` }}
       >
         <div className="flex-shrink-0 w-8 text-center">
@@ -77,7 +78,7 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
         </div>
 
         <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-      </div>
+      </button>
     );
   }
 
@@ -85,9 +86,10 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
     const posterImage = getPosterImage(game.app_id);
 
     return (
-      <div
+      <button
+        type="button"
         onClick={onClick}
-        className="group relative cursor-pointer rounded-xl overflow-hidden border border-white/5 bg-card/40 hover:border-primary/40 transition-all"
+        className="group relative w-full overflow-hidden rounded-2xl border border-white/[0.07] bg-card/50 text-left shadow-[0_12px_30px_hsl(224_60%_2%/0.25)] transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_22px_55px_hsl(224_60%_2%/0.55)]"
         style={{ animationDelay: `${index * 50}ms` }}
       >
         <div className="aspect-[2/3] relative">
@@ -104,7 +106,8 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
               }
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/15 to-transparent" />
+          <div className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
           <div className="absolute top-2 left-2 flex items-center gap-2">
             {rank && (
@@ -120,8 +123,10 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
             )}
           </div>
 
-          <div className="absolute inset-x-0 bottom-0 p-3">
-            <h3 className="text-sm font-semibold text-white truncate">{game.title}</h3>
+          <div className="absolute inset-x-0 bottom-0 p-3.5">
+            <h3 className="truncate text-sm font-semibold text-white transition-colors group-hover:text-blue-200">
+              {game.title}
+            </h3>
             {game.communityRating && (
               <span
                 className={cn(
@@ -135,15 +140,16 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
             )}
           </div>
         </div>
-      </div>
+      </button>
     );
   }
 
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
       className={cn(
-        "game-card cursor-pointer group animate-fade-in",
+        "game-card group w-full text-left animate-fade-in",
         variant === "compact" && "aspect-[4/3]",
       )}
       style={{ animationDelay: `${index * 50}ms` }}
@@ -221,7 +227,7 @@ const GameCard = ({ game, onClick, index = 0, variant = "default", rank }: GameC
           </p>
         )}
       </div>
-    </div>
+    </button>
   );
 };
 
