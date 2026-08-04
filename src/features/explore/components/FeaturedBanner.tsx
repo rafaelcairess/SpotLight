@@ -95,7 +95,11 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
 
         {/* Acoes */}
         <div className="grid w-full grid-cols-1 gap-2.5 animate-fade-in-up min-[390px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-3">
-          <Button size="lg" className="w-full gap-2 px-4 glow-primary sm:w-auto sm:px-7" onClick={handleOpenSteam}>
+          <Button
+            size="lg"
+            className="w-full gap-2 px-4 glow-primary sm:w-auto sm:px-7"
+            onClick={handleOpenSteam}
+          >
             <img src={steamIcon} alt="Steam" className="w-4 h-4" />
             {t("gameModal.viewOnSteam")}
           </Button>

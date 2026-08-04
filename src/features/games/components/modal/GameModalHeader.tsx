@@ -81,7 +81,11 @@ export const GameModalHeader = ({ game, variant = "compact" }: GameModalHeaderPr
                   </span>
                 )}
               </div>
-              <Button onClick={openSteam} size="lg" className="mt-6 w-full gap-2 px-4 min-[390px]:w-auto sm:px-6">
+              <Button
+                onClick={openSteam}
+                size="lg"
+                className="mt-6 w-full gap-2 px-4 min-[390px]:w-auto sm:px-6"
+              >
                 <img src={steamIcon} alt="" className="h-5 w-5" />
                 {t("gameModal.viewOnSteam")}
                 <ExternalLink className="opacity-75" />

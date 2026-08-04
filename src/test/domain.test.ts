@@ -4,10 +4,7 @@ import { isMatureGame } from "@/lib/matureFilter";
 import { getEffectiveHours, hasManualOverride } from "@/lib/playtime";
 import { sortByPopularity } from "@/lib/sort";
 import { parseSteamReleaseDate, rankNoteworthyReleases, rankQualityGames } from "@/lib/discovery";
-import {
-  rankPersonalRecommendations,
-  type RecommendationProfileGame,
-} from "@/lib/recommendations";
+import { rankPersonalRecommendations, type RecommendationProfileGame } from "@/lib/recommendations";
 
 describe("game filters", () => {
   it("rejects DLC and soundtrack catalog entries", () => {

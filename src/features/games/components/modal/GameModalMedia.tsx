@@ -187,7 +187,7 @@ export function GameModalMedia({
                   event.stopPropagation();
                   moveScreenshot(-1);
                 }}
-              className="absolute left-2 z-20 grid h-11 w-11 place-items-center rounded-full bg-black/75 text-white shadow-xl hover:bg-black sm:left-8 sm:h-16 sm:w-16 sm:hover:scale-105"
+                className="absolute left-2 z-20 grid h-11 w-11 place-items-center rounded-full bg-black/75 text-white shadow-xl hover:bg-black sm:left-8 sm:h-16 sm:w-16 sm:hover:scale-105"
                 aria-label="Imagem anterior"
               >
                 <ChevronLeft className="h-7 w-7 sm:h-10 sm:w-10" />

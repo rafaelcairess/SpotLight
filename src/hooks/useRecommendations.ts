@@ -6,10 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { GameData } from "@/types/game";
-import {
-  rankPersonalRecommendations,
-  type RecommendationProfileGame,
-} from "@/lib/recommendations";
+import { rankPersonalRecommendations, type RecommendationProfileGame } from "@/lib/recommendations";
 
 type GameRow = {
   app_id: number;
@@ -143,9 +140,7 @@ export function useRecommendations(limit = 10, includeMature = false) {
       const ownedGameMap = new Map(ownedGames.map((game) => [game.app_id, game]));
       const recommendationProfile = profileGames.flatMap((game) => {
         const catalogGame = ownedGameMap.get(game.app_id);
-        return catalogGame
-          ? [{ ...game, ...catalogGame } as RecommendationProfileGame]
-          : [];
+        return catalogGame ? [{ ...game, ...catalogGame } as RecommendationProfileGame] : [];
       });
 
       const candidateGames = Array.from(

@@ -92,10 +92,7 @@ const hasReliableQuality = (game: GameData) => {
 
 const qualityScore = (game: GameData) => {
   const rating = Math.max(0, Math.min(1, ((game.communityRating ?? 75) - 75) / 25));
-  const popularity = Math.max(
-    0,
-    Math.min(1, Math.log10((game.activePlayers ?? 0) + 1) / 5),
-  );
+  const popularity = Math.max(0, Math.min(1, Math.log10((game.activePlayers ?? 0) + 1) / 5));
   return rating * 0.78 + popularity * 0.22;
 };
 
@@ -147,7 +144,10 @@ const buildPreferenceWeights = (
     }
   }
 
-  const maxPositiveWeight = Math.max(1, ...Array.from(weights.values()).filter((value) => value > 0));
+  const maxPositiveWeight = Math.max(
+    1,
+    ...Array.from(weights.values()).filter((value) => value > 0),
+  );
   for (const [token, weight] of weights) {
     weights.set(token, weight / maxPositiveWeight);
   }
@@ -235,7 +235,10 @@ export const rankPersonalRecommendations = <T extends GameData>({
     .map((game) => {
       const tokens = displayTokens(game);
       const positiveMatches = tokens
-        .map((display) => ({ display, weight: preferenceWeights.get(normalizeToken(display)) ?? 0 }))
+        .map((display) => ({
+          display,
+          weight: preferenceWeights.get(normalizeToken(display)) ?? 0,
+        }))
         .filter(({ display, weight }) => weight > 0 && isInformativeToken(display))
         .sort((a, b) => b.weight - a.weight);
 

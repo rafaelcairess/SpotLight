@@ -110,7 +110,9 @@ export default function TopGames() {
                 >
                   <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                     <div className="w-8 shrink-0 text-center sm:w-10">
-                      <span className="text-base font-bold text-primary sm:text-lg">#{index + 1}</span>
+                      <span className="text-base font-bold text-primary sm:text-lg">
+                        #{index + 1}
+                      </span>
                     </div>
                     <img
                       src={game.image}

@@ -386,7 +386,12 @@ export default function OnboardingModal() {
         </div>
 
         <div className="grid grid-cols-1 gap-2 border-t border-white/[0.06] pt-3 min-[420px]:flex min-[420px]:flex-wrap min-[420px]:items-center min-[420px]:justify-between min-[420px]:pt-4">
-          <Button type="button" variant="ghost" className="w-full min-[420px]:w-auto" onClick={closeOnboarding}>
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full min-[420px]:w-auto"
+            onClick={closeOnboarding}
+          >
             {t("common.actions.skip")}
           </Button>
           <div className="grid grid-cols-2 gap-2 min-[420px]:flex min-[420px]:items-center">
