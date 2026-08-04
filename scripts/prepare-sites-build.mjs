@@ -14,11 +14,35 @@ const workerSource = `const getAsset = (request, env) => {
   return env.ASSETS.fetch(request);
 };
 
+const injectRuntimeConfig = async (response, env) => {
+  if (!response.headers.get("content-type")?.includes("text/html")) {
+    return response;
+  }
+
+  const runtimeConfig = JSON.stringify({
+    VITE_SUPABASE_URL: env.VITE_SUPABASE_URL || "",
+    VITE_SUPABASE_PUBLISHABLE_KEY: env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
+  }).replaceAll("<", "\\u003c");
+  const html = (await response.text()).replace(
+    "</head>",
+    \`<script>globalThis.__SPOTLIGHT_ENV__=\${runtimeConfig};</script></head>\`,
+  );
+  const headers = new Headers(response.headers);
+  headers.delete("content-length");
+  headers.delete("etag");
+
+  return new Response(html, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+};
+
 export default {
   async fetch(request, env) {
-    const response = await getAsset(request, env);
+    let response = await getAsset(request, env);
     if (response.status !== 404 || request.method !== "GET") {
-      return response;
+      return injectRuntimeConfig(response, env);
     }
 
     const acceptsHtml = request.headers.get("accept")?.includes("text/html");
@@ -27,7 +51,8 @@ export default {
     }
 
     const indexUrl = new URL("/index.html", request.url);
-    return getAsset(new Request(indexUrl, request), env);
+    response = await getAsset(new Request(indexUrl, request), env);
+    return injectRuntimeConfig(response, env);
   },
 };
 `;

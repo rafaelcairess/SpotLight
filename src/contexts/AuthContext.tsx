@@ -9,6 +9,7 @@ import { createContext, useContext, useEffect, useRef, useState, ReactNode } fro
 import { useQueryClient } from "@tanstack/react-query";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { SUPABASE_URL } from "@/config/runtimeEnv";
 
 interface AuthContextType {
   user: User | null;
@@ -107,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithSteam = async () => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+    const supabaseUrl = SUPABASE_URL || undefined;
     if (!supabaseUrl) {
       return { error: new Error("Supabase URL not configured") };
     }
@@ -119,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithXbox = async () => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+    const supabaseUrl = SUPABASE_URL || undefined;
     if (!supabaseUrl) {
       return { error: new Error("Supabase URL not configured") };
     }
@@ -131,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithPSN = async () => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+    const supabaseUrl = SUPABASE_URL || undefined;
     if (!supabaseUrl) {
       return { error: new Error("Supabase URL not configured") };
     }
