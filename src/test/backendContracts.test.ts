@@ -117,6 +117,17 @@ describe("RLS privacy contract", () => {
     expect(hardening).toContain("DAILY_LIMIT:20");
     expect(hardening).toContain("AVATAR_URL_NOT_ALLOWED");
   });
+
+  it("bounds profile and custom-list writes at the database boundary", () => {
+    const hardening = workspaceFile(
+      "supabase/migrations/20260804000000_security_followup_hardening.sql",
+    );
+    expect(hardening).toContain("PROFILE_USERNAME_INVALID");
+    expect(hardening).toContain("REVOKE INSERT, UPDATE ON TABLE public.user_lists");
+    expect(hardening).toContain("LIST_LIMIT_REACHED");
+    expect(hardening).toContain("LIST_GAME_LIMIT_REACHED");
+    expect(hardening).toContain("consume_function_rate_limit");
+  });
 });
 
 describe("OAuth boundary contract", () => {
@@ -135,5 +146,17 @@ describe("OAuth boundary contract", () => {
     expect(callback).toContain('opEndpoint !== "https://steamcommunity.com/openid/login"');
     expect(callback).toContain("assertedReturnTo.searchParams.get");
     expect(callback).toContain("identity !== claimedId");
+  });
+});
+
+describe("hosting security contract", () => {
+  it("serves runtime configuration as an external script with strict headers", () => {
+    const build = workspaceFile("scripts/prepare-sites-build.mjs");
+    const html = workspaceFile("index.html");
+    expect(html).toContain('<script src="/runtime-env.js"></script>');
+    expect(html).not.toContain("globalThis.__SPOTLIGHT_ENV__=");
+    expect(build).toContain('url.pathname === "/runtime-env.js"');
+    expect(build).toContain('"Content-Security-Policy"');
+    expect(build).toContain('"X-Frame-Options", "DENY"');
   });
 });
