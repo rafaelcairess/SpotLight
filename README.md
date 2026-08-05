@@ -27,8 +27,7 @@
 
 [Acessar o projeto](https://spot-light-xi.vercel.app) ·
 [Ver funcionalidades](#principais-funcionalidades) ·
-[Conhecer a arquitetura](#arquitetura) ·
-[Executar localmente](#executando-localmente)
+[Conhecer a arquitetura](#arquitetura)
 
 <br>
 
@@ -122,39 +121,6 @@ Mais detalhes estão no [guia de arquitetura](docs/ARCHITECTURE.md).
 - **Integração contínua:** cada push e pull request valida formatação, lint, tipos, testes, build e dependências vulneráveis.
 
 Consulte a [política de segurança](SECURITY.md) para conhecer as versões suportadas e o processo de reporte de vulnerabilidades.
-
-## Executando localmente
-
-### Pré-requisitos
-
-- Node.js 20 e npm
-- Uma conta e um projeto no Supabase
-- Supabase CLI
-
-### Configuração rápida
-
-```bash
-git clone https://github.com/rafaelcairess/SpotLight.git
-cd SpotLight
-npm ci
-cp .env.example .env
-npm run dev
-```
-
-No PowerShell, substitua o comando de cópia por:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Preencha no `.env` as variáveis públicas do seu projeto Supabase:
-
-```dotenv
-VITE_SUPABASE_URL="https://seu-projeto.supabase.co"
-VITE_SUPABASE_PUBLISHABLE_KEY="sua_chave_publicavel"
-```
-
-O frontend estará disponível em `http://localhost:5173`. Configuração do banco, segredos, API C# e comandos de validação estão no [guia de contribuição](CONTRIBUTING.md).
 
 ## Documentação
 
