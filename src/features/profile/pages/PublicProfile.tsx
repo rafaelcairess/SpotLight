@@ -43,6 +43,7 @@ import { FavoriteGameShowcase } from "@/features/profile/components/FavoriteGame
 import { ProfileSidePanel } from "@/features/profile/components/ProfileSidePanel";
 import { RecentActivity } from "@/features/profile/components/RecentActivity";
 import { PlatinumShowcase } from "@/features/profile/components/PlatinumShowcase";
+import { usePageMetadata } from "@/hooks/usePageMetadata";
 
 const PublicProfile = () => {
   const { username } = useParams<{ username: string }>();
@@ -50,6 +51,12 @@ const PublicProfile = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { data: profile, isLoading: profileLoading, error } = useProfileByUsername(username);
+
+  usePageMetadata({
+    title: profile ? `${profile.display_name || profile.username} — perfil gamer` : undefined,
+    description: profile?.bio,
+    image: profile?.avatar_url ?? null,
+  });
 
   const userId = profile?.user_id;
 

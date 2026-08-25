@@ -16,6 +16,7 @@ const workerSource = `const getAsset = (request, env) => {
 
 const getRuntimeConfig = (env) => {
   const runtimeConfig = JSON.stringify({
+    VITE_API_URL: env.VITE_API_URL || "",
     VITE_SUPABASE_URL: env.VITE_SUPABASE_URL || "",
     VITE_SUPABASE_PUBLISHABLE_KEY: env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
   }).replaceAll("<", "\\u003c");
@@ -28,11 +29,18 @@ const getRuntimeConfig = (env) => {
   });
 };
 
-const withSecurityHeaders = (response) => {
+const withSecurityHeaders = (response, env) => {
   const headers = new Headers(response.headers);
+  let apiOrigin = "";
+  try {
+    const parsedApiUrl = new URL(env.VITE_API_URL || "");
+    if (["http:", "https:"].includes(parsedApiUrl.protocol)) apiOrigin = parsedApiUrl.origin;
+  } catch {
+    // The API is optional while the migration is in progress.
+  }
   headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; manifest-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests",
+    \`default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co \${apiOrigin}; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; manifest-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests\`,
   );
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set("X-Content-Type-Options", "nosniff");
@@ -55,22 +63,22 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/runtime-env.js") {
-      return withSecurityHeaders(getRuntimeConfig(env));
+      return withSecurityHeaders(getRuntimeConfig(env), env);
     }
 
     let response = await getAsset(request, env);
     if (response.status !== 404 || request.method !== "GET") {
-      return withSecurityHeaders(response);
+      return withSecurityHeaders(response, env);
     }
 
     const acceptsHtml = request.headers.get("accept")?.includes("text/html");
     if (!acceptsHtml) {
-      return withSecurityHeaders(response);
+      return withSecurityHeaders(response, env);
     }
 
     const indexUrl = new URL("/index.html", request.url);
     response = await getAsset(new Request(indexUrl, request), env);
-    return withSecurityHeaders(response);
+    return withSecurityHeaders(response, env);
   },
 };
 `;

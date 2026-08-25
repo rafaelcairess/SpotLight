@@ -63,7 +63,7 @@ export function ProfileHero({
                   key={stat.label}
                   className="min-w-0 rounded-xl border border-white/[0.08] bg-black/20 px-2 py-2 text-center backdrop-blur-md sm:px-3 sm:text-left"
                 >
-                  <dt className="truncate text-[0.6rem] font-medium uppercase tracking-wide text-muted-foreground sm:text-[0.68rem] sm:tracking-wider">
+                  <dt className="truncate text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     {stat.label}
                   </dt>
                   <dd className="mt-0.5 font-logo text-lg font-bold sm:text-xl">{stat.value}</dd>

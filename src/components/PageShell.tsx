@@ -22,6 +22,12 @@ interface PageShellProps {
 export function PageShell({ children, className, mainClassName, ambient = true }: PageShellProps) {
   return (
     <div className={cn("relative min-h-screen overflow-x-clip bg-background", className)}>
+      <a
+        href="#main-content"
+        className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xl transition-transform focus:translate-y-0"
+      >
+        Ir para o conteúdo
+      </a>
       <Header />
       {ambient && (
         <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
@@ -31,8 +37,9 @@ export function PageShell({ children, className, mainClassName, ambient = true }
         </div>
       )}
       <main
+        id="main-content"
         className={cn(
-          "relative z-10 pt-[calc(4.75rem+env(safe-area-inset-top))] lg:pt-[5.75rem]",
+          "relative z-10 pt-[calc(4.75rem+env(safe-area-inset-top))] xl:pt-[5.75rem]",
           mainClassName,
         )}
       >

@@ -1,7 +1,7 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
+import { PageContainer, PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -123,19 +123,17 @@ export default function ProfileEdit() {
 
   if (authLoading || isLoading || !profile) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="grid min-h-screen place-items-center">
+      <PageShell>
+        <PageContainer className="grid min-h-[60vh] place-items-center">
           <Loader2 className="h-6 w-6 animate-spin" />
-        </div>
-      </div>
+        </PageContainer>
+      </PageShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="mx-auto max-w-6xl px-4 pb-16 pt-24">
+    <PageShell>
+      <PageContainer width="content" className="pb-16">
         <div className="mb-6 flex items-center gap-4 rounded-lg border border-border/40 bg-card/70 p-4">
           <UserAvatar
             src={avatarUrl}
@@ -223,7 +221,7 @@ export default function ProfileEdit() {
             />
           </section>
         </div>
-      </main>
-    </div>
+      </PageContainer>
+    </PageShell>
   );
 }

@@ -13,6 +13,7 @@ import { GameLibraryActions } from "@/features/games/components/GameLibraryActio
 import { AddToListButton } from "@/features/games/components/AddToListButton";
 import { useEnsureGameDetails, useGameById } from "@/hooks/useGames";
 import { useToast } from "@/hooks/use-toast";
+import { usePageMetadata } from "@/hooks/usePageMetadata";
 
 export default function GamePage() {
   const { appId } = useParams<{ appId: string }>();
@@ -23,6 +24,12 @@ export default function GamePage() {
   const { data: game, isLoading } = useGameById(numericAppId);
   const ensureDetails = useEnsureGameDetails();
   const [detailsRequested, setDetailsRequested] = useState(false);
+
+  usePageMetadata({
+    title: game?.title,
+    description: game?.short_description,
+    image: game?.image ?? null,
+  });
 
   useEffect(() => {
     if (!numericAppId || detailsRequested || isLoading) return;

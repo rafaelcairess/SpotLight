@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react";
 import { MessageSquare, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import Header from "@/components/Header";
+import { PageContainer, PageShell } from "@/components/PageShell";
 import SectionHeader from "@/components/SectionHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,11 +50,8 @@ export default function Feedback() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
-      <main className="pt-24 md:pt-28 pb-12">
-        <div className="container mx-auto px-4">
+    <PageShell>
+      <PageContainer width="content" className="pb-12">
           <SectionHeader
             title={t("feedback.title")}
             subtitle={t("feedback.anonymous")}
@@ -169,8 +166,7 @@ export default function Feedback() {
               )}
             </div>
           </div>
-        </div>
-      </main>
-    </div>
+      </PageContainer>
+    </PageShell>
   );
 }

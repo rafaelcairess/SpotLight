@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Shield, Search, Trash2, Loader2 } from "lucide-react";
-import Header from "@/components/Header";
+import { PageContainer, PageShell } from "@/components/PageShell";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/features/profile/components/UserAvatar";
@@ -39,9 +39,8 @@ export default function Admin() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="pt-24 pb-12 container mx-auto px-4 max-w-3xl">
+    <PageShell>
+      <PageContainer width="narrow" className="pb-12">
         <div className="flex items-center gap-3 mb-8">
           <div className="p-2 rounded-lg bg-primary/10">
             <Shield className="w-5 h-5 text-primary" />
@@ -83,7 +82,7 @@ export default function Admin() {
               {results.map((u) => (
                 <div
                   key={u.id}
-                  className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border/40 bg-card/60"
+                  className="surface-card flex items-center justify-between gap-4 p-4"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <UserAvatar
@@ -140,7 +139,7 @@ export default function Admin() {
               ))}
             </div>
           ))}
-      </main>
-    </div>
+      </PageContainer>
+    </PageShell>
   );
 }

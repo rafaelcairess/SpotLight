@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { PresenceHeartbeat } from "@/hooks/usePresence";
+import { RouteMetadata } from "@/components/RouteMetadata";
 
 const loadWhenIdle = <T,>(loader: () => Promise<T>): Promise<T> =>
   new Promise((resolve, reject) => {
@@ -46,7 +47,16 @@ const Admin = lazy(() => import("@/features/admin/pages/Admin"));
 const Friends = lazy(() => import("@/features/friends/pages/Friends"));
 const ProfileEdit = lazy(() => import("@/features/profile/pages/ProfileEdit"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 15 * 60_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -56,6 +66,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <RouteMetadata />
           <Suspense fallback={<div className="min-h-screen bg-background" aria-busy="true" />}>
             <Routes>
               <Route path="/" element={<Explore />} />

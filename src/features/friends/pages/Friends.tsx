@@ -1,6 +1,6 @@
 import { Link, Navigate } from "react-router-dom";
 import { Check, Clock3, Users, X } from "lucide-react";
-import Header from "@/components/Header";
+import { PageContainer, PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserAvatar } from "@/features/profile/components/UserAvatar";
@@ -35,7 +35,7 @@ export default function FriendsPage() {
   ) => (
     <div
       key={request.id}
-      className="flex items-center justify-between gap-4 rounded-xl border border-border/40 bg-card/70 p-4"
+      className="surface-card flex items-center justify-between gap-4 p-4"
     >
       <Link to={`/u/${request.profile.username}`} className="flex min-w-0 items-center gap-3">
         <UserAvatar
@@ -77,9 +77,8 @@ export default function FriendsPage() {
     </div>
   );
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container mx-auto max-w-5xl px-4 pb-12 pt-24">
+    <PageShell>
+      <PageContainer width="content" className="pb-12">
         <div className="mb-8 flex items-center gap-3">
           <div className="rounded-xl bg-primary/10 p-3">
             <Users className="h-6 w-6 text-primary" />
@@ -103,7 +102,7 @@ export default function FriendsPage() {
               ) : requests?.incoming.length ? (
                 requests.incoming.map((request) => requestCard(request, true))
               ) : (
-                <p className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
+                <p className="empty-state p-6">
                   Nenhum pedido pendente.
                 </p>
               )}
@@ -118,7 +117,7 @@ export default function FriendsPage() {
               {requests?.outgoing.length ? (
                 requests.outgoing.map((request) => requestCard(request, false))
               ) : (
-                <p className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
+                <p className="empty-state p-6">
                   Nenhum convite aguardando resposta.
                 </p>
               )}
@@ -132,7 +131,7 @@ export default function FriendsPage() {
               <Link
                 key={friend.user_id}
                 to={`/u/${friend.username}`}
-                className="flex min-w-0 items-center gap-3 rounded-xl border border-border/40 bg-card/70 p-4 transition-colors hover:border-primary/40"
+                className="surface-card interactive-surface flex min-w-0 items-center gap-3 p-4"
               >
                 <div className="relative">
                   <UserAvatar
@@ -157,7 +156,7 @@ export default function FriendsPage() {
             ))}
           </div>
         </section>
-      </main>
-    </div>
+      </PageContainer>
+    </PageShell>
   );
 }

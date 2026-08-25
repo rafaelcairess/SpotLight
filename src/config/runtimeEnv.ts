@@ -1,4 +1,5 @@
 type SpotlightRuntimeEnv = {
+  VITE_API_URL?: string;
   VITE_SUPABASE_PUBLISHABLE_KEY?: string;
   VITE_SUPABASE_URL?: string;
 };
@@ -20,3 +21,8 @@ export const SUPABASE_PUBLISHABLE_KEY =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
   runtimeEnv?.VITE_SUPABASE_PUBLISHABLE_KEY ||
   DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+
+export const API_URL = (import.meta.env.VITE_API_URL || runtimeEnv?.VITE_API_URL || "").replace(
+  /\/$/,
+  "",
+);

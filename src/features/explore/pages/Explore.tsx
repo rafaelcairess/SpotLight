@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Clock3, Flame, Layers3, Orbit, Sparkles } from "lucide-react";
 import { PageContainer, PageShell } from "@/components/PageShell";
 import FeaturedBanner from "@/features/explore/components/FeaturedBanner";
@@ -41,13 +41,24 @@ export default function Explore() {
   const [showMature] = useMaturePreference();
   const { selectedGame, openGame, closeGame } = useGameSelection<GameData>();
   const [discoverLimit, setDiscoverLimit] = useState(PAGE_SIZE);
+  const [catalogEnabled, setCatalogEnabled] = useState(false);
   const [layoutMode, setLayoutMode] = useLayoutPreference(
     STORAGE_KEYS.layoutMode.explore,
     "compact",
   );
 
+  useEffect(() => {
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(() => setCatalogEnabled(true), { timeout: 1200 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = globalThis.setTimeout(() => setCatalogEnabled(true), 250);
+    return () => globalThis.clearTimeout(timeoutId);
+  }, []);
+
   const { data: popularGames = [], isLoading: popularLoading } = usePopularGames(20);
-  const { data: allGames = [], isLoading: allGamesLoading } = useAllGames(300);
+  const { data: allGames = [], isLoading: allGamesLoading } = useAllGames(300, catalogEnabled);
   const { data: recommendedGames = [], isLoading: recommendationsLoading } = useRecommendations(
     10,
     showMature,

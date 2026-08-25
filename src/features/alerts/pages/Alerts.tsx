@@ -5,7 +5,7 @@
 import { useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Bell, Trash2, ArrowLeft } from "lucide-react";
-import Header from "@/components/Header";
+import { PageContainer, PageShell } from "@/components/PageShell";
 import SectionHeader from "@/components/SectionHeader";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { Button } from "@/components/ui/button";
@@ -40,11 +40,8 @@ export default function Alerts() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
-      <main className="pt-24 md:pt-28 pb-12">
-        <div className="container mx-auto px-4">
+    <PageShell>
+      <PageContainer width="content" className="pb-12">
           <Link
             to="/profile"
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -58,7 +55,7 @@ export default function Alerts() {
           {isLoading || gamesLoading ? (
             <LoadingSkeleton variant="card" count={3} />
           ) : alerts.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">{t("alerts.empty")}</div>
+            <div className="empty-state">{t("alerts.empty")}</div>
           ) : (
             <div className="space-y-4">
               {alerts.map((alert) => {
@@ -68,7 +65,7 @@ export default function Alerts() {
                 return (
                   <div
                     key={alert.id}
-                    className="rounded-2xl border border-border/40 bg-card/50 p-4 flex flex-col sm:flex-row gap-4"
+                    className="surface-card flex flex-col gap-4 p-4 sm:flex-row"
                   >
                     <div className="w-full sm:w-40 h-24 rounded-lg overflow-hidden bg-secondary/40">
                       {game?.image && (
@@ -110,8 +107,7 @@ export default function Alerts() {
               })}
             </div>
           )}
-        </div>
-      </main>
-    </div>
+      </PageContainer>
+    </PageShell>
   );
 }

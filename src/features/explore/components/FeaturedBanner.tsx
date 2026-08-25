@@ -23,11 +23,11 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
   };
 
   return (
-    <div className="group relative min-h-[31rem] w-full overflow-hidden rounded-2xl border border-white/[0.12] bg-card shadow-[0_24px_70px_hsl(226_75%_2%/0.62)] sm:min-h-[32rem] sm:rounded-[1.75rem] lg:min-h-[30rem] 2xl:min-h-0 2xl:aspect-[23/9]">
+    <div className="group relative min-h-[27rem] w-full overflow-hidden rounded-2xl border border-white/[0.12] bg-card shadow-[0_24px_70px_hsl(226_75%_2%/0.62)] sm:min-h-[30rem] sm:rounded-[1.75rem] lg:min-h-[30rem] 2xl:min-h-0 2xl:aspect-[23/9]">
       {/* Imagem de fundo */}
       <img
         src={game.image}
-        alt={game.title}
+        alt=""
         className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.025]"
         fetchPriority="high"
         loading="eager"
@@ -41,7 +41,7 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
 
       {/* Conteudo */}
-      <div className="relative flex min-h-[31rem] max-w-3xl flex-col justify-end p-5 sm:min-h-[32rem] sm:p-9 md:p-12 lg:min-h-[30rem] lg:p-14 xl:p-16 2xl:h-full 2xl:min-h-0">
+      <div className="relative flex min-h-[27rem] max-w-3xl flex-col justify-end p-5 sm:min-h-[30rem] sm:p-9 md:p-12 lg:min-h-[30rem] lg:p-14 xl:p-16 2xl:h-full 2xl:min-h-0">
         {/* Badge */}
         <div className="mb-4 flex min-w-0 items-center gap-2 animate-fade-in sm:mb-5">
           <span className="rounded-full border border-primary/25 bg-primary/15 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-primary backdrop-blur-md">
@@ -96,21 +96,23 @@ const FeaturedBanner = ({ game, onExplore }: FeaturedBannerProps) => {
         {/* Acoes */}
         <div className="grid w-full grid-cols-1 gap-2.5 animate-fade-in-up min-[390px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-3">
           <Button
+            type="button"
             size="lg"
             className="w-full gap-2 px-4 glow-primary sm:w-auto sm:px-7"
-            onClick={handleOpenSteam}
+            onClick={onExplore}
           >
-            <img src={steamIcon} alt="Steam" className="w-4 h-4" />
-            {t("gameModal.viewOnSteam")}
+            <Info className="h-4 w-4" />
+            {t("featuredBanner.moreDetails")}
           </Button>
           <Button
+            type="button"
             size="lg"
             variant="secondary"
             className="w-full gap-2 border border-white/[0.12] bg-white/10 px-4 backdrop-blur-md hover:bg-white/15 sm:w-auto sm:px-7"
-            onClick={onExplore}
+            onClick={handleOpenSteam}
           >
-            <Info className="w-4 h-4" />
-            {t("featuredBanner.moreDetails")}
+            <img src={steamIcon} alt="" className="h-4 w-4" />
+            {t("gameModal.viewOnSteam")}
           </Button>
         </div>
       </div>

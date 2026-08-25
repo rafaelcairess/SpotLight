@@ -15,7 +15,7 @@ export function RankedGameList<T extends GameData>({
   formatPlayers,
 }: RankedGameListProps<T>) {
   return (
-    <div className="space-y-2">
+    <div className="grid gap-2 xl:grid-cols-2">
       {games.map((game, index) => {
         const playerLabel = formatPlayers(game);
         return (
@@ -41,7 +41,7 @@ export function RankedGameList<T extends GameData>({
                 <p className="truncate text-xs text-muted-foreground">
                   {game.genre || emptyGenreLabel}
                 </p>
-                <p className="mt-0.5 truncate text-[11px] text-muted-foreground sm:hidden">
+                <p className="mt-0.5 truncate text-xs text-muted-foreground sm:hidden">
                   {playerLabel}
                 </p>
               </div>

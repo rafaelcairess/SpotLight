@@ -160,3 +160,18 @@ describe("hosting security contract", () => {
     expect(build).toContain('"X-Frame-Options", "DENY"');
   });
 });
+
+describe("ASP.NET migration boundary", () => {
+  it("keeps frontend API calls behind one authenticated client", () => {
+    const client = workspaceFile("src/api/client.ts");
+    expect(client).toContain("API_URL");
+    expect(client).toContain('headers.set("Authorization", `Bearer ${token}`)');
+    expect(client).toContain('apiRequest<CurrentUserResponse>("/api/me"');
+  });
+
+  it("exposes a cloud health probe", () => {
+    const program = workspaceFile("backend/SpotLight.Api/Program.cs");
+    expect(program).toContain("builder.Services.AddHealthChecks()");
+    expect(program).toContain('app.MapHealthChecks("/health")');
+  });
+});

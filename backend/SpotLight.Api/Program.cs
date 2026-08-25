@@ -20,6 +20,9 @@ builder.Services.AddSwaggerGen();
 // Esse é um formato HTTP padronizado, em vez de devolver stack traces ao cliente.
 builder.Services.AddProblemDetails();
 
+// Expõe uma sonda padrão para orquestradores e serviços de nuvem.
+builder.Services.AddHealthChecks();
+
 // Registra o relógio real como uma única instância durante a execução.
 // TimeProvider pode ser substituído por um relógio falso nos testes.
 builder.Services.AddSingleton(TimeProvider.System);
@@ -76,6 +79,9 @@ app.UseAuthorization();
 
 // Conecta [Route], [HttpGet] e outros atributos dos controllers às rotas HTTP.
 app.MapControllers();
+
+// Endpoint leve para readiness/liveness da infraestrutura.
+app.MapHealthChecks("/health");
 
 // Inicia o servidor e mantém o processo aguardando requisições.
 app.Run();

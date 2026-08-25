@@ -4,8 +4,8 @@
 
 import { useMemo, useState } from "react";
 import { Search, Users } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
+import { Link, useNavigate } from "react-router-dom";
+import { PageContainer, PageShell } from "@/components/PageShell";
 import SectionHeader from "@/components/SectionHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -51,16 +51,9 @@ const Community = () => {
     }
   };
 
-  const handleOpenProfile = (username: string) => {
-    navigate(`/u/${username}`);
-  };
-
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
-      <main className="pt-24 md:pt-28 pb-12">
-        <div className="container mx-auto px-4">
+    <PageShell>
+      <PageContainer width="content" className="pb-12">
           <SectionHeader
             title={t("community.title")}
             subtitle={t("community.subtitle")}
@@ -82,7 +75,7 @@ const Community = () => {
           </div>
 
           {!hasSearch ? (
-            <div className="text-center py-16 text-muted-foreground">
+            <div className="empty-state py-16">
               {searchTerm.trim().length > 0
                 ? t("community.minSearch")
                 : t("community.searchPrompt")}
@@ -97,7 +90,7 @@ const Community = () => {
               ))}
             </div>
           ) : filteredProfiles.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="empty-state">
               {t("community.noProfiles")}
             </div>
           ) : (
@@ -107,19 +100,14 @@ const Community = () => {
                 const isSelf = profile.user_id === user?.id;
 
                 return (
-                  <div
+                  <article
                     key={profile.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => handleOpenProfile(profile.username)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleOpenProfile(profile.username);
-                      }
-                    }}
-                    className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border/40 bg-card/60 backdrop-blur hover:border-primary/40 transition-colors cursor-pointer"
+                    className="surface-card interactive-surface flex items-center justify-between gap-4 p-4 backdrop-blur"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <Link
+                      to={`/u/${profile.username}`}
+                      className="flex min-w-0 flex-1 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
                       <UserAvatar
                         src={profile.avatar_url}
                         displayName={profile.display_name}
@@ -139,7 +127,7 @@ const Community = () => {
                           </p>
                         )}
                       </div>
-                    </div>
+                    </Link>
 
                     <div className="flex-shrink-0">
                       {isSelf ? (
@@ -160,14 +148,13 @@ const Community = () => {
                         </Button>
                       )}
                     </div>
-                  </div>
+                  </article>
                 );
               })}
             </div>
           )}
-        </div>
-      </main>
-    </div>
+      </PageContainer>
+    </PageShell>
   );
 };
 
