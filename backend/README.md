@@ -1,58 +1,35 @@
 # Backend do SpotLight
 
-Esta pasta inicia a migração gradual do backend para C# e ASP.NET Core.
-O frontend e o Supabase continuam funcionando durante a transição.
+API ASP.NET Core usada na migração gradual do backend. O frontend e os serviços
+existentes do Supabase continuam ativos durante a transição.
 
-## O que é uma API?
+## Endpoints
 
-Uma API é o servidor que recebe pedidos do frontend, executa regras e devolve
-respostas. Por exemplo:
+- `GET /api/health`: verifica a disponibilidade da API.
+- `GET /health`: endpoint de health check para infraestrutura.
+- `GET /api/me`: retorna a identidade do usuário autenticado por token do Supabase.
 
-```text
-React -> GET /api/health -> API C# -> JSON
-```
-
-A rota inicial confirma que o servidor está funcionando:
-
-```http
-GET http://localhost:5080/api/health
-```
-
-Também existe uma primeira rota protegida:
-
-```http
-GET http://localhost:5080/api/me
-Authorization: Bearer <access-token-do-usuário>
-```
-
-Ela valida o token emitido pelo Supabase e devolve somente a identidade do
-usuário autenticado. Leia [`AUTHENTICATION_GUIDE.md`](AUTHENTICATION_GUIDE.md)
-para acompanhar o caminho completo da requisição.
-
-## Executar localmente
+## Desenvolvimento local
 
 ```powershell
-cd D:\Projetos\SpotLight
 dotnet restore backend\SpotLight.sln
 dotnet run --project backend\SpotLight.Api --urls http://localhost:5080
 ```
 
-Abra:
+O Swagger fica disponível em `http://localhost:5080/swagger` no ambiente de
+desenvolvimento.
 
-- API: http://localhost:5080/api/health
-- Swagger: http://localhost:5080/swagger
+## Configuração
 
-Em outro terminal, execute os testes:
+- `Cors:AllowedOrigins`: origens autorizadas a consumir a API.
+- `SupabaseAuth:Issuer`: emissor esperado nos tokens.
+- `SupabaseAuth:Audience`: audiência esperada nos tokens.
+
+Chaves e tokens devem ser fornecidos por variáveis de ambiente ou user secrets,
+nunca gravados nos arquivos de configuração versionados.
+
+## Testes
 
 ```powershell
 dotnet test backend\SpotLight.sln
 ```
-
-## Render
-
-Render é um serviço que executa a API na internet. O `Dockerfile` descreve como
-montar o ambiente C# de forma reproduzível. No plano gratuito, o servidor pode
-dormir após um período sem tráfego e demora para responder ao primeiro acesso.
-
-Nenhuma chave deve ser gravada em `appsettings.json`. Segredos serão cadastrados
-como variáveis de ambiente no computador e, futuramente, no Render.

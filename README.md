@@ -127,7 +127,6 @@ Consulte a [política de segurança](SECURITY.md) para conhecer as versões supo
 - [Guia de contribuição](CONTRIBUTING.md)
 - [Arquitetura e organização do código](docs/ARCHITECTURE.md)
 - [API ASP.NET Core](backend/README.md)
-- [Autenticação da API C#](backend/AUTHENTICATION_GUIDE.md)
 - [Política de segurança](SECURITY.md)
 
 ## Contribuindo

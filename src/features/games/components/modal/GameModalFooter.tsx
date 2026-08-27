@@ -1,7 +1,3 @@
-/**
- * Componente da feature games.
- */
-
 import { GameData } from "@/types/game";
 import { useTranslation } from "react-i18next";
 import { isFreePrice } from "@/lib/format";
@@ -15,7 +11,6 @@ interface GameModalFooterProps {
 export const GameModalFooter = ({ game, variant = "compact" }: GameModalFooterProps) => {
   const { t } = useTranslation();
 
-  // Rodape com preco e alertas. O CTA da Steam fica no cabecalho.
   return (
     <div className={variant === "page" ? "space-y-4" : "border-t border-border/50 pt-4"}>
       <div className="space-y-2">

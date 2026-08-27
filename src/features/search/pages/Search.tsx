@@ -1,7 +1,3 @@
-/**
- * Página da feature search.
- */
-
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Search as SearchIcon, ArrowLeft } from "lucide-react";

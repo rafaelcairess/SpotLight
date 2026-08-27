@@ -1,7 +1,3 @@
-/**
- * Página da feature feedback.
- */
-
 import { useMemo, useState } from "react";
 import { MessageSquare, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -52,120 +48,120 @@ export default function Feedback() {
   return (
     <PageShell>
       <PageContainer width="content" className="pb-12">
-          <SectionHeader
-            title={t("feedback.title")}
-            subtitle={t("feedback.anonymous")}
-            icon={MessageSquare}
-          />
+        <SectionHeader
+          title={t("feedback.title")}
+          subtitle={t("feedback.anonymous")}
+          icon={MessageSquare}
+        />
 
-          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-            <form
-              onSubmit={handleSubmit}
-              className="rounded-2xl border border-border/40 bg-card/50 p-6 space-y-4"
-            >
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="feedback-name">{t("feedback.name")}</Label>
-                  <Input
-                    id="feedback-name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder={t("feedback.namePlaceholder")}
-                    className="bg-secondary/50 border-border/50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="feedback-email">{t("feedback.email")}</Label>
-                  <Input
-                    id="feedback-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t("feedback.emailPlaceholder")}
-                    className="bg-secondary/50 border-border/50"
-                  />
-                </div>
-              </div>
-
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          <form
+            onSubmit={handleSubmit}
+            className="rounded-2xl border border-border/40 bg-card/50 p-6 space-y-4"
+          >
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="feedback-message">{t("feedback.message")}</Label>
-                <Textarea
-                  id="feedback-message"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder={t("feedback.messagePlaceholder")}
-                  className="min-h-[140px] bg-secondary/50 border-border/50"
-                  required
+                <Label htmlFor="feedback-name">{t("feedback.name")}</Label>
+                <Input
+                  id="feedback-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={t("feedback.namePlaceholder")}
+                  className="bg-secondary/50 border-border/50"
                 />
               </div>
-
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{t("feedback.helper")}</span>
+              <div className="space-y-2">
+                <Label htmlFor="feedback-email">{t("feedback.email")}</Label>
+                <Input
+                  id="feedback-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t("feedback.emailPlaceholder")}
+                  className="bg-secondary/50 border-border/50"
+                />
               </div>
+            </div>
 
-              <Button type="submit" variant="glow" disabled={sendFeedback.isPending}>
-                {sendFeedback.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t("feedback.sending")}
-                  </>
-                ) : (
-                  t("feedback.send")
-                )}
-              </Button>
-            </form>
+            <div className="space-y-2">
+              <Label htmlFor="feedback-message">{t("feedback.message")}</Label>
+              <Textarea
+                id="feedback-message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder={t("feedback.messagePlaceholder")}
+                className="min-h-[140px] bg-secondary/50 border-border/50"
+                required
+              />
+            </div>
 
-            <div className="rounded-2xl border border-border/40 bg-card/50 p-6">
-              <h3 className="text-lg font-semibold">{t("feedback.howTitle")}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{t("feedback.howDescription")}</p>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>{t("feedback.helper")}</span>
+            </div>
 
-              {isAdmin && (
-                <div className="mt-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-semibold">{t("feedback.inboxTitle")}</h4>
-                    {isLoading && (
-                      <div className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        {t("common.actions.loading")}
-                      </div>
-                    )}
-                  </div>
+            <Button type="submit" variant="glow" disabled={sendFeedback.isPending}>
+              {sendFeedback.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t("feedback.sending")}
+                </>
+              ) : (
+                t("feedback.send")
+              )}
+            </Button>
+          </form>
 
-                  {isLoading ? null : feedbackList.length === 0 ? (
-                    <div className="rounded-lg border border-border/40 bg-background/40 p-4 text-xs text-muted-foreground">
-                      {t("feedback.empty")}
-                    </div>
-                  ) : (
-                    <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
-                      {feedbackList.map((item) => (
-                        <div
-                          key={item.id}
-                          className="rounded-lg border border-border/40 bg-background/40 p-4"
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-semibold">
-                                {item.name || t("feedback.anonymousLabel")}
-                              </p>
-                              {item.email && (
-                                <p className="text-xs text-muted-foreground">{item.email}</p>
-                              )}
-                            </div>
-                            <span className="text-[11px] text-muted-foreground">
-                              {format(new Date(item.created_at), "Pp", { locale: dateLocale })}
-                            </span>
-                          </div>
-                          <p className="mt-3 text-sm text-foreground/90 whitespace-pre-wrap">
-                            {item.message}
-                          </p>
-                        </div>
-                      ))}
+          <div className="rounded-2xl border border-border/40 bg-card/50 p-6">
+            <h3 className="text-lg font-semibold">{t("feedback.howTitle")}</h3>
+            <p className="mt-2 text-sm text-muted-foreground">{t("feedback.howDescription")}</p>
+
+            {isAdmin && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-semibold">{t("feedback.inboxTitle")}</h4>
+                  {isLoading && (
+                    <div className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      {t("common.actions.loading")}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
+
+                {isLoading ? null : feedbackList.length === 0 ? (
+                  <div className="rounded-lg border border-border/40 bg-background/40 p-4 text-xs text-muted-foreground">
+                    {t("feedback.empty")}
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                    {feedbackList.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-lg border border-border/40 bg-background/40 p-4"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold">
+                              {item.name || t("feedback.anonymousLabel")}
+                            </p>
+                            {item.email && (
+                              <p className="text-xs text-muted-foreground">{item.email}</p>
+                            )}
+                          </div>
+                          <span className="text-[11px] text-muted-foreground">
+                            {format(new Date(item.created_at), "Pp", { locale: dateLocale })}
+                          </span>
+                        </div>
+                        <p className="mt-3 text-sm text-foreground/90 whitespace-pre-wrap">
+                          {item.message}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+        </div>
       </PageContainer>
     </PageShell>
   );

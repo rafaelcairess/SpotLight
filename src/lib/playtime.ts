@@ -1,7 +1,3 @@
-/**
- * Helpers utilitarios (playtime).
- */
-
 import type { UserGame } from "@/hooks/useUserGames";
 
 export const getEffectiveHours = (

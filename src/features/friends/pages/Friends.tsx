@@ -33,10 +33,7 @@ export default function FriendsPage() {
     },
     incoming: boolean,
   ) => (
-    <div
-      key={request.id}
-      className="surface-card flex items-center justify-between gap-4 p-4"
-    >
+    <div key={request.id} className="surface-card flex items-center justify-between gap-4 p-4">
       <Link to={`/u/${request.profile.username}`} className="flex min-w-0 items-center gap-3">
         <UserAvatar
           src={request.profile.avatar_url}
@@ -102,9 +99,7 @@ export default function FriendsPage() {
               ) : requests?.incoming.length ? (
                 requests.incoming.map((request) => requestCard(request, true))
               ) : (
-                <p className="empty-state p-6">
-                  Nenhum pedido pendente.
-                </p>
+                <p className="empty-state p-6">Nenhum pedido pendente.</p>
               )}
             </div>
           </section>
@@ -117,9 +112,7 @@ export default function FriendsPage() {
               {requests?.outgoing.length ? (
                 requests.outgoing.map((request) => requestCard(request, false))
               ) : (
-                <p className="empty-state p-6">
-                  Nenhum convite aguardando resposta.
-                </p>
+                <p className="empty-state p-6">Nenhum convite aguardando resposta.</p>
               )}
             </div>
           </section>

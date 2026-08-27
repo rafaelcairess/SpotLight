@@ -1,7 +1,3 @@
-/**
- * Script de manutenção/sync (steam sync applist).
- */
-
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";

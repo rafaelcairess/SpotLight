@@ -1,7 +1,3 @@
-/**
- * Componente compartilhado (LayoutToggle).
- */
-
 import { LayoutGrid, Grid3X3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

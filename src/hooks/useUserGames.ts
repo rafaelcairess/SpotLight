@@ -13,7 +13,6 @@ import { Database } from "@/integrations/supabase/types";
 
 type GameStatus = Database["public"]["Enums"]["game_status"];
 
-// Entrada da biblioteca do usuário (uma linha por jogo).
 export interface UserGame {
   id: string;
   user_id: string;
@@ -33,7 +32,6 @@ export interface UserGame {
   updated_at: string;
 }
 
-// Busca a biblioteca de um usuário (próprio ou público).
 export function useUserGames(userId?: string, useAuthFallback = true, enabled = true) {
   const { user } = useAuth();
   const targetUserId = userId ?? (useAuthFallback ? user?.id : undefined);
@@ -59,7 +57,6 @@ export function useUserGames(userId?: string, useAuthFallback = true, enabled = 
   });
 }
 
-// Busca a entrada do usuário logado para um jogo.
 export function useUserGameByAppId(appId: number) {
   const { user } = useAuth();
 
@@ -84,7 +81,6 @@ export function useUserGameByAppId(appId: number) {
   });
 }
 
-// Adiciona um jogo na biblioteca do usuário.
 export function useAddGame() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -107,7 +103,6 @@ export function useAddGame() {
       return data as UserGame;
     },
     onSuccess: () => {
-      // Atualiza a lista da biblioteca após adicionar.
       queryClient.invalidateQueries({ queryKey: ["user_games"] });
       queryClient.invalidateQueries({ queryKey: ["favorite-game"] });
       queryClient.invalidateQueries({ queryKey: ["profile-platinum-showcase"] });
@@ -164,14 +159,12 @@ export function useMarkGamePlatinum() {
   });
 }
 
-// Garante que o jogo esteja na biblioteca e marcado como favorito.
 export function useEnsureFavoriteGame() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { locale } = useLanguage();
 
   return useMutation({
-    // Garante detalhes do jogo (melhor esforco) e marca como favorito.
     mutationFn: async (appId: number) => {
       if (!user?.id) throw new Error("Not authenticated");
 
@@ -183,7 +176,6 @@ export function useEnsureFavoriteGame() {
         // Melhor esforço: se falhar, ainda salva favorito.
       }
 
-      // Verifica se ja existe entrada na biblioteca.
       const { data: existing, error: existingError } = await supabase
         .from("user_games")
         .select("*")
@@ -194,7 +186,6 @@ export function useEnsureFavoriteGame() {
       if (existingError) throw existingError;
 
       if (existing) {
-        // Atualiza somente o favorito se ja existir.
         const { data, error } = await supabase
           .from("user_games")
           .update({ is_favorite: true })
@@ -206,7 +197,6 @@ export function useEnsureFavoriteGame() {
         return data as UserGame;
       }
 
-      // Se nao existir, cria a entrada ja como favorita.
       const { data, error } = await supabase
         .from("user_games")
         .insert({
@@ -222,13 +212,11 @@ export function useEnsureFavoriteGame() {
       return data as UserGame;
     },
     onSuccess: () => {
-      // Atualiza a lista da biblioteca após favoritar.
       queryClient.invalidateQueries({ queryKey: ["user_games"] });
     },
   });
 }
 
-// Atualiza uma entrada da biblioteca (status, horas, favorito, platina).
 export function useUpdateGame() {
   const queryClient = useQueryClient();
 
@@ -263,7 +251,6 @@ export function useUpdateGame() {
       return data as UserGame;
     },
     onSuccess: () => {
-      // Atualiza a lista da biblioteca após editar.
       queryClient.invalidateQueries({ queryKey: ["user_games"] });
       queryClient.invalidateQueries({ queryKey: ["favorite-game"] });
       queryClient.invalidateQueries({ queryKey: ["profile-platinum-showcase"] });
@@ -273,7 +260,6 @@ export function useUpdateGame() {
   });
 }
 
-// Busca jogos ocultos do usuário logado.
 export function useHiddenGames(enabled = true) {
   const { user } = useAuth();
 
@@ -298,7 +284,6 @@ export function useHiddenGames(enabled = true) {
   });
 }
 
-// Remove um jogo da biblioteca do usuário.
 export function useRemoveGame() {
   const queryClient = useQueryClient();
 
@@ -309,7 +294,6 @@ export function useRemoveGame() {
       if (error) throw error;
     },
     onSuccess: () => {
-      // Atualiza a lista da biblioteca após remover.
       queryClient.invalidateQueries({ queryKey: ["user_games"] });
     },
   });

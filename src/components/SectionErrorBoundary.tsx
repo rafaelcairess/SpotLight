@@ -1,7 +1,3 @@
-/**
- * Error boundary para seções individuais — evita que um crash derrube a página inteira.
- */
-
 import React from "react";
 import { AlertTriangle } from "lucide-react";
 

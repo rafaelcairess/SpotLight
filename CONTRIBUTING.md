@@ -88,11 +88,10 @@ dotnet restore backend/SpotLight.sln
 dotnet run --project backend/SpotLight.Api --urls http://localhost:5080
 ```
 
-| Recurso              | Endereço                                                             |
-| -------------------- | -------------------------------------------------------------------- |
-| Health check         | `http://localhost:5080/api/health`                                   |
-| Swagger              | `http://localhost:5080/swagger`                                      |
-| Guia de autenticação | [`backend/AUTHENTICATION_GUIDE.md`](backend/AUTHENTICATION_GUIDE.md) |
+| Recurso      | Endereço                           |
+| ------------ | ---------------------------------- |
+| Health check | `http://localhost:5080/api/health` |
+| Swagger      | `http://localhost:5080/swagger`    |
 
 ## Scripts do frontend
 

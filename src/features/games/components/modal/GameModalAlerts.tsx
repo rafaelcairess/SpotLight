@@ -1,7 +1,3 @@
-/**
- * Componente da feature games.
- */
-
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +26,6 @@ export const GameModalAlerts = ({ appId }: GameModalAlertsProps) => {
   const { toast } = useToast();
   const { t } = useTranslation();
 
-  // Estado interno do modal e do valor do preco alvo.
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [targetPriceInput, setTargetPriceInput] = useState("");
 

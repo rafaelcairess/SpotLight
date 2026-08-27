@@ -1,7 +1,3 @@
-/**
- * Página pública de uma lista personalizada (/lists/:listId).
- */
-
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Globe, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";

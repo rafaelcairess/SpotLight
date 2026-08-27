@@ -1,7 +1,3 @@
-/**
- * Hook de dados/estado (useMostPlayedGames).
- */
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { mapGameRows, type GameRow } from "@/features/games/data/gameMapper";

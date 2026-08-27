@@ -1,7 +1,3 @@
-/**
- * Componente da feature collections.
- */
-
 import { Link } from "react-router-dom";
 import {
   Building2,
@@ -88,20 +84,17 @@ const CategoryCard = ({ category, index = 0, compact = false }: CategoryCardProp
       )}
       style={{ animationDelay: `${index * 100}ms` }}
     >
-      {/* Glow Effect */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
         <div className="absolute inset-0 bg-primary/5" />
         <div className="absolute -inset-2 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-2xl" />
       </div>
 
-      {/* Content */}
       <div
         className={cn(
           "relative flex h-full flex-col items-start justify-end text-left",
           compact ? "p-4 sm:p-5" : "p-5 sm:p-6",
         )}
       >
-        {/* Icon */}
         <div
           className={cn(
             "mb-auto grid place-items-center rounded-xl border border-white/10 bg-black/15 backdrop-blur-sm transition-all duration-300 group-hover:border-primary/30 group-hover:bg-primary/10",
@@ -111,7 +104,6 @@ const CategoryCard = ({ category, index = 0, compact = false }: CategoryCardProp
           <Icon className="h-5 w-5 text-foreground transition-colors group-hover:text-primary" />
         </div>
 
-        {/* Title */}
         <h3
           className={cn(
             "mb-1 flex w-full items-center justify-between gap-3 font-bold transition-colors group-hover:text-primary",
@@ -122,7 +114,6 @@ const CategoryCard = ({ category, index = 0, compact = false }: CategoryCardProp
           <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
         </h3>
 
-        {/* Description */}
         <p
           className={cn(
             "line-clamp-2 max-w-[230px] text-muted-foreground",
@@ -133,7 +124,6 @@ const CategoryCard = ({ category, index = 0, compact = false }: CategoryCardProp
         </p>
       </div>
 
-      {/* Corner Accent */}
       <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-full" />
     </Link>
   );

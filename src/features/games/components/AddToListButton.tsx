@@ -1,7 +1,3 @@
-/**
- * Componente da feature games — adicionar jogo a uma lista personalizada.
- */
-
 import { useState } from "react";
 import { List, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";

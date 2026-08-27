@@ -1,7 +1,3 @@
-/**
- * Página da feature alerts.
- */
-
 import { useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Bell, Trash2, ArrowLeft } from "lucide-react";
@@ -42,71 +38,68 @@ export default function Alerts() {
   return (
     <PageShell>
       <PageContainer width="content" className="pb-12">
-          <Link
-            to="/profile"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t("alerts.backProfile")}
-          </Link>
+        <Link
+          to="/profile"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {t("alerts.backProfile")}
+        </Link>
 
-          <SectionHeader title={t("alerts.title")} subtitle={t("alerts.subtitle")} icon={Bell} />
+        <SectionHeader title={t("alerts.title")} subtitle={t("alerts.subtitle")} icon={Bell} />
 
-          {isLoading || gamesLoading ? (
-            <LoadingSkeleton variant="card" count={3} />
-          ) : alerts.length === 0 ? (
-            <div className="empty-state">{t("alerts.empty")}</div>
-          ) : (
-            <div className="space-y-4">
-              {alerts.map((alert) => {
-                const game = gameMap.get(alert.game_id);
-                const targetValue = alert.target_price !== null ? Number(alert.target_price) : null;
+        {isLoading || gamesLoading ? (
+          <LoadingSkeleton variant="card" count={3} />
+        ) : alerts.length === 0 ? (
+          <div className="empty-state">{t("alerts.empty")}</div>
+        ) : (
+          <div className="space-y-4">
+            {alerts.map((alert) => {
+              const game = gameMap.get(alert.game_id);
+              const targetValue = alert.target_price !== null ? Number(alert.target_price) : null;
 
-                return (
-                  <div
-                    key={alert.id}
-                    className="surface-card flex flex-col gap-4 p-4 sm:flex-row"
-                  >
-                    <div className="w-full sm:w-40 h-24 rounded-lg overflow-hidden bg-secondary/40">
-                      {game?.image && (
-                        <img
-                          src={game.image}
-                          alt={game.title}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <h3 className="text-lg font-semibold">
-                        {game?.title || `App ${alert.game_id}`}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {t("alerts.target")}: {formatCurrency(targetValue)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {t("alerts.activeSince", {
-                          date: new Date(alert.created_at).toLocaleDateString(locale),
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex items-start justify-end">
-                      <Button
-                        variant="outline"
-                        className="gap-2"
-                        disabled={removeAlert.isPending}
-                        onClick={() => removeAlert.mutate(alert.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        {t("alerts.remove")}
-                      </Button>
-                    </div>
+              return (
+                <div key={alert.id} className="surface-card flex flex-col gap-4 p-4 sm:flex-row">
+                  <div className="w-full sm:w-40 h-24 rounded-lg overflow-hidden bg-secondary/40">
+                    {game?.image && (
+                      <img
+                        src={game.image}
+                        alt={game.title}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
+                  <div className="flex-1 space-y-2">
+                    <h3 className="text-lg font-semibold">
+                      {game?.title || `App ${alert.game_id}`}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {t("alerts.target")}: {formatCurrency(targetValue)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("alerts.activeSince", {
+                        date: new Date(alert.created_at).toLocaleDateString(locale),
+                      })}
+                    </p>
+                  </div>
+                  <div className="flex items-start justify-end">
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      disabled={removeAlert.isPending}
+                      onClick={() => removeAlert.mutate(alert.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      {t("alerts.remove")}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </PageContainer>
     </PageShell>
   );

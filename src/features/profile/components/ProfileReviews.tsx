@@ -1,7 +1,3 @@
-/**
- * Componente da feature profile.
- */
-
 import { useMemo, useState } from "react";
 import { ThumbsUp, ThumbsDown, Clock, Trash2, Pencil } from "lucide-react";
 import { Review, useDeleteReview } from "@/hooks/useReviews";

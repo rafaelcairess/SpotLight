@@ -1,7 +1,3 @@
-/**
- * Helpers utilitários (sort).
- */
-
 export const sortByPopularity = <
   T extends { activePlayers?: number; communityRating?: number; title?: string },
 >(

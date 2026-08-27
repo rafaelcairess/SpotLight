@@ -1,7 +1,3 @@
-/**
- * Componente da feature profile — aba de listas personalizadas.
- */
-
 import { useState } from "react";
 import { Plus, Trash2, Globe, Lock, List } from "lucide-react";
 import { Button } from "@/components/ui/button";

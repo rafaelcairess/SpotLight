@@ -1,7 +1,3 @@
-/**
- * Componente de UI compartilhado (textarea).
- */
-
 import * as React from "react";
 
 import { cn } from "@/lib/utils";

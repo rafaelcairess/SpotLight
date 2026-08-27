@@ -1,7 +1,3 @@
-/**
- * Componente compartilhado (LanguageSwitcher).
- */
-
 import { Globe } from "lucide-react";
 import {
   DropdownMenu,

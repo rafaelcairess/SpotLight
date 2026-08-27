@@ -1,7 +1,3 @@
-/**
- * Roteamento principal e providers do app.
- */
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -87,7 +83,6 @@ const App = () => (
               <Route path="/lists/:listId" element={<ListPage />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/friends" element={<Friends />} />
-              {/* Adicione todas as rotas acima do catch-all "*" */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             <OnboardingModal />

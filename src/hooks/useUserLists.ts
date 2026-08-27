@@ -1,7 +1,3 @@
-/**
- * Hook de dados/estado (useUserLists).
- */
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,7 +20,6 @@ export interface UserListGame {
   added_at: string;
 }
 
-// Busca todas as listas do usuário logado.
 export function useUserLists() {
   const { user } = useAuth();
 
@@ -45,7 +40,6 @@ export function useUserLists() {
   });
 }
 
-// Busca uma lista pública por ID.
 export function useUserListById(listId: string | undefined) {
   return useQuery({
     queryKey: ["user_list", listId],
@@ -64,7 +58,6 @@ export function useUserListById(listId: string | undefined) {
   });
 }
 
-// Busca os jogos de uma lista.
 export function useUserListGames(listId: string | undefined) {
   return useQuery({
     queryKey: ["user_list_games", listId],
@@ -83,7 +76,6 @@ export function useUserListGames(listId: string | undefined) {
   });
 }
 
-// Cria uma nova lista.
 export function useCreateUserList() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -118,7 +110,6 @@ export function useCreateUserList() {
   });
 }
 
-// Remove uma lista.
 export function useDeleteUserList() {
   const queryClient = useQueryClient();
 
@@ -133,7 +124,6 @@ export function useDeleteUserList() {
   });
 }
 
-// Adiciona um jogo a uma lista.
 export function useAddGameToList() {
   const queryClient = useQueryClient();
 
@@ -161,7 +151,6 @@ export function useAddGameToList() {
   });
 }
 
-// Remove um jogo de uma lista.
 export function useRemoveGameFromList() {
   const queryClient = useQueryClient();
 

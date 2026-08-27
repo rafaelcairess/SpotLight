@@ -1,7 +1,3 @@
-/**
- * Hook de dados/estado (useSteamPlaytime).
- */
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 

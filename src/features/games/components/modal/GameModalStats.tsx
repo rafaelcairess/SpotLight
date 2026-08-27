@@ -1,7 +1,3 @@
-/**
- * Componente da feature games.
- */
-
 import { Users, Star, Calendar, Building } from "lucide-react";
 import { GameData } from "@/types/game";
 import { cn } from "@/lib/utils";
@@ -16,7 +12,6 @@ interface GameModalStatsProps {
 export const GameModalStats = ({ game, variant = "compact" }: GameModalStatsProps) => {
   const { t } = useTranslation();
 
-  // Linha de metricas rapidas do jogo (jogadores, nota, data e estudio).
   return (
     <div
       className={cn(

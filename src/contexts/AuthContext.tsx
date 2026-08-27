@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     };
 
-    // Configura o listener de auth primeiro
+    // O listener precisa existir antes da leitura da sessão para evitar perder mudanças.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -62,7 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       applySession(session);
     });
 
-    // Depois, checa a sessao existente
     supabase.auth
       .getSession()
       .then(({ data: { session } }) => {

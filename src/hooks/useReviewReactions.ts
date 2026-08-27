@@ -1,7 +1,3 @@
-/**
- * Hook de dados/estado (useReviewReactions).
- */
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,7 +39,6 @@ function ensureUserSet(map: Map<string, Set<ReviewReactionType>>, reviewId: stri
   return map.get(reviewId)!;
 }
 
-// Carrega reações para uma lista de reviews (contagens + reações do usuário logado).
 export function useReviewReactions(reviewIds: string[]) {
   const { user } = useAuth();
   const normalizedIds = [...new Set(reviewIds)].filter(Boolean).sort();
@@ -79,7 +74,6 @@ export function useReviewReactions(reviewIds: string[]) {
   });
 }
 
-// Adiciona uma reação do usuário na review.
 export function useAddReviewReaction() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -112,7 +106,6 @@ export function useAddReviewReaction() {
   });
 }
 
-// Remove uma reação do usuário na review.
 export function useRemoveReviewReaction() {
   const { user } = useAuth();
   const queryClient = useQueryClient();

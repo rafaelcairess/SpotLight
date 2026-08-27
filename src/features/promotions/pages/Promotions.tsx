@@ -1,7 +1,3 @@
-/**
- * Página da feature promotions.
- */
-
 import { PageContainer, PageShell } from "@/components/PageShell";
 import PromotionsBar from "@/features/promotions/components/PromotionsBar";
 

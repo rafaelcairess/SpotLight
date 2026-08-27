@@ -1,7 +1,3 @@
-/**
- * Modal "O que há de novo" — exibido uma vez por versão para usuários retornantes.
- */
-
 import { useEffect, useState } from "react";
 import { Gamepad2, Trophy, BarChart2, Bug, Sparkles, List, Zap } from "lucide-react";
 import {

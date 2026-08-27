@@ -1,7 +1,3 @@
-/**
- * Hook de dados/estado (usePriceAlerts).
- */
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,7 +12,6 @@ export interface PriceAlert {
   created_at: string;
 }
 
-// Hook para listar e gerenciar alertas de preço do usuário.
 export function usePriceAlerts(gameId?: number) {
   const { user } = useAuth();
   const queryClient = useQueryClient();

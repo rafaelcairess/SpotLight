@@ -1,7 +1,3 @@
-/**
- * Componente da feature promotions.
- */
-
 import { useState } from "react";
 import { DollarSign } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";

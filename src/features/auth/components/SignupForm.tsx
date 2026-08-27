@@ -1,7 +1,3 @@
-/**
- * Componente da feature auth.
- */
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,15 +90,12 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         </div>
       </div>
 
-      {/* Cadastro/login rápido via plataforma */}
       <div className="space-y-2">
-        {/* Steam */}
         <Button type="button" variant="outline" className="w-full gap-2" onClick={handleSteamLogin}>
           <img src={steamIcon} alt="Steam" className="w-4 h-4" />
           {t("auth.form.steamLogin")}
         </Button>
 
-        {/* Google — em construção */}
         <Button
           type="button"
           variant="outline"
@@ -131,7 +124,6 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
           <span className="ml-auto text-xs text-muted-foreground">Em breve</span>
         </Button>
 
-        {/* Xbox — em construção */}
         <Button
           type="button"
           variant="outline"

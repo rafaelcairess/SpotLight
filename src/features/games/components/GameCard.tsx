@@ -1,7 +1,3 @@
-/**
- * Componente da feature games.
- */
-
 import { Users, Star, ExternalLink, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { GameData } from "@/types/game";

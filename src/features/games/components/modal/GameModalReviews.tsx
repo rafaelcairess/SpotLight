@@ -1,7 +1,3 @@
-/**
- * Componente da feature games.
- */
-
 import { useState } from "react";
 import { ThumbsUp, ThumbsDown, Clock, Trash2, Pencil, Smile, BadgeCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,7 +39,6 @@ export const GameModalReviews = ({ appId, gameTitle }: GameModalReviewsProps) =>
   const { locale } = useLanguage();
   const dateLocale = getDateLocale(locale);
 
-  // Carrega as reviews e reacoes desta pagina.
   const { data: reviews = [], isLoading } = useReviewsByGame(appId);
   const deleteReview = useDeleteReview();
   const { data: reactionData } = useReviewReactions(reviews.map((review) => review.id));

@@ -1,7 +1,3 @@
-/**
- * Componente compartilhado (SectionHeader).
- */
-
 import { Link } from "react-router-dom";
 import { ChevronRight, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";

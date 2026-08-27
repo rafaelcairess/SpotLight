@@ -1,7 +1,3 @@
-/**
- * Componente da feature games.
- */
-
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { GameData } from "@/types/game";
@@ -57,7 +53,6 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
 
   const displayGame = fullGame ?? game;
 
-  // Modal principal com areas separadas em componentes menores.
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-h-[calc(100dvh-0.75rem)] w-[calc(100%-0.75rem)] max-w-3xl grid-rows-[auto_1fr] gap-0 overflow-hidden rounded-2xl border-border/50 bg-card p-0 sm:max-h-[90vh] sm:w-full">
@@ -66,7 +61,6 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
         <div className="min-h-0 space-y-5 overflow-y-auto overscroll-contain p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:space-y-6 sm:p-6">
           <GameModalStats game={displayGame} />
 
-          {/* Descricao do jogo */}
           {displayGame.short_description && (
             <div>
               <h3 className="text-sm font-medium text-muted-foreground mb-2">
@@ -78,7 +72,6 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
 
           <GameModalMedia game={displayGame} loading={ensureDetails.isPending} />
 
-          {/* Acoes de biblioteca + review */}
           <div className="pt-4 border-t border-border/50 space-y-4">
             <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
               <GameLibraryActions
@@ -100,10 +93,8 @@ const GameModal = ({ game, isOpen, onClose }: GameModalProps) => {
             )}
           </div>
 
-          {/* Reviews da comunidade */}
           <GameModalReviews appId={Number(displayGame.app_id)} gameTitle={displayGame.title} />
 
-          {/* Preco, alertas e botao da Steam */}
           <GameModalFooter game={displayGame} />
         </div>
       </DialogContent>

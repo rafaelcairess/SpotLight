@@ -1,7 +1,3 @@
-/**
- * Componente da feature auth.
- */
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -88,15 +84,12 @@ export function LoginForm({ onSwitchToSignup, onForgotPassword }: LoginFormProps
         </div>
       </div>
 
-      {/* Login com plataformas */}
       <div className="space-y-2">
-        {/* Steam */}
         <Button type="button" variant="outline" className="w-full gap-2" onClick={handleSteamLogin}>
           <img src={steamIcon} alt="Steam" className="w-4 h-4" />
           {t("auth.form.steamLogin")}
         </Button>
 
-        {/* Google — em construção */}
         <Button
           type="button"
           variant="outline"
@@ -125,7 +118,6 @@ export function LoginForm({ onSwitchToSignup, onForgotPassword }: LoginFormProps
           <span className="ml-auto text-xs text-muted-foreground">Em breve</span>
         </Button>
 
-        {/* Xbox — em construção */}
         <Button
           type="button"
           variant="outline"

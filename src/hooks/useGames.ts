@@ -1,7 +1,3 @@
-/**
- * Hook de dados/estado (useGames).
- */
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GameData } from "@/types/game";
@@ -32,7 +28,6 @@ type SteamAppRow = {
 export type CatalogGame = GameData & { hasDetails: boolean };
 type CatalogItem = { app_id: number; title: string; image?: string };
 
-// Aplica campos localizados sem perder o fallback original.
 const applyLocalization = (game: GameData, localization?: GameLocalizationRow | null): GameData => {
   if (!localization) return game;
   return {
@@ -44,7 +39,6 @@ const applyLocalization = (game: GameData, localization?: GameLocalizationRow | 
   };
 };
 
-// Busca localizacoes por app_id + locale.
 const fetchLocalizations = async (appIds: number[], locale: SupportedLocale) => {
   if (!appIds.length) return [] as GameLocalizationRow[];
   const { data, error } = await supabase
@@ -57,17 +51,14 @@ const fetchLocalizations = async (appIds: number[], locale: SupportedLocale) => 
   return (data ?? []) as GameLocalizationRow[];
 };
 
-// Mescla localizacoes mantendo a ordem original da lista.
 const mergeLocalizations = (games: GameData[], localizations: GameLocalizationRow[]) => {
   if (!localizations.length) return games;
   const map = new Map(localizations.map((row) => [row.app_id, row]));
   return games.map((game) => applyLocalization(game, map.get(game.app_id)));
 };
 
-// Converte linhas do banco para o formato da UI + filtra nao-jogos.
 const mapRowsToGames = (rows?: GameRow[]) => (rows ?? []).map(mapGameRow).filter(isLikelyGame);
 
-// Aplica localizacoes para o idioma atual.
 const localizeGames = async (games: GameData[], locale: SupportedLocale) => {
   if (!games.length) return [];
   const localizations = await fetchLocalizations(
@@ -77,7 +68,6 @@ const localizeGames = async (games: GameData[], locale: SupportedLocale) => {
   return mergeLocalizations(games, localizations);
 };
 
-// Helper padrao para consultas de jogos com localizacoes e filtro de nao-jogos.
 const fetchGamesWithLocalization = async (
   fetcher: () => PromiseLike<{ data: GameRow[] | null; error: unknown }>,
   locale: SupportedLocale,
@@ -88,8 +78,6 @@ const fetchGamesWithLocalization = async (
   return localizeGames(games, locale);
 };
 
-// Merge de itens do catalogo com detalhes/localizacao quando existirem.
-// Quando nao existe detalhe, monta um GameData minimo com poster e placeholders.
 const mergeCatalogItems = async (items: CatalogItem[], locale: SupportedLocale) => {
   if (!items.length) return [] as CatalogGame[];
 
@@ -348,7 +336,6 @@ export function useEnsureGameDetails() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    // Busca detalhes completos na Steam via edge function.
     mutationFn: async (appId: number) => {
       const { data, error } = await supabase.functions.invoke("fetch-steam-details", {
         body: { app_id: appId, language: locale },
@@ -356,7 +343,6 @@ export function useEnsureGameDetails() {
       if (error) throw error;
       return data as { status: string; app_id: number };
     },
-    // Revalida caches que dependem do detalhe do jogo.
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["games", "by-id"] });
       queryClient.invalidateQueries({ queryKey: ["games", "by-ids"] });

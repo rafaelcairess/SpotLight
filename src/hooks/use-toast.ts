@@ -1,7 +1,3 @@
-/**
- * Hook de dados/estado (use toast).
- */
-
 import * as React from "react";
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
@@ -80,8 +76,6 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action;
 
-      // ! Efeitos colaterais ! - poderia virar um dismissToast(),
-      // mas deixei aqui por simplicidade
       if (toastId) {
         addToRemoveQueue(toastId);
       } else {

@@ -1,7 +1,3 @@
-/**
- * Página da feature collections.
- */
-
 import { Sparkles, Orbit } from "lucide-react";
 import { PageContainer, PageShell } from "@/components/PageShell";
 import CategoryCard from "@/features/collections/components/CategoryCard";
