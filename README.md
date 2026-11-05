@@ -5,8 +5,8 @@
 ### Sua biblioteca, suas conquistas e sua história gamer em um só perfil.
 
 <p>
-  <a href="https://spot-light-xi.vercel.app">
-    <img alt="SpotLight online" src="https://img.shields.io/badge/PROJETO-ONLINE-22c55e?style=for-the-badge&logo=vercel&logoColor=white">
+  <a href="https://spotlight.rafaelcpires.abrdns.com/">
+    <img alt="SpotLight online na AWS" src="https://img.shields.io/badge/PROJETO-ONLINE-FF9900?style=for-the-badge&logo=amazonwebservices&logoColor=white">
   </a>
   <a href="https://github.com/rafaelcairess/SpotLight/actions/workflows/ci.yml">
     <img alt="Status da CI" src="https://img.shields.io/github/actions/workflow/status/rafaelcairess/SpotLight/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI">
@@ -23,16 +23,17 @@
   <img alt="Tailwind CSS 3" src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white">
   <img alt="Supabase" src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white">
   <img alt=".NET 8" src="https://img.shields.io/badge/.NET-8-512BD4?style=flat-square&logo=dotnet&logoColor=white">
+  <img alt="AWS" src="https://img.shields.io/badge/AWS-CloudFront_%2B_S3-FF9900?style=flat-square&logo=amazonwebservices&logoColor=white">
 </p>
 
-[Acessar o projeto](https://spot-light-xi.vercel.app) ·
+[Acessar o projeto](https://spotlight.rafaelcpires.abrdns.com/) ·
 [Ver funcionalidades](#principais-funcionalidades) ·
 [Conhecer a arquitetura](#arquitetura)
 
 <br>
 
-<a href="https://spot-light-xi.vercel.app">
-  <img src="docs/screenshots/explorar.webp" alt="Página Explorar do SpotLight com destaque editorial, coleções e jogos em alta" width="100%">
+<a href="https://spotlight.rafaelcpires.abrdns.com/">
+  <img src="docs/screenshots/explorar.webp?v=aws-20261105" alt="Página Explorar do SpotLight com destaque editorial, coleções e jogos em alta" width="100%">
 </a>
 
 </div>
@@ -46,7 +47,10 @@ Eu criei o **SpotLight** para reunir essa história em um só lugar. A aplicaç�
 Além da biblioteca pessoal, o SpotLight combina destaques editoriais, coleções temáticas, rankings, promoções, reviews e recomendações para ajudar o usuário a escolher o próximo jogo.
 
 > [!NOTE]
-> A sincronização automática da Steam está disponível. Jogos e platinas de Xbox e PlayStation podem ser cadastrados manualmente enquanto as integrações oficiais continuam em desenvolvimento.
+> A sincronização automática da Steam está disponível. As integrações com Xbox e PlayStation continuam evoluindo durante a migração, com cadastro manual disponível nos fluxos ainda não automatizados.
+
+> [!IMPORTANT]
+> O ambiente principal está em migração gradual para a AWS. Durante essa transição, partes da aplicação ainda dependem do Supabase e podem apresentar instabilidades temporárias.
 
 ## Principais funcionalidades
 
@@ -66,13 +70,13 @@ Além da biblioteca pessoal, o SpotLight combina destaques editoriais, coleçõe
 <table>
   <tr>
     <td width="50%">
-      <a href="https://spot-light-xi.vercel.app/u/rafa">
-        <img src="docs/screenshots/perfil-publico.webp" alt="Perfil público do SpotLight com estatísticas, abas e jogos platinados">
+      <a href="https://spotlight.rafaelcpires.abrdns.com/u/rafa">
+        <img src="docs/screenshots/perfil-publico.webp?v=aws-20261105" alt="Perfil público do SpotLight com estatísticas, plataformas, abas e jogos platinados">
       </a>
     </td>
     <td width="50%">
-      <a href="https://spot-light-xi.vercel.app/top">
-        <img src="docs/screenshots/top-games.webp" alt="Ranking Top Games do SpotLight">
+      <a href="https://spotlight.rafaelcpires.abrdns.com/top">
+        <img src="docs/screenshots/top-games.webp?v=aws-20261105" alt="Ranking Top Games do SpotLight">
       </a>
     </td>
   </tr>
@@ -82,8 +86,8 @@ Além da biblioteca pessoal, o SpotLight combina destaques editoriais, coleçõe
   </tr>
   <tr>
     <td colspan="2">
-      <a href="https://spot-light-xi.vercel.app/mais-jogados">
-        <img src="docs/screenshots/mais-jogados.webp" alt="Ranking dos jogos mais jogados da Steam">
+      <a href="https://spotlight.rafaelcpires.abrdns.com/mais-jogados">
+        <img src="docs/screenshots/mais-jogados.webp?v=aws-20261105" alt="Ranking dos jogos mais jogados da Steam">
       </a>
     </td>
   </tr>
@@ -98,28 +102,33 @@ Além da biblioteca pessoal, o SpotLight combina destaques editoriais, coleçõe
 Usuário
    │
    ▼
-React + TypeScript (Vercel)
+Amazon CloudFront
    │
-   ├── Supabase Auth
-   ├── PostgreSQL + Row Level Security
-   ├── Storage
-   └── Edge Functions (Deno)
-              │
-              └── Steam Web API e serviços externos
+   ▼
+React + TypeScript (Amazon S3)
+   │
+   ├── API ASP.NET Core 8 (migração gradual)
+   └── Supabase (serviços em transição)
+          ├── Auth
+          ├── PostgreSQL + Row Level Security
+          ├── Storage
+          └── Edge Functions (Deno)
+                     │
+                     └── Steam Web API e serviços externos
 ```
 
-O frontend é organizado por domínios de negócio. O acesso a dados fica em hooks reutilizáveis e o TanStack Query cuida de cache, mutations e invalidações. Operações que dependem de segredos são executadas nas Edge Functions, nunca no navegador.
+O frontend é organizado por domínios de negócio. O acesso a dados fica em hooks reutilizáveis e o TanStack Query cuida de cache, mutations e invalidações. O build de produção é distribuído pelo Amazon CloudFront a partir do Amazon S3.
 
-| Camada        | Tecnologias                               |
-| ------------- | ----------------------------------------- |
-| **Frontend**  | React 18, TypeScript, Vite e React Router |
-| **Interface** | Tailwind CSS, shadcn/ui e Radix UI        |
-| **Dados**     | TanStack Query, Supabase e PostgreSQL     |
-| **Backend**   | Supabase Edge Functions com Deno          |
-| **Qualidade** | Vitest, ESLint, Prettier e TypeScript     |
-| **Entrega**   | Vercel e GitHub Actions                   |
+| Camada        | Tecnologias                                                 |
+| ------------- | ----------------------------------------------------------- |
+| **Frontend**  | React 18, TypeScript, Vite e React Router                   |
+| **Interface** | Tailwind CSS, shadcn/ui e Radix UI                          |
+| **Dados**     | TanStack Query, PostgreSQL e Supabase durante a transição   |
+| **Backend**   | ASP.NET Core 8 e Supabase Edge Functions durante a migração |
+| **Qualidade** | Vitest, ESLint, Prettier e TypeScript                       |
+| **Entrega**   | AWS CloudFront, Amazon S3 e GitHub Actions                  |
 
-Uma API em **ASP.NET Core 8** também está sendo desenvolvida como base para uma migração gradual do backend. Ela já possui health check, autenticação JWT/JWKS e testes automatizados, mas ainda não faz parte do ambiente de produção.
+A API em **ASP.NET Core 8** é a base da migração gradual do backend. Ela já possui health check, autenticação JWT/JWKS e testes automatizados, enquanto responsabilidades ainda mantidas no Supabase são transferidas aos poucos para a nova infraestrutura na AWS.
 
 Mais detalhes estão no [guia de arquitetura](docs/ARCHITECTURE.md).
 
