@@ -32,7 +32,7 @@
 <br>
 
 <a href="https://spot-light-xi.vercel.app">
-  <img src="docs/screenshots/explorar.webp" alt="Página Explorar do SpotLight com jogos em destaque, coleções e rankings" width="100%">
+  <img src="docs/screenshots/explorar.webp" alt="Página Explorar do SpotLight com destaque editorial, coleções e jogos em alta" width="100%">
 </a>
 
 </div>
@@ -41,32 +41,33 @@
 
 Steam, Xbox e PlayStation guardam partes diferentes da nossa vida nos games. Para lembrar o que jogou, quanto tempo investiu ou quais jogos completou, normalmente é preciso consultar vários perfis.
 
-Eu criei o **SpotLight** para reunir essa história em um só lugar. A aplicação importa a biblioteca da Steam, organiza jogos de diferentes plataformas e transforma esses dados em um perfil gamer público e compartilhável.
+Eu criei o **SpotLight** para reunir essa história em um só lugar. A aplicação importa a biblioteca da Steam, organiza jogos de diferentes plataformas e transforma esses dados em um perfil gamer público, visual e compartilhável.
 
-Além da biblioteca pessoal, o SpotLight oferece busca, rankings, promoções, reviews e recomendações para ajudar o usuário a escolher o próximo jogo.
+Além da biblioteca pessoal, o SpotLight combina destaques editoriais, coleções temáticas, rankings, promoções, reviews e recomendações para ajudar o usuário a escolher o próximo jogo.
 
 > [!NOTE]
 > A sincronização automática da Steam está disponível. Jogos e platinas de Xbox e PlayStation podem ser cadastrados manualmente enquanto as integrações oficiais continuam em desenvolvimento.
 
 ## Principais funcionalidades
 
-| Área               | O que o SpotLight oferece                                                  |
-| ------------------ | -------------------------------------------------------------------------- |
-| **Biblioteca**     | Importação da Steam, horas jogadas, status, favoritos e jogos platinados   |
-| **Perfil**         | Página pública com avatar, bio, jogo favorito, biblioteca e vitrines       |
-| **Descoberta**     | Busca, coleções, promoções e rankings atualizados com dados da Steam       |
-| **Comunidade**     | Amigos, comentários, reviews e listas públicas compartilháveis             |
-| **Personalização** | Privacidade por perfil e jogo, horas manuais e identificação da plataforma |
-| **Alertas**        | Notificação por e-mail quando um jogo atinge o preço desejado              |
-| **Idiomas**        | Interface em português, inglês e espanhol                                  |
+| Área               | O que o SpotLight oferece                                                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------- |
+| **Biblioteca**     | Importação da Steam, horas jogadas, status, favoritos e jogos platinados                        |
+| **Perfil**         | Página pública com nível, estatísticas, biblioteca, platinas, reviews, amigos e comentários     |
+| **Descoberta**     | Destaque editorial, coleções por categoria, lançamentos, jogos aclamados, busca e recomendações |
+| **Rankings**       | Top 10 do SpotLight e lista dos jogos mais ativos da Steam, em grade ou lista                   |
+| **Comunidade**     | Seguidores, amizades, comentários, reviews e listas públicas compartilháveis                    |
+| **Promoções**      | Ofertas da Steam e alertas por e-mail quando um jogo atinge o preço desejado                    |
+| **Personalização** | Privacidade por perfil e jogo, horas manuais, plataforma, idioma e preferência de layout        |
+| **Idiomas**        | Interface em português, inglês e espanhol                                                       |
 
 ## Demonstração
 
 <table>
   <tr>
     <td width="50%">
-      <a href="https://spot-light-xi.vercel.app/u/aeb">
-        <img src="docs/screenshots/perfil-publico.webp" alt="Perfil público do SpotLight">
+      <a href="https://spot-light-xi.vercel.app/u/rafa">
+        <img src="docs/screenshots/perfil-publico.webp" alt="Perfil público do SpotLight com estatísticas, abas e jogos platinados">
       </a>
     </td>
     <td width="50%">
@@ -78,6 +79,16 @@ Além da biblioteca pessoal, o SpotLight oferece busca, rankings, promoções, r
   <tr>
     <td align="center"><strong>Perfil público</strong></td>
     <td align="center"><strong>Top Games</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <a href="https://spot-light-xi.vercel.app/mais-jogados">
+        <img src="docs/screenshots/mais-jogados.webp" alt="Ranking dos jogos mais jogados da Steam">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><strong>Mais jogados da Steam</strong></td>
   </tr>
 </table>
 
